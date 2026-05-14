@@ -1,5 +1,7 @@
+const API = 'https://trendaura-production-06c0.up.railway.app'
+
 export const generateScript = async (prompt) => {
-  const response = await fetch('http://192.168.8.168:5000/api/ai/generate', {
+  const response = await fetch(`${API}/api/ai/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt })
@@ -10,7 +12,7 @@ export const generateScript = async (prompt) => {
 
 export const fetchTrends = async (niche = '') => {
   try {
-    const response = await fetch('http://192.168.8.168:5000/api/ai/trends', {
+    const response = await fetch(`${API}/api/ai/trends`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ niche })
@@ -24,7 +26,7 @@ export const fetchTrends = async (niche = '') => {
 
 export const fetchHashtags = async (topic = '') => {
   try {
-    const response = await fetch('http://192.168.8.168:5000/api/ai/hashtags', {
+    const response = await fetch(`${API}/api/ai/hashtags`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ topic })

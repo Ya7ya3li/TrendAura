@@ -31,7 +31,7 @@ export default function Pricing() {
       return
     }
     setLoading(true)
-    const res = await fetch('http://localhost:5000/api/ai/checkout', {
+    const res = await fetch('https://trendaura-production-06c0.up.railway.app', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: user.email, userId: user.id })
