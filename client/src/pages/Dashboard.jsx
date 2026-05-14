@@ -233,7 +233,7 @@ SCRIPT:
 
         <div className="topbar">
           <div>
-            <h1>مرحباً </h1>
+            <h1>مرحبا</h1>
             <p>مساعدك الذكي لصناعة المحتوى</p>
           </div>
         </div>
