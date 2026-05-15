@@ -56,85 +56,60 @@ export default function Dashboard() {
     setLoadingTrends(false)
   }
 
- const generate = async () => {
-  if (!prompt) return
+  const generate = async () => {
+    if (!prompt) return
 
-  // تحقق من تسجيل الدخول
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData?.user) {
-    alert('🔒 لازم تسجل دخول أولاً عشان تولّد سكربتات')
-    window.location.href = '/login'
-    return
-  }
+    // تحقق من تسجيل الدخول
+    const { data: authData } = await supabase.auth.getUser()
+    if (!authData?.user) {
+      alert('🔒 لازم تسجل دخول أولاً عشان تولّد سكربتات')
+      window.location.href = '/login'
+      return
+    }
 
-  setLoading(true)
+    setLoading(true)
+    const userId = authData.user.id
 
-        // ===== تحقق من الخطة =====
-
-    const { data: userData } = await supabase.auth.getUser()
-    const userId = userData?.user?.id
-
+    // تحقق من الخطة والعداد
     const { data: profileData } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .maybeSingle()
 
-    const isPro =
-      profileData?.plan?.toUpperCase() === 'PRO'
+    const isPro = profileData?.plan?.toUpperCase() === 'PRO'
 
     if (!isPro) {
-
       const now = new Date()
-
       const resetDate = profileData?.count_reset_date
         ? new Date(profileData.count_reset_date)
         : now
 
-      // تصفير شهري
       if (
         now.getMonth() !== resetDate.getMonth() ||
         now.getFullYear() !== resetDate.getFullYear()
       ) {
-
         await supabase
           .from('profiles')
-          .update({
-            monthly_count: 0,
-            count_reset_date: now.toISOString()
-          })
+          .update({ monthly_count: 0, count_reset_date: now.toISOString() })
           .eq('id', userId)
-
         profileData.monthly_count = 0
       }
 
-      const currentCount =
-        profileData?.monthly_count || 0
+      const currentCount = profileData?.monthly_count || 0
 
       if (currentCount >= 5) {
-
         setLoading(false)
-
-        alert(
-          '⚠️ وصلت للحد المجاني (5 سكربتات شهرياً)\n\nاشترك في PRO للحصول على سكربتات غير محدودة 🚀'
-        )
-
+        alert('⚠️ وصلت للحد المجاني (5 سكربتات شهرياً)\n\nاشترك في PRO للحصول على سكربتات غير محدودة 🚀')
         window.location.href = '/pricing'
-
         return
       }
 
-      // زيادة العداد
       await supabase
         .from('profiles')
-        .update({
-          monthly_count: currentCount + 1
-        })
+        .update({ monthly_count: currentCount + 1 })
         .eq('id', userId)
-
     }
-
-    // ===================================
 
     const result = await generateScript(
 `
@@ -242,7 +217,7 @@ SCRIPT:
 
         <div className="topbar">
           <div>
-            <h1>مرحبا</h1>
+            <h1>مرحباً 👋</h1>
             <p>مساعدك الذكي لصناعة المحتوى</p>
           </div>
         </div>
