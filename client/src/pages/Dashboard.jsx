@@ -56,9 +56,18 @@ export default function Dashboard() {
     setLoadingTrends(false)
   }
 
-  const generate = async () => {
-    if (!prompt) return
-    setLoading(true)
+ const generate = async () => {
+  if (!prompt) return
+
+  // تحقق من تسجيل الدخول
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData?.user) {
+    alert('🔒 لازم تسجل دخول أولاً عشان تولّد سكربتات')
+    window.location.href = '/login'
+    return
+  }
+
+  setLoading(true)
 
         // ===== تحقق من الخطة =====
 
