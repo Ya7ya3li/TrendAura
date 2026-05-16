@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [script, setScript] = useState('')
   const [hook, setHook] = useState('')
   const [loadingTrends, setLoadingTrends] = useState(false)
+  const maxChars = 200
 
   const [trends, setTrends] = useState([
     'الحرب الاقتصادية العالمية',
@@ -165,7 +166,7 @@ SCRIPT:
     if (newTags.length > 0) setHashtags(newTags)
 
     setLoading(false)
-    showToast('تم توليد السكريبت', 'success')
+    showToast('تم توليد السكريبت ✨', 'success')
   }
 
   const copyScript = () => {
@@ -215,42 +216,95 @@ SCRIPT:
       <Sidebar />
       <main className="main-content">
 
-        <div className="topbar">
-          <div>
-            <h1>مرحباً 👋</h1>
-            <p>مساعدك الذكي لصناعة المحتوى</p>
-          </div>
-        </div>
+        {/* ===== HERO جديد ===== */}
+        <div className="new-hero">
 
-        <div className="hero-card">
-          <div className="hero-inner">
-            <div className="hero-robot">
-              <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png" alt="robot" />
+          {/* Header */}
+          <div className="new-hero-header">
+            <div className="new-hero-badge">
+              <span>✦</span> صناعة المحتوى بالذكاء الاصطناعي
             </div>
-            <div className="hero-right">
-              <h2>اكتب فكرة المحتوى</h2>
-              <textarea
-                className="prompt-input"
-                placeholder="مثال: حلل آخر الأحداث السياسية، أو اصنع قصة مرعبة قصيرة..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onInput={(e) => {
-                  e.target.style.height = 'auto'
-                  e.target.style.height = e.target.scrollHeight + 'px'
-                }}
-                rows={3}
-              />
-              <button className="generate-btn" onClick={generate} disabled={loading}>
-                {loading ? (
-                  <span className="btn-loading">
-                    <span className="spinner" /> جاري التوليد...
-                  </span>
-                ) : (
-                  '✨ توليد السكريبت'
-                )}
-              </button>
+            <div className="new-hero-logo">
+              <div className="new-hero-logo-icon">
+                <svg viewBox="0 0 60 60" width="80" height="80">
+                  <defs>
+                    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#8b5cf6"/>
+                      <stop offset="100%" stopColor="#06b6d4"/>
+                    </linearGradient>
+                  </defs>
+                  <polygon points="30,5 55,50 5,50" fill="url(#logoGrad)" opacity="0.9"/>
+                  <polygon points="30,15 50,50 10,50" fill="url(#logoGrad)" opacity="0.5"/>
+                </svg>
+              </div>
+              <div className="new-hero-logo-text">
+                <span className="logo-trend">Trend</span>
+                <span className="logo-aura">Aura</span>
+              </div>
             </div>
           </div>
+
+          {/* Title */}
+          <div className="new-hero-title">
+            <h1>اكتب فكرة المحتوى</h1>
+            <p>حول فكرتك إلى سكربت تيك توك احترافي <span className="highlight-text">جاهز للنشر</span> ويجذب المشاهدات</p>
+          </div>
+
+          {/* Input Box */}
+          <div className="new-hero-input-box">
+            <div className="new-hero-input-header">
+              <span>أدخل فكرتك هنا</span>
+              <span className="input-edit-icon">✏️</span>
+            </div>
+            <textarea
+              className="new-hero-textarea"
+              placeholder="مثال: حل آخر الأحداث السياسية بطريقة فكاهية أو اصنع قصة مرعبة قصيرة..."
+              value={prompt}
+              onChange={(e) => {
+                if (e.target.value.length <= maxChars) setPrompt(e.target.value)
+              }}
+              rows={4}
+            />
+            <div className="new-hero-input-footer">
+              <span className={`char-count ${prompt.length >= maxChars ? 'limit' : ''}`}>
+                {prompt.length}/{maxChars}
+              </span>
+              <span className="magic-icon">✨</span>
+            </div>
+          </div>
+
+          {/* Features Row */}
+          <div className="new-hero-features">
+            <div className="hero-feature">
+              <span>✓</span> جاهز للنشر
+            </div>
+            <div className="hero-feature">
+              <span>🚀</span> مصمم للانتشار
+            </div>
+            <div className="hero-feature">
+              <span>📄</span> سكربت جذاب
+            </div>
+          </div>
+
+          {/* Generate Button */}
+          <button
+            className="new-generate-btn"
+            onClick={generate}
+            disabled={loading || !prompt}
+          >
+            <div className="new-generate-btn-icon">⚡</div>
+            <span>{loading ? 'جاري التوليد...' : '✨ توليد السكريت الآن'}</span>
+            {loading && <span className="spinner" />}
+          </button>
+
+          {/* Footer */}
+          <div className="new-hero-footer">
+            تم تطويره لأصحاب المحتوى
+            <span>• ذكي ❤️</span>
+            <span>• سريع ⚡</span>
+            <span>• أمن 🛡️</span>
+          </div>
+
         </div>
 
         <div className="dashboard-grid">
