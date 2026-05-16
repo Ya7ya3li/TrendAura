@@ -62,7 +62,7 @@ export default function Dashboard() {
     // تحقق من تسجيل الدخول
     const { data: authData } = await supabase.auth.getUser()
     if (!authData?.user) {
-      alert('🔒 لازم تسجل دخول أولاً عشان تولّد سكربتات')
+      alert('الرجاء تسجيل الدخول')
       window.location.href = '/login'
       return
     }
