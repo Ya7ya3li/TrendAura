@@ -1,3 +1,4 @@
+import { showToast } from '../App'
 import { useState } from 'react'
 import { supabase } from '../config/supabase'
 import { useNavigate } from 'react-router-dom'
@@ -29,7 +30,7 @@ export default function Login() {
       })
 
       if (error) {
-        alert(error.message)
+        showToast('بيانات الدخول غير صحيحة', 'error')
       } else {
         await supabase.from('profiles').insert({
           id: data.user.id,
