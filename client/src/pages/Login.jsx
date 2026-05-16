@@ -87,7 +87,7 @@ export default function Login() {
           </div>
 
           <div className="input-group">
-            <span className="input-icon">🔒</span>
+            <span className="input-icon"> </span>
             <input
               type="password"
               placeholder="كلمة المرور"
