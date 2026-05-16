@@ -12,9 +12,12 @@ export default function Login() {
   const navigate = useNavigate()
 
   const handleAuth = async () => {
-    if (!email || !password) return
+    if (!email || !password) {
+      showToast('أدخل الإيميل وكلمة المرور', 'warning')
+      return
+    }
     if (mode === 'signup' && !name) {
-      alert('من فضلك أدخل اسمك')
+      showToast('أدخل اسمك الكامل', 'warning')
       return
     }
 
@@ -24,29 +27,28 @@ export default function Login() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: { full_name: name }
-        }
+        options: { data: { full_name: name } }
       })
 
       if (error) {
-        showToast('بيانات الدخول غير صحيحة', 'error')
+        showToast('فشل إنشاء الحساب — جرب إيميل آخر', 'error')
       } else {
         await supabase.from('profiles').insert({
           id: data.user.id,
           full_name: name,
           email: email
         })
-        alert('تم إنشاء الحساب ✅ تحقق من بريدك للتفعيل')
+        showToast('تم إنشاء الحساب — سجّل دخول الحين', 'success')
         setMode('login')
       }
 
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
-        alert(error.message)
+        showToast('الإيميل أو كلمة المرور غلط', 'error')
       } else {
-        navigate('/')
+        showToast('أهلاً بك في TrendAura 🎉', 'success')
+        setTimeout(() => navigate('/'), 1000)
       }
     }
 
@@ -75,7 +77,7 @@ export default function Login() {
           )}
 
           <div className="input-group">
-            <span className="input-icon"> </span>
+            <span className="input-icon">📧</span>
             <input
               type="email"
               placeholder="البريد الإلكتروني"
@@ -85,7 +87,7 @@ export default function Login() {
           </div>
 
           <div className="input-group">
-            <span className="input-icon"> </span>
+            <span className="input-icon">🔒</span>
             <input
               type="password"
               placeholder="كلمة المرور"

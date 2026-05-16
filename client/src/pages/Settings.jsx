@@ -11,6 +11,7 @@ export default function Settings() {
   const [avatarUrl, setAvatarUrl] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const fileRef = useRef()
 
   useEffect(() => {
@@ -76,8 +77,7 @@ export default function Settings() {
   }
 
   const deleteAll = async () => {
-    const confirmed = window.confirm('هل أنت متأكد من حذف كل السكريبتات؟')
-    if (!confirmed) return
+    setShowConfirm(false)
     setDeleting(true)
     const { error } = await supabase.from('history').delete().gte('id', 0)
     if (error) {
@@ -98,6 +98,25 @@ export default function Settings() {
     <div className="layout">
       <Sidebar />
       <main className="main-content">
+
+        {/* Modal تأكيد الحذف */}
+        {showConfirm && (
+          <div className="confirm-overlay">
+            <div className="confirm-modal">
+              <div className="confirm-icon">🗑️</div>
+              <h3>حذف السكريبتات</h3>
+              <p>هل أنت متأكد من حذف كل السكريبتات؟ لا يمكن التراجع عن هذا الإجراء.</p>
+              <div className="confirm-btns">
+                <button className="confirm-cancel" onClick={() => setShowConfirm(false)}>
+                  إلغاء
+                </button>
+                <button className="confirm-delete" onClick={deleteAll}>
+                  نعم، احذف الكل
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="topbar">
           <div>
@@ -176,7 +195,7 @@ export default function Settings() {
           <div className="glass-card danger-card">
             <h3>🗑️ حذف السكريبتات</h3>
             <p className="setting-desc">حذف جميع السكريبتات المحفوظة نهائياً</p>
-            <button className="danger-btn" onClick={deleteAll} disabled={deleting}>
+            <button className="danger-btn" onClick={() => setShowConfirm(true)} disabled={deleting}>
               {deleting ? 'جاري الحذف...' : '🗑️ حذف كل السكريبتات'}
             </button>
           </div>
