@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../config/supabase'
+import { showToast } from '../App'
 
 export default function Settings() {
   const [darkMode, setDarkMode] = useState(false)
@@ -40,8 +41,8 @@ export default function Settings() {
       .update({ full_name: name })
       .eq('id', userData.user.id)
     setSaving(false)
-    alert('تم حفظ الاسم ✅')
-    window.location.href = '/settings'
+    showToast('تم حفظ الاسم', 'success')
+    setTimeout(() => { window.location.href = '/settings' }, 1500)
   }
 
   const uploadAvatar = async (e) => {
@@ -56,7 +57,7 @@ export default function Settings() {
       .from('avatars')
       .upload(fileName, file, { upsert: true })
     if (uploadError) {
-      alert('فشل رفع الصورة: ' + uploadError.message)
+      showToast('فشل رفع الصورة', 'error')
       setUploading(false)
       return
     }
@@ -70,8 +71,8 @@ export default function Settings() {
       .eq('id', userId)
     setAvatarUrl(publicUrl)
     setUploading(false)
-    alert('تم رفع الصورة ✅')
-    window.location.href = '/settings'
+    showToast('تم رفع الصورة', 'success')
+    setTimeout(() => { window.location.href = '/settings' }, 1500)
   }
 
   const deleteAll = async () => {
@@ -80,12 +81,12 @@ export default function Settings() {
     setDeleting(true)
     const { error } = await supabase.from('history').delete().gte('id', 0)
     if (error) {
-      alert('خطأ: ' + error.message)
+      showToast('حدث خطأ أثناء الحذف', 'error')
       setDeleting(false)
       return
     }
     setDeleting(false)
-    alert('تم الحذف ✅')
+    showToast('تم حذف كل السكريبتات', 'success')
   }
 
   const toggleTheme = () => {

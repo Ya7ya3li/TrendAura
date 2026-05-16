@@ -2,6 +2,7 @@ import { supabase } from '../config/supabase'
 import { useState, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
 import { generateScript, fetchTrends, fetchHashtags } from '../services/api'
+import { showToast } from '../App'
 
 export default function Dashboard() {
   const [prompt, setPrompt] = useState('')
@@ -59,18 +60,16 @@ export default function Dashboard() {
   const generate = async () => {
     if (!prompt) return
 
-    // تحقق من تسجيل الدخول
     const { data: authData } = await supabase.auth.getUser()
     if (!authData?.user) {
-      alert('الرجاء تسجيل الدخول')
-      window.location.href = '/login'
+      showToast('سجّل دخول أولاً عشان تولّد سكربتات', 'warning')
+      setTimeout(() => { window.location.href = '/login' }, 1500)
       return
     }
 
     setLoading(true)
     const userId = authData.user.id
 
-    // تحقق من الخطة والعداد
     const { data: profileData } = await supabase
       .from('profiles')
       .select('*')
@@ -100,8 +99,8 @@ export default function Dashboard() {
 
       if (currentCount >= 5) {
         setLoading(false)
-        alert('⚠️ وصلت للحد المجاني (5 سكربتات شهرياً)\n\nاشترك في PRO للحصول على سكربتات غير محدودة 🚀')
-        window.location.href = '/pricing'
+        showToast('وصلت للحد المجاني — اشترك في PRO 🚀', 'warning')
+        setTimeout(() => { window.location.href = '/pricing' }, 2000)
         return
       }
 
@@ -166,16 +165,17 @@ SCRIPT:
     if (newTags.length > 0) setHashtags(newTags)
 
     setLoading(false)
+    showToast('تم توليد السكريبت', 'success')
   }
 
   const copyScript = () => {
     navigator.clipboard.writeText(hook + '\n\n' + script)
-    alert('تم نسخ السكربت ✅')
+    showToast('تم نسخ السكريبت', 'success')
   }
 
   const exportPDF = () => {
     if (!hook && !script) {
-      alert('ولّد سكريبت أولاً')
+      showToast('ولّد سكريبت أولاً', 'warning')
       return
     }
 
