@@ -54,7 +54,7 @@ export default function History() {
         <div className="topbar">
           <div>
             <h1>📋 سجل التوليدات</h1>
-            <p>كل السكريبتات اللي ولّدتها</p>
+            <p>كل السكريبتات التي ولّدتها</p>
           </div>
         </div>
 

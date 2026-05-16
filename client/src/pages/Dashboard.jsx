@@ -63,7 +63,7 @@ export default function Dashboard() {
 
     const { data: authData } = await supabase.auth.getUser()
     if (!authData?.user) {
-      showToast('سجّل دخول أولاً عشان تولّد سكربتات', 'warning')
+      showToast('سجّل دخول أولاً  لتولّد السكربتات', 'warning')
       setTimeout(() => { window.location.href = '/login' }, 1500)
       return
     }
@@ -100,7 +100,7 @@ export default function Dashboard() {
 
       if (currentCount >= 5) {
         setLoading(false)
-        showToast('وصلت للحد المجاني — اشترك في PRO 🚀', 'warning')
+        showToast('وصلت للحد المجاني — اشترك في PRO ', 'warning')
         setTimeout(() => { window.location.href = '/pricing' }, 2000)
         return
       }
@@ -247,7 +247,7 @@ SCRIPT:
           {/* Title */}
           <div className="new-hero-title">
             <h1>اكتب فكرة المحتوى</h1>
-            <p>حول فكرتك إلى سكربت تيك توك احترافي <span className="highlight-text">جاهز للنشر</span> ويجذب المشاهدات</p>
+            <p>حول فكرتك إلى سكربت احترافي <span className="highlight-text">جاهز للنشر</span> ويجذب المشاهدات</p>
           </div>
 
           {/* Input Box */}
@@ -258,7 +258,7 @@ SCRIPT:
             </div>
             <textarea
               className="new-hero-textarea"
-              placeholder="مثال: حل آخر الأحداث السياسية بطريقة فكاهية أو اصنع قصة مرعبة قصيرة..."
+              placeholder="مثال: حلل آخر الأحداث السياسية بطريقة فكاهية أو اصنع قصة مرعبة قصيرة..."
               value={prompt}
               onChange={(e) => {
                 if (e.target.value.length <= maxChars) setPrompt(e.target.value)

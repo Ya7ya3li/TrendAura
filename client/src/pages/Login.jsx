@@ -38,14 +38,14 @@ export default function Login() {
           full_name: name,
           email: email
         })
-        showToast('تم إنشاء الحساب — سجّل دخول الحين', 'success')
+        showToast('تم إنشاء الحساب — سجّل دخول الان', 'success')
         setMode('login')
       }
 
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
-        showToast('الإيميل أو كلمة المرور غلط', 'error')
+        showToast('الإيميل أو كلمة المرور خاطئة', 'error')
       } else {
         showToast('أهلاً بك في TrendAura 🎉', 'success')
         setTimeout(() => navigate('/'), 1000)
@@ -60,13 +60,13 @@ export default function Login() {
       <div className="login-card">
         <div className="login-header">
           <h1>TrendAura</h1>
-          <p>{mode === 'login' ? 'أهلاً بعودتك 👋' : 'إنشاء حساب جديد ✨'}</p>
+          <p>{mode === 'login' ? 'أهلاً بعودتك ' : 'إنشاء حساب جديد ✨'}</p>
         </div>
 
         <div className="login-form">
           {mode === 'signup' && (
             <div className="input-group">
-              <span className="input-icon">👤</span>
+              <span className="input-icon"> </span>
               <input
                 type="text"
                 placeholder="الاسم الكامل"
@@ -77,7 +77,7 @@ export default function Login() {
           )}
 
           <div className="input-group">
-            <span className="input-icon">📧</span>
+            <span className="input-icon"> </span>
             <input
               type="email"
               placeholder="البريد الإلكتروني"
