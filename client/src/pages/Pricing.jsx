@@ -124,7 +124,7 @@ export default function Pricing() {
               <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> قلّابات (Hooks) احترافية خاطفة</li>
               <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> عناوين مثيرة لرفع نسبة النقر</li>
               <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> تحسين جودة السكربت وصياغته</li>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> mيزة حفظ وإدارة السكربتات</li>
+              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> ميزة حفظ وإدارة السكربتات</li>
               <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> دعم فني24/7 سريع ومتكامل</li>
             </ul>
 
@@ -162,7 +162,7 @@ export default function Pricing() {
             <div className="plan-divider" style={{ height: '1px', background: '#23263b', margin: '20px 0' }} />
 
             <ul className="plan-features-new" style={{ listStyle: 'none', padding: 0, margin: '0 0 30px 0', display: 'flex', flexDirection: 'column', gap: '12px', direction: 'rtl', textAlign: 'right' }}>
-              <li><span className="feat-icon yes" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> <strong>تشمل جميع ميزات اشتراك Pro</strong></li>
+              <li><span className="feat-icon yes" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> <strong>تشمل جميع مميزات اشتراك Pro</strong></li>
               <li><span className="feat-icon yes" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> محرك أفكار الـ Viral المتفجر 🚀</li>
               <li><span className="feat-icon yes" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> تحليل فوري لقابلية الانتشار السريع</li>
               <li><span className="feat-icon yes" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> صياغة سيناريوهات 60 ثانية متكاملة</li>
