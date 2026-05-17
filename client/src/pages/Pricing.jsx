@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../config/supabase'
 import Sidebar from '../components/Sidebar'
-import { showToast } from '../App' // استيراد دالة التوست الخاصة بموقعك
+import { showToast } from '../App'
 
 export default function Pricing() {
-  const [loading, setLoading] = useState(null) // null لمعرفة أي زر انضغط
+  const [loading, setLoading] = useState(null)
   const [plan, setPlan] = useState('free')
   const [user, setUser] = useState(null)
 
@@ -23,18 +23,16 @@ export default function Pricing() {
       .eq('id', userData.user.id)
       .maybeSingle()
 
-    // القيم المتوقعة من الداتابيس: 'free', 'pro', 'pro_viral'
     setPlan(data?.plan || 'free')
   }
 
-  // إرسال targetPlan إلى الباك إند
   const subscribe = async (targetPlan) => {
     if (!user) {
       showToast('سجّل دخول أولاً للاشتراك في الباقات', 'warning')
       setTimeout(() => { window.location.href = '/login' }, 1500)
       return
     }
-    setLoading(targetPlan) // تحديد أي باقة يتم تحميلها الآن
+    setLoading(targetPlan)
     
     try {
       const res = await fetch('https://trendaura-production-06c0.up.railway.app/api/ai/checkout', {
@@ -56,7 +54,6 @@ export default function Pricing() {
     setLoading(null)
   }
 
-  // التحقق من حالة الباقات
   const isPro = plan?.toLowerCase() === 'pro'
   const isProViral = plan?.toLowerCase() === 'pro_viral'
 
@@ -79,7 +76,7 @@ export default function Pricing() {
         <div className="pricing-wrapper" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '30px', maxWidth: '1200px', margin: '0 auto' }}>
 
           {/* 🟢 الباقة المجانية - FREE */}
-          <div className={`pricing-card-new ${plan === 'free' ? 'active-plan-card' : ''}`} style={{ background: '#11131e', border: plan === 'free' ? '2px solid #10b981' : '1px solid #23263b', borderRadius: '24px', padding: '35px 25px', width: '320px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 10px 30px rgba(0,0,0,0.2)', transition: 'transform 0.3s' }}>
+          <div className={`pricing-card-new ${plan === 'free' ? 'active-plan-card' : ''}`} style={{ background: '#11131e', border: plan === 'free' ? '2px solid #10b981' : '1px solid #23263b', borderRadius: '24px', padding: '35px 25px', width: '320px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
             <div className="pricing-top">
               <span className="plan-name-badge free-badge" style={{ background: 'rgba(255,255,255,0.08)', color: '#94a3b8', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>خطة مجانية</span>
               <h2 className="plan-title" style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '15px', marginBottom: '5px', color: '#ffffff' }}>Free</h2>
@@ -92,7 +89,7 @@ export default function Pricing() {
 
             <div className="plan-divider" style={{ height: '1px', background: '#23263b', margin: '20px 0' }} />
 
-            <ul className="plan-features-new" style={{ listStyle: 'none', padding: 0, margin: '0 0 30px 0', display: 'flex', flexDirection: 'column', gap: '12px', direction: 'rtl', textalign: 'right' }}>
+            <ul className="plan-features-new" style={{ listStyle: 'none', padding: 0, margin: '0 0 30px 0', display: 'flex', flexDirection: 'column', gap: '12px', direction: 'rtl', textAlign: 'right' }}>
               <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> 5 توليدات يومياً للسكربتات</li>
               <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> أفكار محتوى وأدوات أساسية</li>
               <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> هاشتاقات ترندية جاهزة</li>
@@ -106,8 +103,9 @@ export default function Pricing() {
           </div>
 
           {/* 🔵 باقة المحترفين - PRO */}
-          <div className={`pricing-card-new pro-card-new ${isPro ? 'active-plan-card' : ''}`} style={{ background: '#11131e', border: isPro ? '2px solid #10b981' : '1px solid #23263b', borderRadius: '24px', padding: '35px 25px', width: '320px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', boxShadow: '0 0 25px rgba(16, 185, 129, 0.15)', transition: 'transform 0.3s' }}>
-            <div className="pro-glow" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '24px', boxShadow: 'inset 0 0 20px rgba(16, 185, 129, 0.2)', pointerEvents: 'none' }} />
+          <div className={`pricing-card-new pro-card-new ${isPro ? 'active-plan-card' : ''}`} style={{ background: '#11131e', border: isPro ? '2px solid #10b981' : '1px solid #23263b', borderRadius: '24px', padding: '35px 25px', width: '320px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', boxShadow: '0 10px 30px rgba(16, 185, 129, 0.05)' }}>
+            {/* 🌟 تم تعديل التوهج هنا ليكون إضاءة خلفية ناعمة دائرية بدون مربع يشوه المنظر */}
+            <div className="pro-glow" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '24px', background: 'radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.08), transparent 60%)', pointerEvents: 'none' }} />
 
             <div className="pricing-top">
               <span className="plan-name-badge pro-badge-new" style={{ background: 'linear-gradient(90deg, #10b981, #059669)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>🔥 الأكثر شعبية</span>
@@ -126,8 +124,8 @@ export default function Pricing() {
               <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> قلّابات (Hooks) احترافية خاطفة</li>
               <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> عناوين مثيرة لرفع نسبة النقر</li>
               <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> تحسين جودة السكربت وصياغته</li>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> ميزة حفظ وإدارة السكربتات</li>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> دعم فني سريع ومتكامل</li>
+              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> mيزة حفظ وإدارة السكربتات</li>
+              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> دعم فني24/7 سريع ومتكامل</li>
             </ul>
 
             {isPro ? (
@@ -139,7 +137,7 @@ export default function Pricing() {
                 className="plan-btn-pro" 
                 onClick={() => subscribe('pro')} 
                 disabled={loading !== null}
-                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: '#10b981', color: '#000000', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)', transition: 'background 0.2s' }}
+                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: '#10b981', color: '#000000', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)' }}
               >
                 {loading === 'pro' ? '⏳ جاري التحويل...' : '🚀 اشترك في Pro بـ 29 ريال'}
               </button>
@@ -147,8 +145,9 @@ export default function Pricing() {
           </div>
 
           {/* 🔴 باقة المحرك الفيروسي - VIRAL ENGINE */}
-          <div className={`pricing-card-new viral-card-new ${isProViral ? 'active-plan-card' : ''}`} style={{ background: '#11131e', border: isProViral ? '2px solid #ef4444' : '1px solid #ff4d4d', borderRadius: '24px', padding: '35px 25px', width: '320px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', boxShadow: '0 0 25px rgba(239, 68, 68, 0.15)', transition: 'transform 0.3s' }}>
-            <div className="viral-glow" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '24px', background: 'radial-gradient(circle at top right, rgba(255, 77, 77, 0.1), transparent)', pointerEvents: 'none' }} />
+          <div className={`pricing-card-new viral-card-new ${isProViral ? 'active-plan-card' : ''}`} style={{ background: '#11131e', border: isProViral ? '2px solid #ef4444' : '1px solid #23263b', borderRadius: '24px', padding: '35px 25px', width: '320px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
+            {/* 🌟 تم تلطيف التوهج هنا أيضاً ليكون انسيابي وناعم متناسق مع البرو */}
+            <div className="viral-glow" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '24px', background: 'radial-gradient(circle at 50% 20%, rgba(255, 77, 77, 0.08), transparent 60%)', pointerEvents: 'none' }} />
 
             <div className="pricing-top">
               <span className="plan-name-badge" style={{ background: 'linear-gradient(90deg, #ff4d4d, #ff8080)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>⚡ الخيار الأقوى والمميز</span>
@@ -181,7 +180,7 @@ export default function Pricing() {
                 className="plan-btn-pro" 
                 onClick={() => subscribe('pro_viral')} 
                 disabled={loading !== null}
-                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(90deg, #ff4d4d, #e60000)', color: '#ffffff', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)', transition: 'opacity 0.2s' }}
+                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(90deg, #ff4d4d, #e60000)', color: '#ffffff', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.3)' }}
               >
                 {loading === 'pro_viral' ? '⏳ جاري التحويل...' : '⚡ اشترك في Viral Engine بـ 69 ريال'}
               </button>
