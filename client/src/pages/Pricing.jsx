@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../config/supabase'
 import Sidebar from '../components/Sidebar'
+import { showToast } from '../App' // 👈 استيراد دالة التوست الخاصة بموقعك
 
 export default function Pricing() {
-  const [loading, setLoading] = useState(null) // غيرناها لـ null عشان نعرف أي زر انضغط
+  const [loading, setLoading] = useState(null) // null لمعرفة أي زر انضغط
   const [plan, setPlan] = useState('free')
   const [user, setUser] = useState(null)
 
@@ -26,19 +27,20 @@ export default function Pricing() {
     setPlan(data?.plan || 'free')
   }
 
-  // أضفنا targetPlan عشان نرسله للباك إند
+  // إرسال targetPlan إلى الباك إند
   const subscribe = async (targetPlan) => {
     if (!user) {
-      alert('سجّل دخول أولاً')
+      showToast('سجّل دخول أولاً للاشتراك في الباقات', 'warning') // 👈 استبدال الـ alert بتوست احترافي
+      setTimeout(() => { window.location.href = '/login' }, 1500)
       return
     }
     setLoading(targetPlan) // تحديد أي باقة يتم تحميلها الآن
     
     try {
-      const res = await fetch('https://trendaura-production-06c0.up.railway.app', {
+      // 🚀 تم تصحيح المسار إلى الـ Endpoint المخصصة للدفع بالكامل
+      const res = await fetch('https://trendaura-production-06c0.up.railway.app/api/ai/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // تم إضافة planType هنا
         body: JSON.stringify({ 
             email: user.email, 
             userId: user.id, 
@@ -49,7 +51,7 @@ export default function Pricing() {
       if (data.url) window.location.href = data.url
     } catch (error) {
       console.error('Error with checkout:', error)
-      alert('حدث خطأ أثناء تحويلك لصفحة الدفع، يرجى المحاولة لاحقاً.')
+      showToast('حدث خطأ أثناء تحويلك لصفحة الدفع، يرجى المحاولة لاحقاً.', 'error') // 👈 استبدال الـ alert بتوست الاحترافي المتوهج
     }
     
     setLoading(null)
