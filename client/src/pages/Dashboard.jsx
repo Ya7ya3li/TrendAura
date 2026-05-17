@@ -12,6 +12,10 @@ export default function Dashboard() {
   const [loadingTrends, setLoadingTrends] = useState(false)
   const maxChars = 200
 
+  // حالات جديدة لمعرفة المستخدم وباقته
+  const [currentUser, setCurrentUser] = useState(null)
+  const [userPlan, setUserPlan] = useState('free')
+
   const [trends, setTrends] = useState([
     'الحرب الاقتصادية العالمية',
     'أسرار الذكاء الصناعي',
@@ -33,28 +37,51 @@ export default function Dashboard() {
   ]
 
   useEffect(() => {
-    loadTrends()
-    loadHashtags()
+    initUserAndData()
   }, [])
 
-  const loadTrends = async () => {
+  // دالة مجمعة لجلب بيانات المستخدم أولاً ثم تحميل الترندات بناءً على باقته
+  const initUserAndData = async () => {
+    const { data: authData } = await supabase.auth.getUser()
+    let currentPlan = 'free'
+    let userId = null
+
+    if (authData?.user) {
+      setCurrentUser(authData.user)
+      userId = authData.user.id
+      
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('plan')
+        .eq('id', authData.user.id)
+        .maybeSingle()
+        
+      currentPlan = profileData?.plan?.toLowerCase() || 'free'
+      setUserPlan(currentPlan)
+    }
+
+    loadTrends(null, userId, currentPlan)
+    loadHashtags(null, userId, currentPlan)
+  }
+
+  const loadTrends = async (topic = null, uId = currentUser?.id, plan = userPlan) => {
     setLoadingTrends(true)
-    const data = await fetchTrends()
-    if (data.length > 0) setTrends(data)
+    // تمرير الباقة لمعرفة كم ترند نرجع للمستخدم وجودتها
+    const data = await fetchTrends(topic, uId, plan)
+    if (data && data.length > 0) setTrends(data)
     setLoadingTrends(false)
   }
 
-  const loadHashtags = async () => {
-    const data = await fetchHashtags()
-    if (data.length > 0) setHashtags(data)
+  const loadHashtags = async (topic = null, uId = currentUser?.id, plan = userPlan) => {
+    // تمرير الباقة لمعرفة كم هاشتاق نرجع للمستخدم وجودتها
+    const data = await fetchHashtags(topic, uId, plan)
+    if (data && data.length > 0) setHashtags(data)
   }
 
   const refreshTrends = async () => {
     setLoadingTrends(true)
-    const data = await fetchTrends(prompt)
-    if (data.length > 0) setTrends(data)
-    const tags = await fetchHashtags(prompt)
-    if (tags.length > 0) setHashtags(tags)
+    await loadTrends(prompt, currentUser?.id, userPlan)
+    await loadHashtags(prompt, currentUser?.id, userPlan)
     setLoadingTrends(false)
   }
 
@@ -77,9 +104,14 @@ export default function Dashboard() {
       .eq('id', userId)
       .maybeSingle()
 
-    const isPro = profileData?.plan?.toUpperCase() === 'PRO'
+    const currentPlan = profileData?.plan?.toLowerCase() || 'free'
+    setUserPlan(currentPlan)
+    
+    // التحقق إذا كان المستخدم على أي باقة مدفوعة (Pro أو Pro Viral)
+    const isPaidPlan = currentPlan === 'pro' || currentPlan === 'pro_viral'
 
-    if (!isPro) {
+    // تطبيق نظام الحدود على المجاني فقط
+    if (!isPaidPlan) {
       const now = new Date()
       const resetDate = profileData?.count_reset_date
         ? new Date(profileData.count_reset_date)
@@ -100,7 +132,7 @@ export default function Dashboard() {
 
       if (currentCount >= 5) {
         setLoading(false)
-        showToast('وصلت للحد المجاني — اشترك في PRO ', 'warning')
+        showToast('وصلت للحد المجاني — اشترك في PRO للوصول اللامحدود', 'warning')
         setTimeout(() => { window.location.href = '/pricing' }, 2000)
         return
       }
@@ -111,15 +143,14 @@ export default function Dashboard() {
         .eq('id', userId)
     }
 
-    const result = await generateScript(
-`
+    // إرسال الـ Prompt مع الـ userId والـ userPlan للـ API
+    const formattedPrompt = `
 اصنع سكربت تيك توك احترافي جداً باللهجة العربية.
 
 الموضوع:
 ${prompt}
 
 الشروط:
-
 - هوك ناري قصير جداً
 - بداية صادمة
 - سكربت طويل نسبيًا
@@ -142,7 +173,8 @@ HOOK:
 SCRIPT:
 ...
 `
-    )
+    // استدعاء الـ API مع الباقة والمستخدم
+    const result = await generateScript(formattedPrompt, userId, currentPlan)
 
     const hookMatch = result.match(/HOOK:(.*?)(SCRIPT:|$)/s)
     const scriptMatch = result.match(/SCRIPT:(.*)/s)
@@ -153,17 +185,21 @@ SCRIPT:
     setHook(hookText)
     setScript(scriptText)
 
-    await supabase.from('history').insert([{
-      prompt,
-      hook: hookText,
-      script: scriptText,
-      user_id: userId
-    }])
+    // ميزة الحفظ: يتم الحفظ فقط إذا كان المستخدم مدفوع (اختياري، يمكنك إلغاء الشرط إذا أردت الحفظ للكل)
+    if (isPaidPlan) {
+      await supabase.from('history').insert([{
+        prompt,
+        hook: hookText,
+        script: scriptText,
+        user_id: userId
+      }])
+    }
 
-    const newTrends = await fetchTrends(prompt)
-    if (newTrends.length > 0) setTrends(newTrends)
-    const newTags = await fetchHashtags(prompt)
-    if (newTags.length > 0) setHashtags(newTags)
+    const newTrends = await fetchTrends(prompt, userId, currentPlan)
+    if (newTrends && newTrends.length > 0) setTrends(newTrends)
+    
+    const newTags = await fetchHashtags(prompt, userId, currentPlan)
+    if (newTags && newTags.length > 0) setHashtags(newTags)
 
     setLoading(false)
     showToast('تم توليد السكريبت ✨', 'success')

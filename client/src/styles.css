@@ -1248,3 +1248,184 @@ body.light-mode .info-row { color: #1e293b; border-color: rgba(0,0,0,0.06); }
   .new-hero-title h1 { font-size: 26px; }
   .new-hero-logo-text { font-size: 24px; }
 }
+
+/* ========================================= */
+/* 🚀 تحديثات صفحة الأسعار - TrendAura       */
+/* ========================================= */
+
+/* حاوية البطاقات (تعرض 3 بطاقات بجانب بعض في الشاشات الكبيرة وتحت بعض في الجوال) */
+.pricing-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  max-width: 1100px;
+  margin: 40px auto;
+  align-items: stretch;
+}
+
+/* الهيكل الأساسي للبطاقة */
+.pricing-card-new {
+  background-color: #ffffff; /* غيّرها إلى #1a1b26 إذا كان موقعك Dark Mode */
+  border: 1px solid #e2e8f0; /* غيّرها إلى #2d3748 إذا Dark Mode */
+  border-radius: 20px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.pricing-card-new:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* تمييز البطاقة الخاصة بالباقة الحالية للمستخدم */
+.active-plan-card {
+  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.5); /* إطار خفيف رمادي */
+}
+
+/* تمييز باقة Pro (تكبيرها قليلاً لتبدو الأهم) */
+.pro-card-new {
+  border: 2px solid #3b82f6; /* لون أزرق جذاب */
+  transform: scale(1.02);
+}
+@media (max-width: 768px) {
+  .pro-card-new { transform: scale(1); } /* إلغاء التكبير في الجوال */
+}
+
+/* تأثير التوهج في خلفية Pro */
+.pro-glow {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent);
+  pointer-events: none;
+}
+
+/* تنسيق النصوص والأسعار */
+.pricing-top {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.plan-name-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.free-badge { background: #f3f4f6; color: #4b5563; }
+.pro-badge-new { background: #eff6ff; color: #2563eb; }
+
+.plan-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: inherit;
+}
+
+.plan-price {
+  margin-bottom: 12px;
+}
+.price-big {
+  font-size: 3rem;
+  font-weight: 900;
+}
+.price-small {
+  font-size: 1rem;
+  color: #6b7280;
+  margin-right: 4px;
+}
+
+.plan-desc {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* الخط الفاصل */
+.plan-divider {
+  height: 1px;
+  background-color: #e5e7eb; /* غيّرها إلى #374151 إذا Dark Mode */
+  margin: 24px 0;
+}
+
+/* قائمة المميزات */
+.plan-features-new {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.plan-features-new li {
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+  color: #374151; /* غيّرها إلى #d1d5db إذا Dark Mode */
+}
+
+.feat-icon {
+  margin-left: 10px; /* لليسار لأن الاتجاه عربي RTL */
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+.feat-icon.yes { color: #10b981; } /* أخضر */
+.feat-icon.no { color: #ef4444; opacity: 0.5; } /* أحمر باهت */
+
+/* الأزرار */
+.plan-btn-free, .plan-btn-pro {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  margin-top: 24px;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.plan-btn-free {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+.plan-btn-free:hover { background-color: #e5e7eb; }
+
+.plan-btn-pro {
+  background-color: #3b82f6;
+  color: white;
+}
+.plan-btn-pro:hover:not(:disabled) {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+}
+.plan-btn-pro:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ملاحظة تحت الزر */
+.plan-note {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-top: 12px;
+}
+
+/* البانر العلوي للحسابات المفعلة */
+.pro-active-banner {
+  background: linear-gradient(90deg, #10b981, #059669);
+  color: white;
+  text-align: center;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: bold;
+  margin-bottom: 24px;
+  max-width: 1100px;
+  margin: 0 auto 24px auto;
+}
