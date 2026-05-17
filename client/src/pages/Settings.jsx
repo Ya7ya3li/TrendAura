@@ -29,51 +29,78 @@ export default function Settings() {
       .maybeSingle()
     if (data) {
       setName(data.full_name || '')
-      setAvatarUrl(data.avatar_url || null)
+      // إضافة طابع زمني عشوائي حتى عند التحميل لأول مرة لضمان جلب أحدث صورة من السيرفر
+      if (data.avatar_url) {
+        setAvatarUrl(`${data.avatar_url}?t=${new Date().getTime()}`)
+      } else {
+        setAvatarUrl(null)
+      }
     }
   }
 
   const saveName = async () => {
     if (!name) return
     setSaving(true)
-    const { data: userData } = await supabase.auth.getUser()
-    await supabase
-      .from('profiles')
-      .update({ full_name: name })
-      .eq('id', userData.user.id)
-    setSaving(false)
-    showToast('تم حفظ الاسم', 'success')
-    setTimeout(() => { window.location.href = '/settings' }, 1500)
+    try {
+      const { data: userData } = await supabase.auth.getUser()
+      await supabase
+        .from('profiles')
+        .update({ full_name: name })
+        .eq('id', userData.user.id)
+      
+      showToast('تم حفظ الاسم بنجاح', 'success')
+    } catch (error) {
+      console.error('Error saving name:', error)
+      showToast('حدث خطأ أثناء حفظ الاسم', 'error')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const uploadAvatar = async (e) => {
     const file = e.target.files[0]
     if (!file) return
     setUploading(true)
-    const { data: userData } = await supabase.auth.getUser()
-    const userId = userData.user.id
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${userId}.${fileExt}`
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(fileName, file, { upsert: true })
-    if (uploadError) {
-      showToast('فشل رفع الصورة', 'error')
+    
+    try {
+      const { data: userData } = await supabase.auth.getUser()
+      const userId = userData.user.id
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${userId}.${fileExt}`
+      
+      // رفع الصورة إلى Supabase Storage باستبدال الملف القديم
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true })
+        
+      if (uploadError) {
+        showToast('فشل رفع الصورة الشخصية', 'error')
+        setUploading(false)
+        return
+      }
+      
+      // جلب الرابط العام للملف المرفوع
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName)
+        
+      const publicUrl = urlData.publicUrl
+      
+      // تحديث رابط الصورة في جدول بروفايل المستخدم
+      await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', userId)
+        
+      // ✨ الحل السحري: إضافة ?t= وطابع الوقت الحالي لكسر كاش المتصفح وإجبار الصورة على التغير فوراً أمام المستخدم
+      setAvatarUrl(`${publicUrl}?t=${new Date().getTime()}`)
+      showToast('تم رفع وتحديث الصورة بنجاح', 'success')
+    } catch (error) {
+      console.error('Error uploading avatar:', error)
+      showToast('حدث خطأ غير متوقع أثناء الرفع', 'error')
+    } finally {
       setUploading(false)
-      return
     }
-    const { data: urlData } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(fileName)
-    const publicUrl = urlData.publicUrl
-    await supabase
-      .from('profiles')
-      .update({ avatar_url: publicUrl })
-      .eq('id', userId)
-    setAvatarUrl(publicUrl)
-    setUploading(false)
-    showToast('تم رفع الصورة', 'success')
-    setTimeout(() => { window.location.href = '/settings' }, 1500)
   }
 
   const deleteAll = async () => {
@@ -131,7 +158,7 @@ export default function Settings() {
             <h3>🖼️ صورة البروفايل</h3>
             <p className="setting-desc">ارفع صورة شخصية لحسابك</p>
             <div className="avatar-section">
-              <div className="avatar-preview" onClick={() => fileRef.current.click()}>
+              <div className="avatar-preview" onClick={() => !uploading && fileRef.current.click()}>
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="avatar" />
                 ) : (
