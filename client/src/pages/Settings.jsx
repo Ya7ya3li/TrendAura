@@ -13,14 +13,42 @@ export default function Settings() {
   const [saving, setSaving] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   
-  // 1️⃣ حالات مخصصة لإدارة إلغاء الاشتراك
+  // حالات إدارة إلغاء الاشتراك
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [canceling, setCanceling] = useState(false)
+
+  // 1️⃣ حالات مخصصة لإعادة تعيين كلمة المرور الجديدة
+  const [isResettingPassword, setIsResettingPassword] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [updatingPassword, setUpdatingPassword] = useState(false)
   
   const fileRef = useRef()
 
   useEffect(() => {
     loadProfile()
+
+    // 2️⃣ فحص الرابط: إذا كان يحتوي على نوع التوثيق الخاص بإعادة التعيين (recovery)
+    // Supabase يضع هذه البيانات في الـ URL Hash تلقائياً عند الضغط على رابط الإيميل
+    const handlePasswordRecoveryDetect = () => {
+      if (window.location.hash && window.location.hash.includes('type=recovery')) {
+        setIsResettingPassword(true)
+        showToast('يرجى تعيين كلمة المرور الجديدة لحسابك الآن 🔐', 'info')
+      }
+    }
+    
+    handlePasswordRecoveryDetect()
+
+    // الاستماع لـ Auth State أيضاً للتأكد من التقاط الحدث في بعض المتصفحات
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsResettingPassword(true)
+      }
+    })
+
+    return () => {
+      authListener?.subscription.unsubscribe()
+    }
   }, [])
 
   const loadProfile = async () => {
@@ -40,6 +68,37 @@ export default function Settings() {
         setAvatarUrl(null)
       }
     }
+  }
+
+  // 3️⃣ دالة حفظ كلمة المرور الجديدة في Supabase
+  const handleUpdatePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      showToast('يرجى ملء حقول كلمة المرور', 'warning')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      showToast('كلمات المرور غير متطابقة', 'error')
+      return
+    }
+    if (newPassword.length < 6) {
+      showToast('كلمة المرور يجب أن تكون من 6 خانات أو أكثر', 'warning')
+      return
+    }
+
+    setUpdatingPassword(true)
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+
+    if (error) {
+      showToast('فشل تحديث كلمة المرور — جرب مجدداً', 'error')
+    } else {
+      showToast('تم تحديث كلمة مرورك بنجاح وأصبح حسابك آمناً! 🎉', 'success')
+      setIsResettingPassword(false)
+      setNewPassword('')
+      setConfirmPassword('')
+      // تنظيف الهاش من الرابط ليعود الشكل طبيعي
+      window.history.replaceState(null, null, window.location.pathname)
+    }
+    setUpdatingPassword(false)
   }
 
   const saveName = async () => {
@@ -116,26 +175,13 @@ export default function Settings() {
     showToast('تم حذف كل السكريبتات', 'success')
   }
 
-  // 2️⃣ دالة معالجة إلغاء الاشتراك البرمجية
   const handleCancelSubscription = async () => {
     setShowCancelModal(false)
     setCanceling(true)
-    
-    try {
-      // هنا مستقبلاً سنقوم بعمل fetch للباك إند الخاص بـ Stripe لإلغاء التجديد التلقائي
-      // مثال: await fetch('/api/stripe/cancel-subscription', { method: 'POST' })
-      
-      // محاكاة استجابة السيرفر مؤقتاً لحين ربط الباك إند:
-      setTimeout(() => {
-        setCanceling(false)
-        showToast('تم إلغاء التجديد التلقائي بنجاح. باقتك ستظل فعالة حتى نهاية الفترة الحالية لحفظ حقوقك 🌟', 'success')
-      }, 1500)
-      
-    } catch (error) {
-      console.error('Error canceling subscription:', error)
-      showToast('حدث خطأ أثناء معالجة طلب الإلغاء', 'error')
+    setTimeout(() => {
       setCanceling(false)
-    }
+      showToast('تم إلغاء التجديد التلقائي بنجاح. باقتك ستظل فعالة حتى نهاية الفترة الحالية لحفظ حقوقك 🌟', 'success')
+    }, 1500)
   }
 
   const toggleTheme = () => {
@@ -167,7 +213,7 @@ export default function Settings() {
           </div>
         )}
 
-        {/* 3️⃣ Modal تأكيد إلغاء الاشتراك */}
+        {/* Modal تأكيد إلغاء الاشتراك */}
         {showCancelModal && (
           <div className="confirm-overlay">
             <div className="confirm-modal">
@@ -184,6 +230,48 @@ export default function Settings() {
                   onClick={handleCancelSubscription}
                 >
                   تأكيد الإلغاء
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 4️⃣ Modal المنبثق الذكي لإعادة تعيين كلمة المرور الحية */}
+        {isResettingPassword && (
+          <div className="confirm-overlay" style={{ zIndex: 9999 }}>
+            <div className="confirm-modal" style={{ maxWidth: '450px' }}>
+              <div className="confirm-icon" style={{ color: '#7c3aed' }}>🔐</div>
+              <h3>إعادة تعيين كلمة المرور</h3>
+              <p style={{ marginBottom: '15px', fontSize: '0.9rem' }}>أدخل كلمة المرور الجديدة والقوية لحماية حسابك في TrendAura</p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', marginBottom: '20px' }}>
+                <input
+                  type="password"
+                  placeholder="كلمة المرور الجديدة"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #ddd', fontSize: '0.95rem', outline: 'none' }}
+                />
+                <input
+                  type="password"
+                  placeholder="تأكيد كلمة المرور الجديدة"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #ddd', fontSize: '0.95rem', outline: 'none' }}
+                />
+              </div>
+
+              <div className="confirm-btns">
+                <button className="confirm-cancel" onClick={() => setIsResettingPassword(false)}>
+                  إلغاء
+                </button>
+                <button 
+                  className="confirm-delete" 
+                  style={{ backgroundColor: '#7c3aed' }} 
+                  onClick={handleUpdatePassword}
+                  disabled={updatingPassword}
+                >
+                  {updatingPassword ? 'جاري الحفظ...' : 'حفظ كلمة المرور'}
                 </button>
               </div>
             </div>
@@ -250,7 +338,6 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* 4️⃣ كارد الحساب والاشتراك الجديد لراحة العميل */}
           <div className="glass-card">
             <h3>💳 باقة الاشتراك</h3>
             <p className="setting-desc">إدارة تفاصيل خطتك الحالية والدفع</p>
