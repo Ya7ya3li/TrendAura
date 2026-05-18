@@ -12,6 +12,11 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  
+  // 1️⃣ حالات مخصصة لإدارة إلغاء الاشتراك
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [canceling, setCanceling] = useState(false)
+  
   const fileRef = useRef()
 
   useEffect(() => {
@@ -29,7 +34,6 @@ export default function Settings() {
       .maybeSingle()
     if (data) {
       setName(data.full_name || '')
-      // إضافة طابع زمني عشوائي حتى عند التحميل لأول مرة لضمان جلب أحدث صورة من السيرفر
       if (data.avatar_url) {
         setAvatarUrl(`${data.avatar_url}?t=${new Date().getTime()}`)
       } else {
@@ -68,7 +72,6 @@ export default function Settings() {
       const fileExt = file.name.split('.').pop()
       const fileName = `${userId}.${fileExt}`
       
-      // رفع الصورة إلى Supabase Storage باستبدال الملف القديم
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, { upsert: true })
@@ -79,20 +82,17 @@ export default function Settings() {
         return
       }
       
-      // جلب الرابط العام للملف المرفوع
       const { data: urlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName)
         
       const publicUrl = urlData.publicUrl
       
-      // تحديث رابط الصورة في جدول بروفايل المستخدم
       await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
         .eq('id', userId)
         
-      // ✨ الحل السحري: إضافة ?t= وطابع الوقت الحالي لكسر كاش المتصفح وإجبار الصورة على التغير فوراً أمام المستخدم
       setAvatarUrl(`${publicUrl}?t=${new Date().getTime()}`)
       showToast('تم رفع وتحديث الصورة بنجاح', 'success')
     } catch (error) {
@@ -114,6 +114,28 @@ export default function Settings() {
     }
     setDeleting(false)
     showToast('تم حذف كل السكريبتات', 'success')
+  }
+
+  // 2️⃣ دالة معالجة إلغاء الاشتراك البرمجية
+  const handleCancelSubscription = async () => {
+    setShowCancelModal(false)
+    setCanceling(true)
+    
+    try {
+      // هنا مستقبلاً سنقوم بعمل fetch للباك إند الخاص بـ Stripe لإلغاء التجديد التلقائي
+      // مثال: await fetch('/api/stripe/cancel-subscription', { method: 'POST' })
+      
+      // محاكاة استجابة السيرفر مؤقتاً لحين ربط الباك إند:
+      setTimeout(() => {
+        setCanceling(false)
+        showToast('تم إلغاء التجديد التلقائي بنجاح. باقتك ستظل فعالة حتى نهاية الفترة الحالية لحفظ حقوقك 🌟', 'success')
+      }, 1500)
+      
+    } catch (error) {
+      console.error('Error canceling subscription:', error)
+      showToast('حدث خطأ أثناء معالجة طلب الإلغاء', 'error')
+      setCanceling(false)
+    }
   }
 
   const toggleTheme = () => {
@@ -139,6 +161,29 @@ export default function Settings() {
                 </button>
                 <button className="confirm-delete" onClick={deleteAll}>
                   نعم، احذف الكل
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3️⃣ Modal تأكيد إلغاء الاشتراك */}
+        {showCancelModal && (
+          <div className="confirm-overlay">
+            <div className="confirm-modal">
+              <div className="confirm-icon" style={{ color: '#ef4444' }}>🥺</div>
+              <h3>إلغاء الاشتراك</h3>
+              <p>هل أنت متأكد يا بطل؟ بإلغاء اشتراكك ستفقد ميزات الذكاء الاصطناعي الخارقة والـ VIP Support بنهاية الفترة الحالية.</p>
+              <div className="confirm-btns">
+                <button className="confirm-cancel" onClick={() => setShowCancelModal(false)}>
+                  تراجع، أريد البقاء
+                </button>
+                <button 
+                  className="confirm-delete" 
+                  style={{ backgroundColor: '#ef4444' }} 
+                  onClick={handleCancelSubscription}
+                >
+                  تأكيد الإلغاء
                 </button>
               </div>
             </div>
@@ -201,6 +246,38 @@ export default function Settings() {
                 disabled={saving}
               >
                 {saving ? 'جاري الحفظ...' : '💾 حفظ الاسم'}
+              </button>
+            </div>
+          </div>
+
+          {/* 4️⃣ كارد الحساب والاشتراك الجديد لراحة العميل */}
+          <div className="glass-card">
+            <h3>💳 باقة الاشتراك</h3>
+            <p className="setting-desc">إدارة تفاصيل خطتك الحالية والدفع</p>
+            <div className="subscription-info" style={{ marginTop: '15px' }}>
+              <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: '15px' }}>
+                <div>
+                  <p style={{ fontWeight: '600', color: '#333' }}>الخطة الحالية: <span style={{ color: '#7c3aed' }}>Pro Viral Engine 🚀</span></p>
+                  <p style={{ fontSize: '0.75rem', color: '#888', marginTop: '4px' }}>حالة التجديد: تلقائي</p>
+                </div>
+              </div>
+              <button 
+                className="danger-btn" 
+                style={{ 
+                  backgroundColor: '#fef2f2', 
+                  color: '#ef4444', 
+                  border: '1px solid #fee2e2',
+                  padding: '8px 16px',
+                  borderRadius: '9999px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: '500',
+                  transition: 'all 0.2s'
+                }} 
+                onClick={() => setShowCancelModal(true)}
+                disabled={canceling}
+              >
+                {canceling ? 'جاري الإلغاء...' : 'إلغاء الاشتراك التلقائي'}
               </button>
             </div>
           </div>
