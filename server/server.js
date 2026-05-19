@@ -2,18 +2,27 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import aiRoutes from './routes/ai.js'
-import paymentRoutes from './routes/payment.js' // 1️⃣ استيراد روات المدفوعات الجديد
+import paymentRoutes from './routes/payment.js'
 
 dotenv.config()
 
 const app = express()
 
-app.use(cors())
+// 👈 هنا السر: إعدادات CORS المخصصة لفيرسل
+app.use(cors({
+  origin: [
+    'http://localhost:5173', // للبيئة المحلية
+    'https://trendaura-two.vercel.app' // موقعك الفعلي في Vercel
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
+}))
+
 app.use(express.json())
 
 // الرواتس الأساسية للمنصة
 app.use('/api/ai', aiRoutes)
-app.use('/api/payment', paymentRoutes) // 2️⃣ تفعيل مسار مدفوعات ميسر (مدى، Apple Pay)
+app.use('/api/payment', paymentRoutes)
 
 const PORT = process.env.PORT || 5000
 
