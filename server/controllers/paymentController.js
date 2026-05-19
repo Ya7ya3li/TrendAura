@@ -1,6 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
 import axios from 'axios'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js' // تم الاستيراد مرة واحدة فقط هنا ✅
 
 // الاتصال بـ Supabase باستخدام الـ Service Role للحماية وتحديث قاعدة البيانات
 const supabase = createClient(
@@ -34,10 +33,7 @@ export const verifyMoyasarPayment = async (req, res) => {
         const { error } = await supabase
           .from('profiles')
           .update({ 
-            is_pro: true, 
-            subscription_status: 'active',
-            payment_gateway: 'moyasar',
-            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            plan: 'pro' // تحديث حقل الباقة إلى pro مباشرة
           })
           .eq('id', userId)
 
