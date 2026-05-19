@@ -7,6 +7,11 @@ export default function Pricing() {
   const [loading, setLoading] = useState(null)
   const [plan, setPlan] = useState('free')
   const [user, setUser] = useState(null)
+  
+  // 1️⃣ حالات مخصصة لإدارة نافذة الدفع المنبثقة لميسر
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [selectedPlanPrice, setSelectedPlanPrice] = useState(0)
+  const [selectedPlanName, setSelectedPlanName] = useState('')
 
   useEffect(() => {
     checkPlan()
@@ -26,32 +31,61 @@ export default function Pricing() {
     setPlan(data?.plan || 'free')
   }
 
+  // 2️⃣ دالة ضغط زر الاشتراك: تفتح نافذة ميسر محلياً بدلاً من روابط سترايب القديمة
   const subscribe = async (targetPlan) => {
     if (!user) {
       showToast('سجّل دخول أولاً للاشتراك في الباقات', 'warning')
       setTimeout(() => { window.location.href = '/login' }, 1500)
       return
     }
+
+    const price = targetPlan === 'pro' ? 29 : 69
+    const name = targetPlan === 'pro' ? 'Pro' : 'Viral Engine'
+    
+    setSelectedPlanPrice(price)
+    setSelectedPlanName(name)
     setLoading(targetPlan)
     
+    // إظهار نافذة الدفع الفخمة المدمجة
+    setShowPaymentModal(true)
+    setLoading(null)
+  }
+
+  // 3️⃣ دالة محاكاة الدفع الوهمي الناجح وتحديث قاعدة البيانات عبر السيرفر الحقيقي
+  const handleFakePaymentSuccess = async () => {
+    setLoading('verifying')
     try {
-      const res = await fetch('https://trendaura-production-06c0.up.railway.app/api/ai/checkout', {
+      // توليد معرف عملية دفع وهمي شبيه بميسر للاختبار
+      const fakePaymentId = 'pay_test_' + Math.random().toString(36).substr(2, 9)
+
+      // نرسل الطلب فوراً إلى الـ Endpoint الجديد اللي رفعناه على Railway
+      const res = await fetch('https://trendaura-production-06c0.up.railway.app/api/payment/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-            email: user.email, 
-            userId: user.id, 
-            planType: targetPlan 
-        }) 
+          paymentId: fakePaymentId, // سيتخطى الفحص الوهمي محلياً أو يمرر كمعرف
+          userId: user.id
+        })
       })
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
+      
+      // لتسريع التجربة الوهمية الآن ولفحص تحديث الـ Supabase مباشرة:
+      const { data: profileUpdate, error } = await supabase
+        .from('profiles')
+        .update({ plan: selectedPlanName === 'Pro' ? 'pro' : 'pro_viral' })
+        .eq('id', user.id)
+
+      if (error) throw error
+
+      showToast(`تم تفعيل اشتراك ${selectedPlanName} بنجاح! 🚀🎉`, 'success')
+      setShowPaymentModal(false)
+      setPlan(selectedPlanName === 'Pro' ? 'pro' : 'pro_viral')
+
     } catch (error) {
-      console.error('Error with checkout:', error)
-      showToast('حدث خطأ أثناء تحويلك لصفحة الدفع، يرجى المحاولة لاحقاً.', 'error')
+      console.error('Payment Error:', error)
+      showToast('حدث خطأ أثناء تفعيل الخطة، جرب مجدداً.', 'error')
+    } finally {
+      setLoading(null)
     }
-    
-    setLoading(null)
   }
 
   const isPro = plan?.toLowerCase() === 'pro'
@@ -61,6 +95,51 @@ export default function Pricing() {
     <div className="layout" style={{ backgroundColor: '#0a0b10', color: '#ffffff', minHeight: '100vh' }}>
       <Sidebar />
       <main className="main-content" style={{ padding: '40px 20px' }}>
+
+        {/* 4️⃣ نافذة الدفع المدمجة (Moyasar Test Modal) الفخمة والدائرية بالملي */}
+        {showPaymentModal && (
+          <div className="confirm-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+            <div className="confirm-modal" style={{ background: '#11131e', border: '1px solid #23263b', borderRadius: '24px', padding: '30px', width: '420px', color: '#fff', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+              <div style={{ fontSize: '40px', marginBottom: '10px' }}>💳</div>
+              <h3 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '5px' }}>بوابة ميسر الآمنة (Moyasar)</h3>
+              <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '20px' }}>ترقية الحساب إلى باقة <span style={{ color: '#10b981', fontWeight: 'bold' }}>{selectedPlanName}</span></p>
+              
+              {/* محاكاة واجهة مدى و Apple Pay لبيئة التست */}
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #23263b', borderRadius: '16px', padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#94a3b8', direction: 'rtl' }}>
+                  <span>المجموع:</span>
+                  <span style={{ color: '#fff', fontWeight: 'bold' }}>{selectedPlanPrice} ريال سعودي</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#94a3b8', direction: 'rtl' }}>
+                  <span>وسيلة الدفع المتاحة:</span>
+                  <span style={{ color: '#10b981' }}>مدى / Apple Pay 🟢</span>
+                </div>
+                
+                {/* بطاقة مدى تجريبية معروضة للنسخ لراحتك */}
+                <div style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px dashed #10b981', borderRadius: '12px', padding: '10px', fontSize: '12px', color: '#10b981', marginTop: '5px' }}>
+                  💡 بيئة اختبارية: اضغط على زر الدفع أدناه لمحاكاة عملية شراء ناجحة ببطاقة مدى الموثقة.
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                <button 
+                  onClick={() => setShowPaymentModal(false)} 
+                  className="confirm-cancel" 
+                  style={{ flex: 1, padding: '12px', borderRadius: '14px', background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  إلغاء
+                </button>
+                <button 
+                  onClick={handleFakePaymentSuccess}
+                  disabled={loading === 'verifying'}
+                  style={{ flex: 2, padding: '12px', borderRadius: '14px', background: 'linear-gradient(90deg, #10b981, #059669)', color: '#000', border: 'none', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)' }}
+                >
+                  {loading === 'verifying' ? '⏳ جاري التأكيد...' : `ادفع ${selectedPlanPrice} ريال الآن`}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="pricing-header" style={{ textAlign: 'center', marginBottom: '50px' }}>
           <h1 style={{ fontSize: '36px', fontWeight: 'bold', marginBottom: '10px', color: '#ffffff' }}>اختر خطتك المتميزة 🚀</h1>
@@ -104,7 +183,6 @@ export default function Pricing() {
 
           {/* 🔵 باقة المحترفين - PRO */}
           <div className={`pricing-card-new pro-card-new ${isPro ? 'active-plan-card' : ''}`} style={{ background: '#11131e', border: isPro ? '2px solid #10b981' : '1px solid #23263b', borderRadius: '24px', padding: '35px 25px', width: '320px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', boxShadow: '0 10px 30px rgba(16, 185, 129, 0.05)' }}>
-            {/* 🌟 تم تعديل التوهج هنا ليكون إضاءة خلفية ناعمة دائرية بدون مربع يشوه المنظر */}
             <div className="pro-glow" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '24px', background: 'radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.08), transparent 60%)', pointerEvents: 'none' }} />
 
             <div className="pricing-top">
@@ -146,7 +224,6 @@ export default function Pricing() {
 
           {/* 🔴 باقة المحرك الفيروسي - VIRAL ENGINE */}
           <div className={`pricing-card-new viral-card-new ${isProViral ? 'active-plan-card' : ''}`} style={{ background: '#11131e', border: isProViral ? '2px solid #ef4444' : '1px solid #23263b', borderRadius: '24px', padding: '35px 25px', width: '320px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
-            {/* 🌟 تم تلطيف التوهج هنا أيضاً ليكون انسيابي وناعم متناسق مع البرو */}
             <div className="viral-glow" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '24px', background: 'radial-gradient(circle at 50% 20%, rgba(255, 77, 77, 0.08), transparent 60%)', pointerEvents: 'none' }} />
 
             <div className="pricing-top">
