@@ -8,11 +8,31 @@ dotenv.config()
 
 const app = express()
 
-// 👈 هنا السر: إعدادات CORS المخصصة لفيرسل
+// 🛡️ كسر حماية CORS إجبارياً لموقعك (الضربة القاضية)
+app.use((req, res, next) => {
+  const allowedOrigins = ['http://localhost:5173', 'https://trendaura-two.vercel.app'];
+  const origin = req.headers.origin;
+  
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization,Accept');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  
+  // معالجة طلبات Preflight (التي ترسلها بوابات الدفع)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
+// إعدادات CORS الأساسية كطبقة حماية إضافية
 app.use(cors({
   origin: [
-    'http://localhost:5173', // للبيئة المحلية
-    'https://trendaura-two.vercel.app' // موقعك الفعلي في Vercel
+    'http://localhost:5173', 
+    'https://trendaura-two.vercel.app' 
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
