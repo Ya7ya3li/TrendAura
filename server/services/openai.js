@@ -1,12 +1,9 @@
 export const askAI = async (prompt, planType = 'free') => {
   try {
-    // تحديد الموديل بناءً على الباقة
-    let selectedModel = 'openai/gpt-4o-mini'; // الموديل الافتراضي والاقتصادي للمجاني و Pro
+    // 🌟 استخدمنا الموديل الاقتصادي والذكي جداً عشان يشتغل مع رصيدك الحالي براحة
+    const selectedModel = 'openai/gpt-4o-mini'; 
 
-    // إذا كانت الباقة هي Viral Engine، نستخدم موديل أقوى وأكثر ذكاءً
-    if (planType === 'pro_viral') {
-      selectedModel = 'openai/gpt-4o'; // يمكنك تغييره لأي موديل قوي آخر مثل anthropic/claude-3.5-sonnet
-    }
+    console.log(`🤖 NEW CODE RUNNING: Requesting ${selectedModel} with max_tokens: 500`);
 
     const response = await fetch(
       'https://openrouter.ai/api/v1/chat/completions',
@@ -15,27 +12,28 @@ export const askAI = async (prompt, planType = 'free') => {
         headers: {
           'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://trendaura.com', // يفضل تغييره لرابط موقعك الحقيقي للإنتاج
+          'HTTP-Referer': 'https://trendaura-two.vercel.app', 
           'X-Title': 'TrendAura'
         },
         body: JSON.stringify({
-          model: selectedModel, // الموديل الديناميكي
+          model: selectedModel,
           messages: [
             {
               role: 'user',
               content: prompt
             }
-          ]
+          ],
+          // حددناها بـ 500 كلمة فقط عشان يقبلها غصب
+          max_tokens: 500,
+          temperature: 0.7
         })
       }
     )
 
     const data = await response.json()
 
-    // يمكنك إخفاء هذا السطر في الإنتاج لتقليل السجلات (Logs)
-    // console.log("OPENROUTER RESPONSE:", data)
-
     if (!response.ok) {
+      console.error("❌ OpenRouter Error:", data);
       throw new Error(data?.error?.message || 'OpenRouter Error')
     }
 
@@ -45,7 +43,7 @@ export const askAI = async (prompt, planType = 'free') => {
 
     return data.choices[0].message.content
   } catch (error) {
-    console.error("askAI error:", error.message)
-    return "نأسف، خدمة الذكاء الاصطناعي غير متاحة حالياً. يرجى المحاولة بعد قليل." // تعريب وتلطيف رسالة الخطأ
+    console.error("❌ askAI error:", error.message)
+    throw new Error(error.message)
   }
 }
