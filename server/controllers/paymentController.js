@@ -32,11 +32,11 @@ export const verifyMoyasarPayment = async (req, res) => {
     const paymentData = response.data
 
     if (paymentData.status === 'captured') {
-      // تحديث الباقة
+      // تحديث الباقة بالقيمة المطابقة للواجهة
       if (userId) {
         const { error } = await supabase
           .from('profiles')
-          .update({ plan: 'pro' })
+          .update({ plan: 'viral_engine' }) // 🟢 تم التعديل هنا لتحديث الباقة بالاسم الصحيح للفرونت إند
           .eq('id', userId)
 
         if (error) {
@@ -47,7 +47,7 @@ export const verifyMoyasarPayment = async (req, res) => {
 
       return res.json({ 
         success: true, 
-        message: 'تم تفعيل باقة Pro بنجاح! 🚀', 
+        message: 'تم تفعيل باقة Viral Engine بنجاح! 🚀', 
         amount: paymentData.amount / 100 
       })
 
