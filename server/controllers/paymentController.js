@@ -1,11 +1,5 @@
 import axios from 'axios'
-import { createClient } from '@supabase/supabase-js' // تم الاستيراد مرة واحدة فقط هنا ✅
-
-// الاتصال بـ Supabase باستخدام الـ Service Role للحماية وتحديث قاعدة البيانات
-const supabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
+import { createClient } from '@supabase/supabase-js'
 
 export const verifyMoyasarPayment = async (req, res) => {
   const { paymentId, userId } = req.body
@@ -15,9 +9,19 @@ export const verifyMoyasarPayment = async (req, res) => {
   }
 
   try {
+    // 🛡️ نقلنا الاتصال هنا وحطينا trim() عشان يمسح أي مسافة منسوخة بالغلط في ريلوي
+    const supabaseUrl = (process.env.SUPABASE_URL || '').trim()
+    const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim()
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('⚠️ مفاتيح سوبابيز مفقودة أو غير صحيحة في متغيرات Railway')
+      return res.status(500).json({ success: false, message: 'مشكلة في إعدادات الخادم' })
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
     const secretKey = process.env.MOYASAR_SECRET_KEY
     
-    // التحقق من ميسر بـ Basic Auth
+    // التحقق من ميسر
     const response = await axios.get(`https://api.moyasar.com/v1/payments/${paymentId}`, {
       auth: {
         username: secretKey,
@@ -28,13 +32,11 @@ export const verifyMoyasarPayment = async (req, res) => {
     const paymentData = response.data
 
     if (paymentData.status === 'captured') {
-      // تحديث حالة المستخدم في السوبابيز إلى Pro
+      // تحديث الباقة
       if (userId) {
         const { error } = await supabase
           .from('profiles')
-          .update({ 
-            plan: 'pro' // تحديث حقل الباقة إلى pro مباشرة
-          })
+          .update({ plan: 'pro' })
           .eq('id', userId)
 
         if (error) {
@@ -57,7 +59,7 @@ export const verifyMoyasarPayment = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Moyasar Verification Error:', error.response?.data || error.message)
+    console.error('Verification Error:', error.response?.data || error.message)
     return res.status(500).json({ success: false, message: 'حدث خطأ أثناء التحقق من بوابة الدفع' })
   }
 }
