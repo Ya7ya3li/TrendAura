@@ -1,274 +1,188 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../config/supabase'
-import Sidebar from '../components/Sidebar'
-import { showToast } from '../App'
+import axios from 'axios'
 
 export default function Pricing() {
-  const [loading, setLoading] = useState(null)
-  const [plan, setPlan] = useState('free')
+  const navigate = useNavigate()
   const [user, setUser] = useState(null)
-  
-  // 1️⃣ حالات مخصصة لإدارة نافذة الدفع المنبثقة لميسر
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [selectedPlanPrice, setSelectedPlanPrice] = useState(0)
-  const [selectedPlanName, setSelectedPlanName] = useState('')
+  const [currentPlan, setCurrentPlan] = useState('FREE')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    checkPlan()
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getUser()
+      if (data?.user) {
+        setUser(data.user)
+        
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('plan')
+          .eq('id', data.user.id)
+          .maybeSingle()
+        
+        if (profile?.plan) {
+          setCurrentPlan(profile.plan.toUpperCase())
+        }
+      }
+    }
+    checkUser()
   }, [])
 
-  const checkPlan = async () => {
-    const { data: userData } = await supabase.auth.getUser()
-    if (!userData?.user) return
-    setUser(userData.user)
-
-    const { data } = await supabase
-      .from('profiles')
-      .select('plan')
-      .eq('id', userData.user.id)
-      .maybeSingle()
-
-    setPlan(data?.plan || 'free')
-  }
-
-  // 2️⃣ دالة ضغط زر الاشتراك: تفتح نافذة ميسر محلياً بدلاً من روابط سترايب القديمة
-  const subscribe = async (targetPlan) => {
+  const handleSubscribe = async (planType) => {
     if (!user) {
-      showToast('سجّل دخول أولاً للاشتراك في الباقات', 'warning')
-      setTimeout(() => { window.location.href = '/login' }, 1500)
+      navigate('/login')
       return
     }
 
-    const price = targetPlan === 'pro' ? 29 : 69
-    const name = targetPlan === 'pro' ? 'Pro' : 'Viral Engine'
-    
-    setSelectedPlanPrice(price)
-    setSelectedPlanName(name)
-    setLoading(targetPlan)
-    
-    // إظهار نافذة الدفع الفخمة المدمجة
-    setShowPaymentModal(true)
-    setLoading(null)
-  }
+    // 🟢 السطر السحري: نحفظ اسم الباقة المحددة في ذاكرة المتصفح لتسترجعه صفحة Success بأمان
+    localStorage.setItem('selectedPlan', planType)
 
-  // 3️⃣ دالة محاكاة الدفع الوهمي الناجح وتحديث قاعدة البيانات عبر السيرفر الحقيقي
-  const handleFakePaymentSuccess = async () => {
-    setLoading('verifying')
+    setLoading(true)
     try {
-      // توليد معرف عملية دفع وهمي شبيه بميسر للاختبار
-      const fakePaymentId = 'pay_test_' + Math.random().toString(36).substr(2, 9)
-
-      // نرسل الطلب فوراً إلى الـ Endpoint الجديد اللي رفعناه على Railway
-      const res = await fetch('https://trendaura-production-06c0.up.railway.app/api/payment/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          paymentId: fakePaymentId, // سيتخطى الفحص الوهمي محلياً أو يمرر كمعرف
-          userId: user.id
-        })
-      })
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
       
-      // لتسريع التجربة الوهمية الآن ولفحص تحديث الـ Supabase مباشرة:
-      const { data: profileUpdate, error } = await supabase
-        .from('profiles')
-        .update({ plan: selectedPlanName === 'Pro' ? 'pro' : 'pro_viral' })
-        .eq('id', user.id)
+      const response = await axios.post(`${backendUrl}/api/payment/checkout`, {
+        userId: user.id,
+        planType: planType 
+      })
 
-      if (error) throw error
-
-      showToast(`تم تفعيل اشتراك ${selectedPlanName} بنجاح! 🚀🎉`, 'success')
-      setShowPaymentModal(false)
-      setPlan(selectedPlanName === 'Pro' ? 'pro' : 'pro_viral')
-
+      if (response.data?.checkout_url) {
+        window.location.href = response.data.checkout_url
+      } else {
+        alert('حدث خطأ أثناء تهيئة بوابة الدفع، يرجى المحاولة لاحقاً.')
+      }
     } catch (error) {
-      console.error('Payment Error:', error)
-      showToast('حدث خطأ أثناء تفعيل الخطة، جرب مجدداً.', 'error')
+      console.error('Checkout error:', error)
+      alert('فشل الاتصال بخادم الدفع.')
     } finally {
-      setLoading(null)
+      setLoading(false)
     }
   }
 
-  const isPro = plan?.toLowerCase() === 'pro'
-  const isProViral = plan?.toLowerCase() === 'pro_viral'
+  const plans = [
+    {
+      id: 'FREE',
+      name: 'الباقة المجانية',
+      price: '0',
+      icon: '🌱',
+      features: ['إنشاء سكريبتات محدودة يومياً', 'الوصول للأدوات الأساسية', 'دعم عبر البريد الإلكتروني'],
+      buttonText: 'باقتك الحالية',
+      action: null,
+      disabled: true,
+      popular: false
+    },
+    {
+      id: 'PRO',
+      name: 'اشتراك PRO',
+      price: '49', 
+      icon: '💎',
+      features: ['إنشاء سكريبتات غير محدودة', 'ذكاء اصطناعي متقدم وسريع', 'دعم مباشر 24/7 عبر تليجرام', 'بدون إعلانات'],
+      buttonText: currentPlan === 'PRO' ? 'باقتك الحالية' : 'اشترك الآن 💎',
+      action: () => handleSubscribe('pro'),
+      disabled: currentPlan === 'PRO' || loading,
+      popular: false
+    },
+    {
+      id: 'VIRAL_ENGINE',
+      name: 'Viral Engine 🚀',
+      price: '99', 
+      icon: '🔥',
+      features: ['كل مميزات باقة PRO', 'أدوات تحليل تريندات التيك توك الحصرية', 'أولوية قصوى في معالجة البيانات', 'أفكار محتوى فيروسي متجددة يومياً'],
+      buttonText: currentPlan === 'VIRAL_ENGINE' ? 'باقتك الحالية' : 'امتلك المحرك الفيروسي 🚀',
+      action: () => handleSubscribe('viral_engine'),
+      disabled: currentPlan === 'VIRAL_ENGINE' || loading,
+      popular: true
+    }
+  ]
 
   return (
-    <div className="layout" style={{ backgroundColor: '#0a0b10', color: '#ffffff', minHeight: '100vh' }}>
-      <Sidebar />
-      <main className="main-content" style={{ padding: '40px 20px' }}>
+    <div className="pricing-container" style={{ padding: '40px 20px', direction: 'rtl', textAlgin: 'center' }}>
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '10px' }}>اختر خطتك للنجاح على تيك توك</h1>
+        <p style={{ color: '#666' }}>انطلق بـ TrendAura وحوّل أفكارك إلى مشاهدات ملايين</p>
+      </div>
 
-        {/* 4️⃣ نافذة الدفع المدمجة (Moyasar Test Modal) الفخمة والدائرية بالملي */}
-        {showPaymentModal && (
-          <div className="confirm-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
-            <div className="confirm-modal" style={{ background: '#11131e', border: '1px solid #23263b', borderRadius: '24px', padding: '30px', width: '420px', color: '#fff', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-              <div style={{ fontSize: '40px', marginBottom: '10px' }}>💳</div>
-              <h3 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '5px' }}>بوابة ميسر الآمنة (Moyasar)</h3>
-              <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '20px' }}>ترقية الحساب إلى باقة <span style={{ color: '#10b981', fontWeight: 'bold' }}>{selectedPlanName}</span></p>
-              
-              {/* محاكاة واجهة مدى و Apple Pay لبيئة التست */}
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #23263b', borderRadius: '16px', padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#94a3b8', direction: 'rtl' }}>
-                  <span>المجموع:</span>
-                  <span style={{ color: '#fff', fontWeight: 'bold' }}>{selectedPlanPrice} ريال سعودي</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#94a3b8', direction: 'rtl' }}>
-                  <span>وسيلة الدفع المتاحة:</span>
-                  <span style={{ color: '#10b981' }}>مدى / Apple Pay 🟢</span>
-                </div>
-                
-                {/* بطاقة مدى تجريبية معروضة للنسخ لراحتك */}
-                <div style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px dashed #10b981', borderRadius: '12px', padding: '10px', fontSize: '12px', color: '#10b981', marginTop: '5px' }}>
-                  💡 بيئة اختبارية: اضغط على زر الدفع أدناه لمحاكاة عملية شراء ناجحة ببطاقة مدى الموثقة.
-                </div>
-              </div>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '30px',
+        flexWrap: 'wrap',
+        maxWidth: '1200px',
+        margin: '0 auto'
+      }}>
+        {plans.map((plan) => (
+          <div 
+            key={plan.id} 
+            className={`pricing-card ${plan.popular ? 'popular-card' : ''}`}
+            style={{
+              background: '#fff',
+              border: plan.popular ? '2px solid #fe2c55' : '1px solid #eee',
+              borderRadius: '16px',
+              padding: '30px',
+              width: '320px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'between'
+            }}
+          >
+            {plan.popular && (
+              <span style={{
+                position: 'absolute',
+                top: '-15px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: '#fe2c55',
+                color: '#fff',
+                padding: '4px 15px',
+                borderRadius: '20px',
+                fontSize: '0.85rem',
+                fontWeight: 'bold'
+              }}>
+                الأكثر طلباً 🔥
+              </span>
+            )}
 
-              <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
-                <button 
-                  onClick={() => setShowPaymentModal(false)} 
-                  className="confirm-cancel" 
-                  style={{ flex: 1, padding: '12px', borderRadius: '14px', background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
-                >
-                  إلغاء
-                </button>
-                <button 
-                  onClick={handleFakePaymentSuccess}
-                  disabled={loading === 'verifying'}
-                  style={{ flex: 2, padding: '12px', borderRadius: '14px', background: 'linear-gradient(90deg, #10b981, #059669)', color: '#000', border: 'none', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)' }}
-                >
-                  {loading === 'verifying' ? '⏳ جاري التأكيد...' : `ادفع ${selectedPlanPrice} ريال الآن`}
-                </button>
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>{plan.icon}</div>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '10px' }}>{plan.name}</h2>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#111' }}>
+                {plan.price} <span style={{ fontSize: '1rem', color: '#666', fontWeight: 'normal' }}>ريال / شهرياً</span>
               </div>
             </div>
-          </div>
-        )}
 
-        <div className="pricing-header" style={{ textAlign: 'center', marginBottom: '50px' }}>
-          <h1 style={{ fontSize: '36px', fontWeight: 'bold', marginBottom: '10px', color: '#ffffff' }}>اختر خطتك المتميزة 🚀</h1>
-          <p style={{ color: '#94a3b8', fontSize: '16px' }}>طوّر محتواك وضاعف مشاهداتك بقوة الذكاء الاصطناعي مع TrendAura</p>
-        </div>
-
-        {(isPro || isProViral) && (
-          <div className="pro-active-banner" style={{ background: 'linear-gradient(90deg, #10b981, #059669)', color: '#fff', padding: '12px 24px', borderRadius: '12px', textAlign: 'center', fontWeight: 'bold', marginBottom: '30px', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)' }}>
-            🎉 أنت الآن مشترك في باقة {isPro ? 'Pro' : 'Viral Engine'} — استمتع بكافة المميزات الحصرية!
-          </div>
-        )}
-
-        <div className="pricing-wrapper" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '30px', maxWidth: '1200px', margin: '0 auto' }}>
-
-          {/* 🟢 الباقة المجانية - FREE */}
-          <div className={`pricing-card-new ${plan === 'free' ? 'active-plan-card' : ''}`} style={{ background: '#11131e', border: plan === 'free' ? '2px solid #10b981' : '1px solid #23263b', borderRadius: '24px', padding: '35px 25px', width: '320px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
-            <div className="pricing-top">
-              <span className="plan-name-badge free-badge" style={{ background: 'rgba(255,255,255,0.08)', color: '#94a3b8', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>خطة مجانية</span>
-              <h2 className="plan-title" style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '15px', marginBottom: '5px', color: '#ffffff' }}>Free</h2>
-              <div className="plan-price" style={{ margin: '15px 0' }}>
-                <span className="price-big" style={{ fontSize: '42px', fontWeight: 'extrabold', color: '#ffffff' }}>0</span>
-                <span className="price-small" style={{ color: '#94a3b8', marginRight: '5px' }}>ريال / شهر</span>
-              </div>
-              <p className="plan-desc" style={{ color: '#64748b', fontSize: '14px', marginBottom: '20px' }}>مناسب للمبتدئين لاستكشاف وتجربة الأدوات الأساسية</p>
-            </div>
-
-            <div className="plan-divider" style={{ height: '1px', background: '#23263b', margin: '20px 0' }} />
-
-            <ul className="plan-features-new" style={{ listStyle: 'none', padding: 0, margin: '0 0 30px 0', display: 'flex', flexDirection: 'column', gap: '12px', direction: 'rtl', textAlign: 'right' }}>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> 5 توليدات يومياً للسكربتات</li>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> أفكار محتوى وأدوات أساسية</li>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> هاشتاقات ترندية جاهزة</li>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> تجربة المحرك والذكاء الأساسي</li>
-              <li style={{ color: '#64748b' }}><span className="feat-icon no" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✕</span> بدون ميزة الحفظ الدائم بالسيرفر</li>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 30px 0', flexGrow: 1 }}>
+              {plan.features.map((feature, idx) => (
+                <li key={idx} style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', color: '#443' }}>
+                  <span style={{ color: '#22c55e' }}>✓</span>
+                  {feature}
+                </li>
+              ))}
             </ul>
 
-            <button className="plan-btn-free" disabled style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'rgba(255,255,255,0.05)', color: '#64748b', fontWeight: 'bold', cursor: 'not-allowed' }}>
-              {plan === 'free' ? '✅ خطتك الحالية (Free)' : 'مجاني دائماً'}
+            <button
+              onClick={plan.action}
+              disabled={plan.disabled}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: 'none',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                cursor: plan.disabled ? 'not-allowed' : 'pointer',
+                background: plan.disabled ? '#f5f5f5' : plan.popular ? '#fe2c55' : '#111',
+                color: plan.disabled ? '#999' : '#fff',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {plan.buttonText}
             </button>
           </div>
-
-          {/* 🔵 باقة المحترفين - PRO */}
-          <div className={`pricing-card-new pro-card-new ${isPro ? 'active-plan-card' : ''}`} style={{ background: '#11131e', border: isPro ? '2px solid #10b981' : '1px solid #23263b', borderRadius: '24px', padding: '35px 25px', width: '320px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', boxShadow: '0 10px 30px rgba(16, 185, 129, 0.05)' }}>
-            <div className="pro-glow" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '24px', background: 'radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.08), transparent 60%)', pointerEvents: 'none' }} />
-
-            <div className="pricing-top">
-              <span className="plan-name-badge pro-badge-new" style={{ background: 'linear-gradient(90deg, #10b981, #059669)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>🔥 الأكثر شعبية</span>
-              <h2 className="plan-title" style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '15px', marginBottom: '5px', color: '#ffffff' }}>Pro</h2>
-              <div className="plan-price" style={{ margin: '15px 0' }}>
-                <span className="price-big" style={{ fontSize: '42px', fontWeight: 'extrabold', color: '#ffffff' }}>29</span>
-                <span className="price-small" style={{ color: '#94a3b8', marginRight: '5px' }}>ريال / شهر</span>
-              </div>
-              <p className="plan-desc" style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '20px' }}>لصناع المحتوى الطموحين لتسريع النمو والانتشار</p>
-            </div>
-
-            <div className="plan-divider" style={{ height: '1px', background: '#23263b', margin: '20px 0' }} />
-
-            <ul className="plan-features-new" style={{ listStyle: 'none', padding: 0, margin: '0 0 30px 0', display: 'flex', flexDirection: 'column', gap: '12px', direction: 'rtl', textAlign: 'right' }}>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> <strong>توليد ذكي غير محدود</strong></li>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> قلّابات (Hooks) احترافية خاطفة</li>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> عناوين مثيرة لرفع نسبة النقر</li>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> تحسين جودة السكربت وصياغته</li>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> ميزة حفظ وإدارة السكربتات</li>
-              <li><span className="feat-icon yes" style={{ color: '#10b981', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> دعم فني24/7 سريع ومتكامل</li>
-            </ul>
-
-            {isPro ? (
-              <button className="plan-btn-pro" disabled style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', fontWeight: 'bold', cursor: 'not-allowed' }}>
-                ✅ خطتك الحالية (Pro)
-              </button>
-            ) : (
-              <button 
-                className="plan-btn-pro" 
-                onClick={() => subscribe('pro')} 
-                disabled={loading !== null}
-                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: '#10b981', color: '#000000', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)' }}
-              >
-                {loading === 'pro' ? '⏳ جاري التحويل...' : '🚀 اشترك في Pro بـ 29 ريال'}
-              </button>
-            )}
-          </div>
-
-          {/* 🔴 باقة المحرك الفيروسي - VIRAL ENGINE */}
-          <div className={`pricing-card-new viral-card-new ${isProViral ? 'active-plan-card' : ''}`} style={{ background: '#11131e', border: isProViral ? '2px solid #ef4444' : '1px solid #23263b', borderRadius: '24px', padding: '35px 25px', width: '320px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
-            <div className="viral-glow" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '24px', background: 'radial-gradient(circle at 50% 20%, rgba(255, 77, 77, 0.08), transparent 60%)', pointerEvents: 'none' }} />
-
-            <div className="pricing-top">
-              <span className="plan-name-badge" style={{ background: 'linear-gradient(90deg, #ff4d4d, #ff8080)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>⚡ الخيار الأقوى والمميز</span>
-              <h2 className="plan-title" style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '15px', marginBottom: '5px', color: '#ffffff' }}>Viral Engine</h2>
-              <div className="plan-price" style={{ margin: '15px 0' }}>
-                <span className="price-big" style={{ fontSize: '42px', fontWeight: 'extrabold', color: '#ffffff' }}>69</span>
-                <span className="price-small" style={{ color: '#94a3b8', marginRight: '5px' }}>ريال / شهر</span>
-              </div>
-              <p className="plan-desc" style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '20px' }}>الترسانة الكاملة لصناعة محتوى مليوني متصدر للمشهد</p>
-            </div>
-
-            <div className="plan-divider" style={{ height: '1px', background: '#23263b', margin: '20px 0' }} />
-
-            <ul className="plan-features-new" style={{ listStyle: 'none', padding: 0, margin: '0 0 30px 0', display: 'flex', flexDirection: 'column', gap: '12px', direction: 'rtl', textAlign: 'right' }}>
-              <li><span className="feat-icon yes" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> <strong>تشمل جميع مميزات اشتراك Pro</strong></li>
-              <li><span className="feat-icon yes" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> محرك أفكار الـ Viral المتفجر 🚀</li>
-              <li><span className="feat-icon yes" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> تحليل فوري لقابلية الانتشار السريع</li>
-              <li><span className="feat-icon yes" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> صياغة سيناريوهات 60 ثانية متكاملة</li>
-              <li><span className="feat-icon yes" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> تحسين ذكي لمعدل البقاء والاحتفاظ</li>
-              <li><span className="feat-icon yes" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> توليد عدة زوايا وأفكار لنفس الموضوع</li>
-              <li><span className="feat-icon yes" style={{ color: '#ef4444', marginLeft: '8px', fontWeight: 'bold' }}>✓</span> <strong>دعم فني VIP 24/7 مع أولوية قصوى ⚡</strong></li>
-            </ul>
-
-            {isProViral ? (
-              <button className="plan-btn-pro" disabled style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', fontWeight: 'bold', cursor: 'not-allowed' }}>
-                ✅ خطتك الحالية (Viral Engine)
-              </button>
-            ) : (
-              <button 
-                className="plan-btn-pro" 
-                onClick={() => subscribe('pro_viral')} 
-                disabled={loading !== null}
-                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', background: 'linear-gradient(90deg, #ff4d4d, #e60000)', color: '#ffffff', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.3)' }}
-              >
-                {loading === 'pro_viral' ? '⏳ جاري التحويل...' : '⚡ اشترك في Viral Engine بـ 69 ريال'}
-              </button>
-            )}
-            
-            <p className="plan-note" style={{ color: '#64748b', fontSize: '11px', textAlign: 'center', marginTop: '10px' }}>يمكنك إلغاء الاشتراك أو التعديل في أي وقت</p>
-          </div>
-
-        </div>
-
-      </main>
+        ))}
+      </div>
     </div>
   )
 }

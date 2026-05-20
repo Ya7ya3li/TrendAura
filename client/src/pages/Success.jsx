@@ -7,12 +7,8 @@ import { supabase } from '../config/supabase'
 export default function Success() {
 
   const navigate = useNavigate()
-
-  const [loading, setLoading] =
-  useState(true)
-
-  const [message, setMessage] =
-  useState('جاري التحقق من الدفع...')
+  const [loading, setLoading] = useState(true)
+  const [message, setMessage] = useState('جاري التحقق من الدفع...')
 
   useEffect(() => {
 
@@ -23,28 +19,12 @@ export default function Success() {
   const verifyPayment = async () => {
 
     try {
-
-      // =====================
-      // Get URL Params
-      // =====================
-
-      const params =
-      new URLSearchParams(
-        window.location.search
-      )
-
-      const paymentId =
-      params.get('id')
-
-      const planType =
-      params.get('plan')
+      const params = new URLSearchParams(window.location.search)
+      const paymentId = params.get('id')
+      const planType = params.get('plan') || localStorage.getItem('selectedPlan')
 
       if (!paymentId) {
-
-        setMessage(
-          'معرف العملية غير موجود'
-        )
-
+        setMessage('معرف العملية غير موجود')
         return
 
       }
@@ -53,18 +33,11 @@ export default function Success() {
       // Get Current User
       // =====================
 
-      const { data: userData } =
-      await supabase.auth.getUser()
-
-      const userId =
-      userData?.user?.id
+      const { data: userData } = await supabase.auth.getUser()
+      const userId = userData?.user?.id
 
       if (!userId) {
-
-        setMessage(
-          'يجب تسجيل الدخول أولاً'
-        )
-
+        setMessage('يجب تسجيل الدخول أولاً')
         return
 
       }
@@ -73,9 +46,7 @@ export default function Success() {
       // Verify Payment
       // =====================
 
-      const response =
-      await fetch(
-
+      const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/payment/verify`,
 
         {
@@ -83,8 +54,7 @@ export default function Success() {
           method: 'POST',
 
           headers: {
-            'Content-Type':
-            'application/json'
+            'Content-Type': 'application/json'
           },
 
           body: JSON.stringify({
@@ -101,32 +71,19 @@ export default function Success() {
 
       )
 
-      const data =
-      await response.json()
+      const data = await response.json()
 
       if (data.success) {
-
-        setMessage(
-          'تم تفعيل اشتراكك بنجاح 🚀'
-        )
-
+        setMessage('تم تفعيل اشتراكك بنجاح 🚀')
+        localStorage.removeItem('selectedPlan')
       } else {
-
-        setMessage(
-          data.message ||
-          'فشل التحقق من الدفع'
-        )
-
+        setMessage(data.message || 'فشل التحقق من الدفع')
       }
 
     } catch (error) {
 
       console.error(error)
-
-      setMessage(
-        'حدث خطأ أثناء التحقق'
-      )
-
+      setMessage('حدث خطأ أثناء التحقق')
     } finally {
 
       setLoading(false)
@@ -144,48 +101,12 @@ export default function Success() {
   return (
 
     <div className="login-page">
-
-      <div
-        className="login-card"
-        style={{
-          textAlign: 'center'
-        }}
-      >
-
-        <div
-          style={{
-            fontSize: '80px',
-            marginBottom: '20px'
-          }}
-        >
-          🎉
-        </div>
-
-        <h1
-          style={{
-            color: '#10b981',
-            marginBottom: '16px'
-          }}
-        >
-
-          {
-            loading
-              ? 'جاري التحقق...'
-              : 'نجحت العملية'
-          }
-
+      <div className="login-card" style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '80px', marginBottom: '20px' }}>🎉</div>
+        <h1 style={{ color: '#10b981', marginBottom: '16px' }}>
+          {loading ? 'جاري التحقق...' : 'نجحت العملية'}
         </h1>
-
-        <p
-          style={{
-            color: '#64748b'
-          }}
-        >
-
-          {message}
-
-        </p>
-
+        <p style={{ color: '#64748b' }}>{message}</p>
       </div>
 
     </div>
