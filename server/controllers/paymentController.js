@@ -2,14 +2,13 @@ import axios from 'axios'
 import { createClient } from '@supabase/supabase-js'
 
 export const verifyMoyasarPayment = async (req, res) => {
-  const { paymentId, userId } = req.body
+  const { paymentId, userId, planType } = req.body // استقبلنا نوع الباقة القادم من الموقع إذا كان موجوداً
 
   if (!paymentId) {
     return res.status(400).json({ success: false, message: 'معرف العملية مطلوب' })
   }
 
   try {
-    // 🛡️ نقلنا الاتصال هنا وحطينا trim() عشان يمسح أي مسافة منسوخة بالغلط في ريلوي
     const supabaseUrl = (process.env.SUPABASE_URL || '').trim()
     const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim()
     
@@ -32,11 +31,22 @@ export const verifyMoyasarPayment = async (req, res) => {
     const paymentData = response.data
 
     if (paymentData.status === 'captured') {
-      // تحديث الباقة بالقيمة المطابقة للواجهة
+      
+      // 🟢 الذكاء التلقائي: تحديد اسم الباقة بدقة ليتوافق مع القائمة الجانبية في موقعك
+      let dbPlanName = 'viral_engine'; 
+      
+      // إذا كان موقعك يرسل مسمى معين، نتأكد ونطابقه هنا
+      if (planType === 'pro' && !paymentData.description?.includes('Viral')) {
+        dbPlanName = 'pro';
+      }
+
+      console.log(`💳 Payment Success! Upgrading user ${userId} to plan: ${dbPlanName}`);
+
+      // تحديث الباقة تلقائياً في قاعدة البيانات
       if (userId) {
         const { error } = await supabase
           .from('profiles')
-          .update({ plan: 'viral_engine' }) // 🟢 تم التعديل هنا لتحديث الباقة بالاسم الصحيح للفرونت إند
+          .update({ plan: dbPlanName }) 
           .eq('id', userId)
 
         if (error) {
@@ -47,7 +57,7 @@ export const verifyMoyasarPayment = async (req, res) => {
 
       return res.json({ 
         success: true, 
-        message: 'تم تفعيل باقة Viral Engine بنجاح! 🚀', 
+        message: 'تم تفعيل الاشتراك بنجاح! 🚀', 
         amount: paymentData.amount / 100 
       })
 
