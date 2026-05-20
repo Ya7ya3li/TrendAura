@@ -14,7 +14,6 @@ export default function Pricing() {
       const { data } = await supabase.auth.getUser()
       if (data?.user) {
         setUser(data.user)
-        
         const { data: profile } = await supabase
           .from('profiles')
           .select('plan')
@@ -22,7 +21,7 @@ export default function Pricing() {
           .maybeSingle()
         
         if (profile?.plan) {
-          setCurrentPlan(profile.plan.toUpperCase())
+          setCurrentPlan(profile.plan.toLowerCase())
         }
       }
     }
@@ -35,16 +34,15 @@ export default function Pricing() {
       return
     }
 
-    // 🟢 السطر السحري: نحفظ اسم الباقة المحددة في ذاكرة المتصفح لتسترجعه صفحة Success بأمان
+    // حفظ نوع الباقة في الذاكرة لضمان عدم ضياعها أثناء توجيه ميسر
     localStorage.setItem('selectedPlan', planType)
-
     setLoading(true)
+
     try {
       const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
-      
       const response = await axios.post(`${backendUrl}/api/payment/checkout`, {
         userId: user.id,
-        planType: planType 
+        planType: planType
       })
 
       if (response.data?.checkout_url) {
@@ -62,7 +60,7 @@ export default function Pricing() {
 
   const plans = [
     {
-      id: 'FREE',
+      id: 'free',
       name: 'الباقة المجانية',
       price: '0',
       icon: '🌱',
@@ -73,73 +71,57 @@ export default function Pricing() {
       popular: false
     },
     {
-      id: 'PRO',
+      id: 'pro',
       name: 'اشتراك PRO',
-      price: '49', 
+      price: '49',
       icon: '💎',
       features: ['إنشاء سكريبتات غير محدودة', 'ذكاء اصطناعي متقدم وسريع', 'دعم مباشر 24/7 عبر تليجرام', 'بدون إعلانات'],
-      buttonText: currentPlan === 'PRO' ? 'باقتك الحالية' : 'اشترك الآن 💎',
+      buttonText: currentPlan === 'pro' ? 'باقتك الحالية' : 'اشترك الآن 💎',
       action: () => handleSubscribe('pro'),
-      disabled: currentPlan === 'PRO' || loading,
+      disabled: currentPlan === 'pro' || loading,
       popular: false
     },
     {
-      id: 'VIRAL_ENGINE',
+      id: 'viral_engine',
       name: 'Viral Engine 🚀',
-      price: '99', 
+      price: '99',
       icon: '🔥',
       features: ['كل مميزات باقة PRO', 'أدوات تحليل تريندات التيك توك الحصرية', 'أولوية قصوى في معالجة البيانات', 'أفكار محتوى فيروسي متجددة يومياً'],
-      buttonText: currentPlan === 'VIRAL_ENGINE' ? 'باقتك الحالية' : 'امتلك المحرك الفيروسي 🚀',
+      buttonText: currentPlan === 'pro viral engine' || currentPlan === 'viral_engine' ? 'باقتك الحالية' : 'امتلك المحرك الفيروسي 🚀',
       action: () => handleSubscribe('viral_engine'),
-      disabled: currentPlan === 'VIRAL_ENGINE' || loading,
+      disabled: currentPlan === 'pro viral engine' || currentPlan === 'viral_engine' || loading,
       popular: true
     }
   ]
 
   return (
-    <div className="pricing-container" style={{ padding: '40px 20px', direction: 'rtl', textAlgin: 'center' }}>
+    <div className="pricing-container" style={{ padding: '40px 20px', direction: 'rtl' }}>
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '10px' }}>اختر خطتك للنجاح على تيك توك</h1>
-        <p style={{ color: '#666' }}>انطلق بـ TrendAura وحوّل أفكارك إلى مشاهدات ملايين</p>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#fff', marginBottom: '10px' }}>اختر خطتك للنجاح على تيك توك</h1>
+        <p style={{ color: '#ccc' }}>انطلق بـ TrendAura وحوّل أفكارك إلى مشاهدات ملايين</p>
       </div>
 
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '30px',
-        flexWrap: 'wrap',
-        maxWidth: '1200px',
-        margin: '0 auto'
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', flexWrap: 'wrap', maxWidth: '1200px', margin: '0 auto' }}>
         {plans.map((plan) => (
           <div 
             key={plan.id} 
-            className={`pricing-card ${plan.popular ? 'popular-card' : ''}`}
             style={{
-              background: '#fff',
+              background: '#fcfbf9',
               border: plan.popular ? '2px solid #fe2c55' : '1px solid #eee',
               borderRadius: '16px',
               padding: '30px',
               width: '320px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
               position: 'relative',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'between'
+              boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
             }}
           >
             {plan.popular && (
               <span style={{
-                position: 'absolute',
-                top: '-15px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: '#fe2c55',
-                color: '#fff',
-                padding: '4px 15px',
-                borderRadius: '20px',
-                fontSize: '0.85rem',
-                fontWeight: 'bold'
+                position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%)',
+                background: '#fe2c55', color: '#fff', padding: '4px 15px', borderRadius: '20px',
+                fontSize: '0.85rem', fontWeight: 'bold'
               }}>
                 الأكثر طلباً 🔥
               </span>
@@ -147,7 +129,7 @@ export default function Pricing() {
 
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
               <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>{plan.icon}</div>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '10px' }}>{plan.name}</h2>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111', marginBottom: '10px' }}>{plan.name}</h2>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#111' }}>
                 {plan.price} <span style={{ fontSize: '1rem', color: '#666', fontWeight: 'normal' }}>ريال / شهرياً</span>
               </div>
@@ -155,8 +137,8 @@ export default function Pricing() {
 
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 30px 0', flexGrow: 1 }}>
               {plan.features.map((feature, idx) => (
-                <li key={idx} style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', color: '#443' }}>
-                  <span style={{ color: '#22c55e' }}>✓</span>
+                <li key={idx} style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', color: '#444' }}>
+                  <span style={{ color: '#22c55e', fontWeight: 'bold' }}>✓</span>
                   {feature}
                 </li>
               ))}
@@ -166,14 +148,9 @@ export default function Pricing() {
               onClick={plan.action}
               disabled={plan.disabled}
               style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: 'none',
-                fontWeight: 'bold',
-                fontSize: '1rem',
+                width: '100%', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 'bold', fontSize: '1rem',
                 cursor: plan.disabled ? 'not-allowed' : 'pointer',
-                background: plan.disabled ? '#f5f5f5' : plan.popular ? '#fe2c55' : '#111',
+                background: plan.disabled ? '#e5e5e5' : plan.popular ? '#fe2c55' : '#111',
                 color: plan.disabled ? '#999' : '#fff',
                 transition: 'all 0.2s ease'
               }}
