@@ -2,74 +2,228 @@ import axios from 'axios'
 import { createClient } from '@supabase/supabase-js'
 
 export const verifyMoyasarPayment = async (req, res) => {
-  const { paymentId, userId, planType } = req.body // استقبلنا نوع الباقة القادم من الموقع إذا كان موجوداً
+
+  const {
+    paymentId,
+    userId,
+    planType
+  } = req.body
 
   if (!paymentId) {
-    return res.status(400).json({ success: false, message: 'معرف العملية مطلوب' })
+
+    return res.status(400).json({
+      success: false,
+      message: 'معرف العملية مطلوب'
+    })
+
   }
 
   try {
-    const supabaseUrl = (process.env.SUPABASE_URL || '').trim()
-    const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim()
-    
+
+    // =========================
+    // Supabase Config
+    // =========================
+
+    const supabaseUrl =
+    (process.env.SUPABASE_URL || '').trim()
+
+    const supabaseKey =
+    (
+      process.env
+      .SUPABASE_SERVICE_ROLE_KEY || ''
+    ).trim()
+
     if (!supabaseUrl || !supabaseKey) {
-      console.error('⚠️ مفاتيح سوبابيز مفقودة أو غير صحيحة في متغيرات Railway')
-      return res.status(500).json({ success: false, message: 'مشكلة في إعدادات الخادم' })
+
+      console.error(
+        '⚠️ مفاتيح Supabase مفقودة'
+      )
+
+      return res.status(500).json({
+        success: false,
+        message: 'مشكلة في إعدادات الخادم'
+      })
+
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
-    const secretKey = process.env.MOYASAR_SECRET_KEY
-    
-    // التحقق من ميسر
-    const response = await axios.get(`https://api.moyasar.com/v1/payments/${paymentId}`, {
-      auth: {
-        username: secretKey,
-        password: ''
-      }
-    })
+    const supabase =
+    createClient(
+      supabaseUrl,
+      supabaseKey
+    )
 
-    const paymentData = response.data
+    // =========================
+    // Moyasar Config
+    // =========================
 
-    if (paymentData.status === 'captured') {
-      
-      // 🟢 الذكاء التلقائي: تحديد اسم الباقة بدقة ليتوافق مع القائمة الجانبية في موقعك
-      let dbPlanName = 'viral_engine'; 
-      
-      // إذا كان موقعك يرسل مسمى معين، نتأكد ونطابقه هنا
-      if (planType === 'pro' && !paymentData.description?.includes('Viral')) {
-        dbPlanName = 'pro';
-      }
+    const secretKey =
+    process.env.MOYASAR_SECRET_KEY
 
-      console.log(`💳 Payment Success! Upgrading user ${userId} to plan: ${dbPlanName}`);
+    if (!secretKey) {
 
-      // تحديث الباقة تلقائياً في قاعدة البيانات
-      if (userId) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ plan: dbPlanName }) 
-          .eq('id', userId)
+      return res.status(500).json({
+        success: false,
+        message: 'مفتاح ميسر غير موجود'
+      })
 
-        if (error) {
-          console.error('Supabase update error:', error)
-          return res.status(500).json({ success: false, message: 'تم الدفع لكن فشل تحديث قاعدة البيانات' })
+    }
+
+    // =========================
+    // Verify Payment
+    // =========================
+
+    const response =
+    await axios.get(
+
+      `https://api.moyasar.com/v1/payments/${paymentId}`,
+
+      {
+        auth: {
+          username: secretKey,
+          password: ''
         }
       }
 
-      return res.json({ 
-        success: true, 
-        message: 'تم تفعيل الاشتراك بنجاح! 🚀', 
-        amount: paymentData.amount / 100 
+    )
+
+    const paymentData =
+    response.data
+
+    console.log(
+      '💳 Payment Data:',
+      paymentData
+    )
+
+    // =========================
+    // Payment Success
+    // =========================
+
+    if (
+      paymentData.status === 'captured'
+    ) {
+
+      // =========================
+      // Determine Plan
+      // =========================
+
+      let dbPlanName = 'free'
+
+      if (planType === 'pro') {
+
+        dbPlanName = 'pro'
+
+      }
+
+      if (
+        planType === 'viral_engine'
+      ) {
+
+        dbPlanName = 'viral_engine'
+
+      }
+
+      console.log({
+
+        userId,
+
+        planType,
+
+        dbPlanName
+
       })
 
-    } else {
-      return res.status(400).json({ 
-        success: false, 
-        message: `فشلت عملية الدفع، حالة العملية الحالية: ${paymentData.status}` 
+      // =========================
+      // Update Database
+      // =========================
+
+      if (userId) {
+
+        const { error } =
+        await supabase
+          .from('profiles')
+          .update({
+
+            plan: dbPlanName,
+
+            subscription_status:
+            'active'
+
+          })
+          .eq('id', userId)
+
+        if (error) {
+
+          console.error(
+            '❌ Supabase Error:',
+            error
+          )
+
+          return res.status(500).json({
+
+            success: false,
+
+            message:
+            'تم الدفع لكن فشل تحديث قاعدة البيانات'
+
+          })
+
+        }
+
+      }
+
+      // =========================
+      // Success Response
+      // =========================
+
+      return res.json({
+
+        success: true,
+
+        plan: dbPlanName,
+
+        message:
+        'تم تفعيل الاشتراك بنجاح 🚀',
+
+        amount:
+        paymentData.amount / 100
+
       })
+
     }
 
+    // =========================
+    // Payment Failed
+    // =========================
+
+    return res.status(400).json({
+
+      success: false,
+
+      message:
+      `فشلت عملية الدفع، الحالة الحالية: ${paymentData.status}`
+
+    })
+
   } catch (error) {
-    console.error('Verification Error:', error.response?.data || error.message)
-    return res.status(500).json({ success: false, message: 'حدث خطأ أثناء التحقق من بوابة الدفع' })
+
+    console.error(
+
+      '❌ Verification Error:',
+
+      error.response?.data ||
+      error.message
+
+    )
+
+    return res.status(500).json({
+
+      success: false,
+
+      message:
+      'حدث خطأ أثناء التحقق من الدفع'
+
+    })
+
   }
+
 }
