@@ -2,20 +2,22 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../config/supabase'
 import axios from 'axios'
+import toast from 'react-hot-toast' // 🟢 الإضافة هنا: استدعاء مكتبة الإشعارات الفخمة
 
-// 🟢 1. تأكد من استدعاء showToast هنا بنفس طريقتك القديمة 
-// (إذا كانت دالة خارجية، بيكون الاستدعاء تقريباً زي كذا: import { showToast } from '../utils/toast' )
-// (وإذا كانت من Context، بتستدعيها داخل الدالة تحت)
-
+// 🟢 الإضافة هنا: دالة الإشعارات الفخمة متوافقة مع الدارك مود عشان ما يعطيك خطأ is not defined
+const showToast = (message, type) => {
+  if (type === 'error') {
+    toast.error(message, { style: { background: '#1e293b', color: '#fff', border: '1px solid #ef4444' } })
+  } else {
+    toast.success(message, { style: { background: '#1e293b', color: '#fff', border: '1px solid #22c55e' } })
+  }
+}
 
 export default function Pricing() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [currentPlan, setCurrentPlan] = useState('free')
   const [loading, setLoading] = useState(false)
-
-  // 🟢 إذا كنت تستدعي showToast عن طريق الـ Context، انسخ السطر حقها هنا مثل:
-  // const { showToast } = useToast()
 
   useEffect(() => {
     const checkUser = async () => {
@@ -55,12 +57,10 @@ export default function Pricing() {
       if (response.data?.checkout_url) {
         window.location.href = response.data.checkout_url
       } else {
-        // 🟢 2. رجعنا الإشعار الفخم حقك بدال الـ alert
         showToast('حدث خطأ أثناء تهيئة بوابة الدفع، يرجى المحاولة لاحقاً.', 'error')
       }
     } catch (error) {
       console.error('Checkout error:', error)
-      // 🟢 وهنا كمان رجعنا الإشعار حقك
       showToast('فشل الاتصال بخادم الدفع.', 'error')
     } finally {
       setLoading(false)
@@ -249,7 +249,7 @@ export default function Pricing() {
                   ? `خطتك الحالية ✅` 
                   : plan.id === 'free' 
                     ? 'باقة مجانية' 
-                    : (plan.id === 'pro' ? 'اشترك الآن 💎' : 'viral_engine')}
+                    : (plan.id === 'pro' ? 'اشترك الآن ' : 'اشترك الآن 💎')}
               </button>
             </div>
           )

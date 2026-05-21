@@ -67,8 +67,13 @@ export default function Settings() {
       } else {
         setAvatarUrl(null)
       }
+      // حفظ البروفايل كامل عشان نقرأ منه الباقة
+      setProfile(data) 
     }
   }
+
+  // نحتاج state للبروفايل عشان نستخدمه في قراءة الباقة
+  const [profile, setProfile] = useState(null)
 
   // 3️⃣ دالة حفظ كلمة المرور الجديدة في Supabase
   const handleUpdatePassword = async () => {
@@ -188,6 +193,19 @@ export default function Settings() {
     setDarkMode(!darkMode)
     document.body.classList.toggle('light-mode')
   }
+
+  // 🟢 الذكاء هنا: قراءة الباقة الحقيقية من الداتا بيس
+  const getPlanDetails = () => {
+    const userPlan = profile?.plan?.toLowerCase() || 'free'
+    if (userPlan === 'pro viral engine' || userPlan === 'viral_engine') {
+      return { name: 'Viral Engine 🚀', color: '#7c3aed', isPremium: true }
+    } else if (userPlan === 'pro') {
+      return { name: 'Pro ✨', color: '#3b82f6', isPremium: true }
+    }
+    return { name: 'الباقة المجانية 🌱', color: '#22c55e', isPremium: false }
+  }
+
+  const planInfo = getPlanDetails()
 
   return (
     <div className="layout">
@@ -344,28 +362,32 @@ export default function Settings() {
             <div className="subscription-info" style={{ marginTop: '15px' }}>
               <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: '15px' }}>
                 <div>
-                  <p style={{ fontWeight: '600', color: '#333' }}>الخطة الحالية: <span style={{ color: '#7c3aed' }}>Pro Viral Engine 🚀</span></p>
-                  <p style={{ fontSize: '0.75rem', color: '#888', marginTop: '4px' }}>حالة التجديد: تلقائي</p>
+                  {/* 🟢 استخدام المتغيرات الديناميكية هنا بدلاً من النص الثابت */}
+                  <p style={{ fontWeight: '600', color: '#333' }}>الخطة الحالية: <span style={{ color: planInfo.color }}>{planInfo.name}</span></p>
+                  <p style={{ fontSize: '0.75rem', color: '#888', marginTop: '4px' }}>حالة التجديد: {planInfo.isPremium ? 'تلقائي' : 'غير نشط'}</p>
                 </div>
               </div>
-              <button 
-                className="danger-btn" 
-                style={{ 
-                  backgroundColor: '#fef2f2', 
-                  color: '#ef4444', 
-                  border: '1px solid #fee2e2',
-                  padding: '8px 16px',
-                  borderRadius: '9999px',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                  fontWeight: '500',
-                  transition: 'all 0.2s'
-                }} 
-                onClick={() => setShowCancelModal(true)}
-                disabled={canceling}
-              >
-                {canceling ? 'جاري الإلغاء...' : 'إلغاء الاشتراك التلقائي'}
-              </button>
+              {/* 🟢 إخفاء زر الإلغاء إذا كانت الباقة مجانية */}
+              {planInfo.isPremium && (
+                <button 
+                  className="danger-btn" 
+                  style={{ 
+                    backgroundColor: '#fef2f2', 
+                    color: '#ef4444', 
+                    border: '1px solid #fee2e2',
+                    padding: '8px 16px',
+                    borderRadius: '9999px',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }} 
+                  onClick={() => setShowCancelModal(true)}
+                  disabled={canceling}
+                >
+                  {canceling ? 'جاري الإلغاء...' : 'إلغاء الاشتراك التلقائي'}
+                </button>
+              )}
             </div>
           </div>
 
