@@ -1,7 +1,8 @@
 import axios from 'axios'
 import { createClient } from '@supabase/supabase-js'
+import WebSocket from 'ws'
 
-// 🟢 1. الدالة الجديدة اللي كانت ناقصة: مسؤولة عن إنشاء فاتورة الدفع وتوجيه العميل
+// 🟢 1. دالة إنشاء فاتورة الدفع
 export const createCheckout = async (req, res) => {
   const { userId, planType } = req.body
 
@@ -62,7 +63,7 @@ export const createCheckout = async (req, res) => {
   }
 }
 
-// 🟢 2. دالة التحقق (تم تطويرها عشان تدعم روابط الفواتير والدفع المباشر بدون أخطاء)
+// 🟢 2. دالة التحقق
 export const verifyMoyasarPayment = async (req, res) => {
   const { paymentId, userId, planType } = req.body
 
@@ -92,8 +93,15 @@ export const verifyMoyasarPayment = async (req, res) => {
       return res.status(500).json({ success: false, message: 'مفتاح ميسر غير موجود' })
     }
 
-    // إنشاء Supabase Client
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    // 🟢 التعديل السحري هنا: دمج الـ WebSocket عشان ما يشتكي السيرفر!
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        persistSession: false
+      },
+      global: {
+        WebSocket: WebSocket
+      }
+    })
 
     let paymentData
     let isSuccessful = false
