@@ -2,7 +2,7 @@ import axios from 'axios'
 import { createClient } from '@supabase/supabase-js'
 import ws from 'ws' // 🟢 التعديل الأول: استدعاء المكتبة بالشكل الجديد
 
-// 🟢 1. دالة إنشاء فاتورة الدفع
+// 🟢 1. دالة إنشاء فاتورة الدفع (بدون أي تغيير)
 export const createCheckout = async (req, res) => {
   const { userId, planType } = req.body
 
@@ -60,7 +60,7 @@ export const createCheckout = async (req, res) => {
   }
 }
 
-// 🟢 2. دالة التحقق وتحديث الباقة
+// 🟢 2. دالة التحقق وتحديث الباقة (تمت ترقيتها بأمان)
 export const verifyMoyasarPayment = async (req, res) => {
   const { paymentId, userId, planType } = req.body
 
@@ -87,7 +87,6 @@ export const verifyMoyasarPayment = async (req, res) => {
       return res.status(500).json({ success: false, message: 'مفتاح ميسر غير موجود' })
     }
 
-    // 🟢 التعديل الثاني والسحري هنا: الطريقة الجديدة اللي يطلبها Supabase!
     const supabase = createClient(supabaseUrl, supabaseKey, {
       auth: {
         persistSession: false
@@ -105,13 +104,15 @@ export const verifyMoyasarPayment = async (req, res) => {
         auth: { username: secretKey, password: '' }
       })
       paymentData = response.data
-      isSuccessful = paymentData.status === 'paid' 
+      // 🟢 تعديل أمان: التحقق من كلا الحالتين لضمان الفواتير
+      isSuccessful = paymentData.status === 'paid' || paymentData.status === 'captured'
     } else {
       const response = await axios.get(`https://api.moyasar.com/v1/payments/${paymentId}`, {
         auth: { username: secretKey, password: '' }
       })
       paymentData = response.data
-      isSuccessful = paymentData.status === 'captured' 
+      // 🟢 تعديل أمان: قبول paid أيضاً للمدفوعات المباشرة لتجنب خطأ الـ 400
+      isSuccessful = paymentData.status === 'captured' || paymentData.status === 'paid'
     }
 
     console.log('💳 Payment Status:', paymentData.status)
@@ -125,7 +126,8 @@ export const verifyMoyasarPayment = async (req, res) => {
         dbPlanName = 'pro'
       }
 
-      if (planType === 'viral_engine') {
+      if (planType === 'Viral Engine') {
+        // 🟢 تعديل الباقة: تسجيلها بالاسم الكامل المتوافق مع لوحة تحكم موقعك
         dbPlanName = 'Viral Engine'
       }
 
