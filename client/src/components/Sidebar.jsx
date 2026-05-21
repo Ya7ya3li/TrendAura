@@ -79,15 +79,29 @@ export default function Sidebar() {
           <div className="logo" style={{ color: '#38bdf8', fontSize: '1.8rem', fontWeight: 'bold', padding: '20px', textAlign: 'center' }}>TrendAura</div>
           <nav className="sidebar-menu">
             {links.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`nav-link ${location.pathname === link.to ? 'active' : ''}`}
-                onClick={() => setOpen(false)}
-              >
-                <span className="nav-icon">{link.icon}</span>
-                {link.label}
-              </Link>
+              // 🟢 التعديل هنا: التفريق بين الرابط الداخلي والخارجي
+              link.external ? (
+                <a
+                  key={link.to}
+                  href={link.to}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nav-link"
+                >
+                  <span className="nav-icon">{link.icon}</span>
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`nav-link ${location.pathname === link.to ? 'active' : ''}`}
+                  onClick={() => setOpen(false)}
+                >
+                  <span className="nav-icon">{link.icon}</span>
+                  {link.label}
+                </Link>
+              )
             ))}
           </nav>
         </div>
