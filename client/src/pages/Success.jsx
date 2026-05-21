@@ -15,11 +15,14 @@ export default function Success() {
     try {
       const params = new URLSearchParams(window.location.search)
       const paymentId = params.get('id')
-      // السطر السحري لاسترجاع الباقة
-      const planType = params.get('plan') || localStorage.getItem('selectedPlan')
+      
+      // 🟢 تعديل أمان: استرجاع الباقة وتنظيفها من أي مسافات أو حروف كبيرة
+      const rawPlan = params.get('plan') || localStorage.getItem('selectedPlan')
+      const planType = rawPlan ? rawPlan.toLowerCase().trim() : null
 
       if (!paymentId) {
         setMessage('معرف العملية غير موجود')
+        setLoading(false)
         return
       }
 
@@ -28,6 +31,7 @@ export default function Success() {
 
       if (!userId) {
         setMessage('يجب تسجيل الدخول أولاً')
+        setLoading(false)
         return
       }
 
@@ -51,6 +55,14 @@ export default function Success() {
       if (data.success) {
         setMessage('تم تفعيل اشتراكك بنجاح 🚀')
         localStorage.removeItem('selectedPlan')
+        
+        // 🟢 التعديل الذهبي: توجيه متبوع بإعادة تحميل صريحة لتحديث الـ Sidebar فوراً
+        setLoading(false)
+        setTimeout(() => {
+          window.location.href = '/'
+        }, 3500)
+        return // إنهاء الدالة هنا لمنع تداخل الـ setTimeout السفلي
+        
       } else {
         setMessage(data.message || 'فشل التحقق من الدفع')
       }
@@ -60,6 +72,7 @@ export default function Success() {
       setMessage('حدث خطأ أثناء التحقق')
     } finally {
       setLoading(false)
+      // في حال الفشل أو الخطأ، نرجع بالـ navigate الطبيعي بدون إنعاش الصفحة
       setTimeout(() => {
         navigate('/')
       }, 4000)

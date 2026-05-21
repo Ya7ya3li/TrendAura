@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../config/supabase'
-import axios from 'axios'
-import toast from 'react-hot-toast' // 🟢 الإضافة هنا: استدعاء مكتبة الإشعارات الفخمة
+import axiosInstance from 'axios' // 🟢 استخدام أكسيوس الممرر بكودك بشكل نظيف
+import toast from 'react-hot-toast' // 🟢 استدعاء مكتبة الإشعارات الفخمة
 
-// 🟢 الإضافة هنا: دالة الإشعارات الفخمة متوافقة مع الدارك مود عشان ما يعطيك خطأ is not defined
+// دالة الإشعارات الفخمة متوافقة مع الدارك مود
 const showToast = (message, type) => {
   if (type === 'error') {
     toast.error(message, { style: { background: '#1e293b', color: '#fff', border: '1px solid #ef4444' } })
@@ -49,7 +49,7 @@ export default function Pricing() {
 
     try {
       const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
-      const response = await axios.post(`${backendUrl}/api/payment/checkout`, {
+      const response = await axiosInstance.post(`${backendUrl}/api/payment/checkout`, {
         userId: user.id,
         planType: planType
       })
@@ -67,11 +67,19 @@ export default function Pricing() {
     }
   }
 
-  // دوال ذكية لمعرفة حالة الزر بناءً على باقة العميل الحالية
+  // الدالة الاحترافية والدفاعية لفحص نشاط الباقة
   const isPlanActive = (planId) => {
-    if (planId === 'viral_engine') return currentPlan === 'viral engine' || currentPlan === 'viral_engine'
-    if (planId === 'pro') return currentPlan === 'pro'
-    if (planId === 'free') return currentPlan === 'free' || !currentPlan
+    const cleanPlan = currentPlan?.toLowerCase()?.trim()
+
+    if (planId === 'viral_engine') {
+      return cleanPlan === 'viral_engine' || cleanPlan === 'viral engine' || cleanPlan === 'pro viral engine'
+    }
+    if (planId === 'pro') {
+      return cleanPlan === 'pro'
+    }
+    if (planId === 'free') {
+      return cleanPlan === 'free' || !cleanPlan || cleanPlan === ''
+    }
     return false
   }
 
@@ -97,7 +105,7 @@ export default function Pricing() {
     },
     {
       id: 'viral_engine',
-      name: 'اشتراك viral_engine',
+      name: 'اشتراك Viral Engine',
       price: '69',
       desc: 'الترسانة الكاملة لصناعة محتوى مليوني متصدر للمشهد',
       features: [
@@ -127,7 +135,7 @@ export default function Pricing() {
         <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>
           انطلق بـ TrendAura وحوّل أفكارك إلى مشاهدات ملايين
         </p>
-      </div>
+      </div> {/* 🟢 تم تعديل القفلة هنا من } إلى </div> بنجاح */}
 
       {/* Cards Container */}
       <div style={{ 

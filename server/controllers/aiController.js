@@ -3,16 +3,19 @@ import { saveUsage } from './usageController.js'
 
 export const generateAI = async (req, res) => {
   try {
-    const { prompt, planType = 'free', userId } = req.body
+    const { prompt, userId } = req.body
+    
+    // 🟢 تحصين المدخلات: تنظيف النص وتحويله لحروف صغيرة لمنع اللخبطة بسبب الكاش أو المسافات
+    const planType = (req.body.planType || 'free').toLowerCase().trim()
     
     let enhancedPrompt = prompt;
-    // دعم كلا المسميين لضمان التوافق التام
-    const isViralEngine = planType === 'pro_viral' || planType === 'viral_engine';
+    // دعم كافة الاحتمالات الممكنة للمسمى لضمان استقرار الخدمة 100%
+    const isViralEngine = planType === 'pro_viral' || planType === 'viral_engine' || planType === 'viral engine';
 
     if (isViralEngine) {
       enhancedPrompt = `بصفتك خبير محتوى فيروسي (Viral) ومخرج فيديوهات قصيرة وسينمائية، اكتب سكربت تيك توك مدته 60 ثانية للموضوع التالي: "${prompt}".
       يجب أن يتضمن:
-      1. اختيارين من الـ Hooks (خطافات) مصممة لرفع التفاعل في أول 3 ثواني.
+      1. اختيارين من الـ Hooks (خطافات) مصممة لرفع التفاعل in أول 3 ثواني.
       2. وصف للمشاهد البصرية (Visuals) لكل لقطة لزيادة الجاذبية.
       3. أسلوب سرد سريع يحافظ على معدل البقاء (Retention).
       4. دعوة قوية لاتخاذ إجراء (CTA).`;
@@ -43,11 +46,14 @@ export const generateAI = async (req, res) => {
 
 export const generateTrends = async (req, res) => {
   try {
-    const { niche, planType = 'free' } = req.body
+    const { niche } = req.body
+    
+    // 🟢 تحصين المدخلات لضمان تفعيل الـ Trends لباقة الفايرال فوراً
+    const planType = (req.body.planType || 'free').toLowerCase().trim()
     
     let trendCount = 3;
     let qualityInstruction = "بسيطة وعامة";
-    const isViralEngine = planType === 'pro_viral' || planType === 'viral_engine';
+    const isViralEngine = planType === 'pro_viral' || planType === 'viral_engine' || planType === 'viral engine';
     
     if (planType === 'pro') {
       trendCount = 6;
@@ -73,11 +79,14 @@ export const generateTrends = async (req, res) => {
 
 export const generateHashtags = async (req, res) => {
   try {
-    const { topic, planType = 'free' } = req.body
+    const { topic } = req.body
+    
+    // 🟢 تحصين المدخلات لضمان تفعيل الـ Hashtags لباقة الفايرال فوراً
+    const planType = (req.body.planType || 'free').toLowerCase().trim()
     
     let hashtagCount = 5;
     let hashtagStyle = "أساسية";
-    const isViralEngine = planType === 'pro_viral' || planType === 'viral_engine';
+    const isViralEngine = planType === 'pro_viral' || planType === 'viral_engine' || planType === 'viral engine';
 
     if (planType === 'pro') {
       hashtagCount = 10;

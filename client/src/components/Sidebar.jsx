@@ -7,7 +7,7 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
-  const [plan, setPlan] = useState('FREE')
+  const [plan, setPlan] = useState('free') // 🟢 توحيد القيمة الابتدائية لتكون سمول تلقائياً
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function Sidebar() {
       } else {
         setUser(null)
         setProfile(null)
-        setPlan('FREE')
+        setPlan('free')
       }
     })
     return () => listener.subscription.unsubscribe()
@@ -41,7 +41,8 @@ export default function Sidebar() {
       .maybeSingle()
     if (data) {
       setProfile(data)
-      setPlan(data?.plan ? data.plan.toLowerCase() : 'free')
+      // 🟢 تنظيف النص القادم من قاعدة البيانات لضمان تطابقه
+      setPlan(data?.plan ? data.plan.toLowerCase().trim() : 'free')
     }
   }
 
@@ -50,7 +51,9 @@ export default function Sidebar() {
     navigate('/login')
   }
 
-  const isPremium = plan === 'pro' || plan === 'pro viral engine' || plan === 'viral_engine'
+  // 🟢 تحصين الفحص الدفاعي هنا لتشمل باقة الفايرال بكل مسمياتها المحتملة في المتصفح
+  const cleanPlan = plan?.toLowerCase()?.trim()
+  const isPremium = cleanPlan === 'pro' || cleanPlan === 'viral_engine' || cleanPlan === 'viral engine' || cleanPlan === 'pro viral engine'
 
   const links = [
     { to: '/', label: 'الرئيسية', icon: '🏠' },
@@ -63,8 +66,10 @@ export default function Sidebar() {
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'مستخدم'
   const avatarLetter = displayName?.charAt(0)?.toUpperCase()
 
-  // تحديد الكلمة المعروضة على الزر الموف تحت بالظبط حسب حالتك الحالية
-  const displayPlanBadge = plan === 'pro' ? 'PRO ✨' : (plan === 'pro viral engine' || plan === 'viral_engine' ? 'VIRAL 🚀' : 'FREE')
+  // 🟢 تحديث الشارة الموف لتتعرف على الباقة فوراً وتختفي كلمة FREE للأبد عند الاشتراك
+  const displayPlanBadge = cleanPlan === 'pro' 
+    ? 'PRO ✨' 
+    : (cleanPlan === 'viral_engine' || cleanPlan === 'viral engine' || cleanPlan === 'pro viral engine' ? 'VIRAL 🚀' : 'FREE')
 
   return (
     <>
@@ -79,7 +84,6 @@ export default function Sidebar() {
           <div className="logo" style={{ color: '#38bdf8', fontSize: '1.8rem', fontWeight: 'bold', padding: '20px', textAlign: 'center' }}>TrendAura</div>
           <nav className="sidebar-menu">
             {links.map((link) => (
-              // 🟢 التعديل هنا: التفريق بين الرابط الداخلي والخارجي
               link.external ? (
                 <a
                   key={link.to}
