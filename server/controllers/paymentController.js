@@ -2,7 +2,7 @@ import axios from 'axios'
 import { createClient } from '@supabase/supabase-js'
 import ws from 'ws' // 🟢 التعديل الأول: استدعاء المكتبة بالشكل الجديد
 
-// 🟢 1. دالة إنشاء فاتورة الدفع (بدون أي تغيير)
+// 🟢 1. دالة إنشاء فاتورة الدفع
 export const createCheckout = async (req, res) => {
   const { userId, planType } = req.body
 
@@ -60,7 +60,7 @@ export const createCheckout = async (req, res) => {
   }
 }
 
-// 🟢 2. دالة التحقق وتحديث الباقة (تمت ترقيتها بأمان)
+// 🟢 2. دالة التحقق وتحديث الباقة
 export const verifyMoyasarPayment = async (req, res) => {
   const { paymentId, userId, planType } = req.body
 
@@ -104,31 +104,28 @@ export const verifyMoyasarPayment = async (req, res) => {
         auth: { username: secretKey, password: '' }
       })
       paymentData = response.data
-      // 🟢 تعديل أمان: التحقق من كلا الحالتين لضمان الفواتير
       isSuccessful = paymentData.status === 'paid' || paymentData.status === 'captured'
     } else {
       const response = await axios.get(`https://api.moyasar.com/v1/payments/${paymentId}`, {
         auth: { username: secretKey, password: '' }
       })
       paymentData = response.data
-      // 🟢 تعديل أمان: قبول paid أيضاً للمدفوعات المباشرة لتجنب خطأ الـ 400
       isSuccessful = paymentData.status === 'captured' || paymentData.status === 'paid'
     }
 
     console.log('💳 Payment Status:', paymentData.status)
     console.log('📦 Plan Type:', planType)
+    console.log('💰 Paid Amount:', paymentData.amount)
 
     if (isSuccessful) {
 
       let dbPlanName = 'free'
 
-      if (planType === 'pro') {
-        dbPlanName = 'pro'
-      }
-
-      if (planType === 'Viral Engine') {
-        // 🟢 تعديل الباقة: تسجيلها بالاسم الكامل المتوافق مع لوحة تحكم موقعك
+      // 🟢 التعديل الذهبي والمضمون: التحقق من اسم الباقة المفرودة أو المبلغ المدفوع (6900 هللة = 69 ريال)
+      if (planType === 'viral_engine' || planType === 'Viral Engine' || paymentData.amount === 6900) {
         dbPlanName = 'Viral Engine'
+      } else if (planType === 'pro' || paymentData.amount === 2900) {
+        dbPlanName = 'pro'
       }
 
       console.log(`🚀 Upgrading User ${userId} To ${dbPlanName}`)
