@@ -17,19 +17,18 @@ export default function Settings() {
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [canceling, setCanceling] = useState(false)
 
-  // 1️⃣ حالات مخصصة لإعادة تعيين كلمة المرور الجديدة
+  // حالات مخصصة لإعادة تعيين كلمة المرور الجديدة
   const [isResettingPassword, setIsResettingPassword] = useState(false)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [updatingPassword, setUpdatingPassword] = useState(false)
   
   const fileRef = useRef()
+  const [profile, setProfile] = useState(null)
 
   useEffect(() => {
     loadProfile()
 
-    // 2️⃣ فحص الرابط: إذا كان يحتوي على نوع التوثيق الخاص بإعادة التعيين (recovery)
-    // Supabase يضع هذه البيانات في الـ URL Hash تلقائياً عند الضغط على رابط الإيميل
     const handlePasswordRecoveryDetect = () => {
       if (window.location.hash && window.location.hash.includes('type=recovery')) {
         setIsResettingPassword(true)
@@ -39,7 +38,6 @@ export default function Settings() {
     
     handlePasswordRecoveryDetect()
 
-    // الاستماع لـ Auth State أيضاً للتأكد من التقاط الحدث في بعض المتصفحات
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         setIsResettingPassword(true)
@@ -67,15 +65,10 @@ export default function Settings() {
       } else {
         setAvatarUrl(null)
       }
-      // حفظ البروفايل كامل عشان نقرأ منه الباقة
       setProfile(data) 
     }
   }
 
-  // نحتاج state للبروفايل عشان نستخدمه في قراءة الباقة
-  const [profile, setProfile] = useState(null)
-
-  // 3️⃣ دالة حفظ كلمة المرور الجديدة في Supabase
   const handleUpdatePassword = async () => {
     if (!newPassword || !confirmPassword) {
       showToast('يرجى ملء حقول كلمة المرور', 'warning')
@@ -100,7 +93,6 @@ export default function Settings() {
       setIsResettingPassword(false)
       setNewPassword('')
       setConfirmPassword('')
-      // تنظيف الهاش من الرابط ليعود الشكل طبيعي
       window.history.replaceState(null, null, window.location.pathname)
     }
     setUpdatingPassword(false)
@@ -194,11 +186,11 @@ export default function Settings() {
     document.body.classList.toggle('light-mode')
   }
 
-  // 🟢 الذكاء هنا: قراءة الباقة الحقيقية من الداتا بيس
+  // 🟢 التعديل الاحترافي الموحد لضمان قراءة باقة الفايرال بكل حالاتها
   const getPlanDetails = () => {
-    const userPlan = profile?.plan?.toLowerCase() || 'free'
-    if (userPlan === 'pro viral engine' || userPlan === 'viral_engine') {
-      return { name: 'Viral Engine 🚀', color: '#7c3aed', isPremium: true }
+    const userPlan = profile?.plan?.toLowerCase()?.trim() || 'free'
+    if (userPlan === 'pro viral engine' || userPlan === 'viral_engine' || userPlan === 'viral engine') {
+      return { name: 'Viral Engine 🚀', color: '#a855f7', isPremium: true }
     } else if (userPlan === 'pro') {
       return { name: 'Pro ✨', color: '#3b82f6', isPremium: true }
     }
@@ -254,7 +246,7 @@ export default function Settings() {
           </div>
         )}
 
-        {/* 4️⃣ Modal المنبثق الذكي لإعادة تعيين كلمة المرور الحية */}
+        {/* Modal المنبثق لإعادة تعيين كلمة المرور */}
         {isResettingPassword && (
           <div className="confirm-overlay" style={{ zIndex: 9999 }}>
             <div className="confirm-modal" style={{ maxWidth: '450px' }}>
@@ -360,14 +352,13 @@ export default function Settings() {
             <h3>💳 باقة الاشتراك</h3>
             <p className="setting-desc">إدارة تفاصيل خطتك الحالية والدفع</p>
             <div className="subscription-info" style={{ marginTop: '15px' }}>
-              <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: '15px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                 <div>
-                  {/* 🟢 استخدام المتغيرات الديناميكية هنا بدلاً من النص الثابت */}
-                  <p style={{ fontWeight: '600', color: '#333' }}>الخطة الحالية: <span style={{ color: planInfo.color }}>{planInfo.name}</span></p>
-                  <p style={{ fontSize: '0.75rem', color: '#888', marginTop: '4px' }}>حالة التجديد: {planInfo.isPremium ? 'تلقائي' : 'غير نشط'}</p>
+                  {/* 🟢 تعديل التنسيق هنا بجعل لون النص أبيض متناسق مع الدايرك مود ومقروء بوضوح */}
+                  <p style={{ fontWeight: '600', color: '#f8fafc' }}>الخطة الحالية: <span style={{ color: planInfo.color, fontWeight: 'bold' }}>{planInfo.name}</span></p>
+                  <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>حالة التجديد: {planInfo.isPremium ? 'تلقائي' : 'غير نشط'}</p>
                 </div>
               </div>
-              {/* 🟢 إخفاء زر الإلغاء إذا كانت الباقة مجانية */}
               {planInfo.isPremium && (
                 <button 
                   className="danger-btn" 
