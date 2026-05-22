@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../config/supabase'
-import axiosInstance from 'axios' // 🟢 استخدام أكسيوس الممرر بكودك بشكل نظيف
-import toast from 'react-hot-toast' // 🟢 استدعاء مكتبة الإشعارات الفخمة
+import axiosInstance from 'axios' 
+import toast from 'react-hot-toast' 
 
-// دالة الإشعارات الفخمة متوافقة مع الدارك مود
 const showToast = (message, type) => {
   if (type === 'error') {
     toast.error(message, { style: { background: '#1e293b', color: '#fff', border: '1px solid #ef4444' } })
@@ -67,7 +66,6 @@ export default function Pricing() {
     }
   }
 
-  // الدالة الاحترافية والدفاعية لفحص نشاط الباقة
   const isPlanActive = (planId) => {
     const cleanPlan = currentPlan?.toLowerCase()?.trim()
 
@@ -125,8 +123,42 @@ export default function Pricing() {
   ]
 
   return (
-    <div style={{ backgroundColor: '#0f172a', minHeight: '100vh', padding: '60px 20px', direction: 'rtl', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ backgroundColor: '#0f172a', minHeight: '100vh', padding: '40px 20px', direction: 'rtl', fontFamily: 'system-ui, sans-serif' }}>
       
+      {/* 🟢 شريط علوي بسيط للرجوع المرن */}
+      <div style={{ display: 'flex', justifyContent: 'flex-start', maxWidth: '1200px', margin: '0 auto 20px auto', width: '100%' }}>
+        <button
+          onClick={() => navigate('/dashboard')}
+          style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            color: '#94a3b8',
+            padding: '10px 22px',
+            borderRadius: '14px', // حواف دائرية مودرن نفس ستايل موقعك
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '0.95rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'
+            e.currentTarget.style.color = '#f8fafc'
+            e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.15)'
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'
+            e.currentTarget.style.color = '#94a3b8'
+            e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.08)'
+          }}
+        >
+          <span>➡️</span>
+          <span>العودة للوحة التحكم</span>
+        </button>
+      </div>
+
       {/* Header Section */}
       <div style={{ textAlign: 'center', marginBottom: '50px' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#f8fafc', marginBottom: '15px' }}>
@@ -247,7 +279,7 @@ export default function Pricing() {
                     ? 'rgba(34, 197, 94, 0.1)' 
                     : (plan.popular ? 'linear-gradient(to right, #ff4b2b, #ff416c)' : '#2563eb'),
                   color: active ? '#22c55e' : '#fff',
-                  border: active ? '1px solid #22c55e' : 'none', // 🟢 تم مسح السطر المكرر علوياً والاحتفاظ بالشرط هنا
+                  border: active ? '1px solid #22c55e' : 'none', 
                   transition: 'all 0.3s ease',
                   opacity: loading ? 0.7 : 1
                 }}

@@ -88,7 +88,7 @@ export default function HeroSection() {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           fontWeight: '900'
-        }}>فيروسية </span> تتصدر التريند
+        }}>فيروسية (Viral)</span> تتصدر التريند
       </h1>
 
       {/* 3. العنوان الفرعي الذكي (Sub-headline) */}
@@ -206,7 +206,7 @@ export default function HeroSection() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
               <span style={{ fontSize: '1.8rem' }}>🤖</span>
               <div style={{ flexGrow: 1, height: '45px', backgroundColor: '#1e293b', borderRadius: '14px', border: '1px solid #334155', display: 'flex', alignItems: 'center', padding: '0 18px' }}>
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>الموضوع: سكريبت تيك توك فيروسي لمنتج عطر رجالي غامض وجذاب...</p>
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>الموضوع: سكريبت لمنتج عطر رجالي غامض وجذاب...</p>
               </div>
               <div style={{ width: '65px', height: '45px', borderRadius: '14px', background: 'linear-gradient(135deg, #a855f7, #ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(168,85,247,0.3)' }}>
                 <span style={{ fontSize: '1.2rem' }}>💎</span>
@@ -214,7 +214,7 @@ export default function HeroSection() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center' }}>
-                <p style={{ color: '#ec4899', fontSize: '0.95rem', fontWeight: 'bold', margin: 0, animation: 'pulseAnimation 1.5s infinite' }}>جاري صناعة السكريبت الفايرال... 🚀</p>
+                <p style={{ color: '#ec4899', fontSize: '0.95rem', fontWeight: 'bold', margin: 0, animation: 'pulseAnimation 1.5s infinite' }}>جاري صناعة السكريبت Viral... 🚀</p>
                 <div style={{ height: '1px', flexGrow: 1, background: 'linear-gradient(to left, rgba(236,72,153,0.3), transparent)', margin: '0 18px' }} />
             </div>
 
