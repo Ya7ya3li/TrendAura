@@ -11,7 +11,7 @@ export default function Sidebar() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    getUser()
+    getUser() // 🟢 تم التأكد من بقائها نظيفة وصحيحة هنا
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(session.user)
@@ -56,7 +56,7 @@ export default function Sidebar() {
   const isPremium = cleanPlan === 'pro' || cleanPlan === 'viral_engine' || cleanPlan === 'viral engine' || cleanPlan === 'pro viral engine'
 
   const links = [
-    { to: '/', label: 'الرئيسية', icon: '🏠' },
+    { to: '/dashboard', label: 'الرئيسية', icon: '🏠' }, // 🟢 هذا هو التعديل الوحيد والمضمون
     { to: '/history', label: 'السكريبتات', icon: '📋' },
     { to: '/pricing', label: 'الاشتراكات', icon: '💎' },
     { to: '/settings', label: 'الإعدادات', icon: '⚙️' },
@@ -84,6 +84,7 @@ export default function Sidebar() {
           <div className="logo" style={{ color: '#38bdf8', fontSize: '1.8rem', fontWeight: 'bold', padding: '20px', textAlign: 'center' }}>TrendAura</div>
           <nav className="sidebar-menu">
             {links.map((link) => (
+              // 🟢 التعديل هنا: التفريق بين الرابط الداخلي والخارجي
               link.external ? (
                 <a
                   key={link.to}
