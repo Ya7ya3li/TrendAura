@@ -83,8 +83,13 @@ export default function App() {
     <BrowserRouter>
       <Toast />
       <Routes>
-        {/* جميع مساراتك القديمة مستقرة ومحفوظة بالملّي كما هي */}
-        <Route path="/" element={<Dashboard />} />
+        {/* 🟢 الآن: الرابط الرئيسي للموقع يعرض الواجهة التسويقية الخارقة مباشرة */}
+        <Route path="/" element={<HeroSection />} /> 
+
+        {/* 🟢 تم نقل لوحة التحكم (الـ Dashboard) لهذا المسار الآمن للمشتركين */}
+        <Route path="/dashboard" element={<Dashboard />} /> 
+        
+        {/* باقي مساراتك المستقرة والمحمية كما هي بالملّي */}
         <Route path="/login" element={<Login />} />
         <Route path="/history" element={<History />} />
         <Route path="/settings" element={<Settings />} />
