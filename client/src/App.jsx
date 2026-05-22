@@ -6,6 +6,7 @@ import History from './pages/History'
 import Settings from './pages/Settings'
 import Pricing from './pages/Pricing'
 import Success from './pages/Success'
+import HeroSection from './components/HeroSection' // 🟢 الإضافة هنا: استيراد واجهة الـ Hero الجديدة
 
 export let showToast = () => {}
 
@@ -82,12 +83,16 @@ export default function App() {
     <BrowserRouter>
       <Toast />
       <Routes>
+        {/* جميع مساراتك القديمة مستقرة ومحفوظة بالملّي كما هي */}
         <Route path="/" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/history" element={<History />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/success" element={<Success />} />
+        
+        {/* 🟢 المسار الآمن والجديد لتجربة واجهتك التسويقية الفخمة بنظام الـ SaaS */}
+        <Route path="/landing" element={<HeroSection />} /> 
       </Routes>
     </BrowserRouter>
   )

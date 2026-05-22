@@ -135,7 +135,7 @@ export default function Pricing() {
         <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>
           انطلق بـ TrendAura وحوّل أفكارك إلى مشاهدات ملايين
         </p>
-      </div> {/* 🟢 تم تعديل القفلة هنا من } إلى </div> بنجاح */}
+      </div>
 
       {/* Cards Container */}
       <div style={{ 
@@ -240,7 +240,6 @@ export default function Pricing() {
                   width: '100%',
                   padding: '16px',
                   borderRadius: '12px',
-                  border: 'none',
                   fontWeight: 'bold',
                   fontSize: '1.1rem',
                   cursor: (active || plan.id === 'free') ? 'default' : 'pointer',
@@ -248,7 +247,7 @@ export default function Pricing() {
                     ? 'rgba(34, 197, 94, 0.1)' 
                     : (plan.popular ? 'linear-gradient(to right, #ff4b2b, #ff416c)' : '#2563eb'),
                   color: active ? '#22c55e' : '#fff',
-                  border: active ? '1px solid #22c55e' : 'none',
+                  border: active ? '1px solid #22c55e' : 'none', // 🟢 تم مسح السطر المكرر علوياً والاحتفاظ بالشرط هنا
                   transition: 'all 0.3s ease',
                   opacity: loading ? 0.7 : 1
                 }}
