@@ -118,7 +118,7 @@ export default function Pricing() {
           اختر خطتك للنجاح
         </h1>
         <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>
-          انطلق بـ TrendAura وحوّل أفكارك إلى مشاهدات ملايين
+          انطلق بـ TrendAura وحوّل أفكارك إلى مشاهدات بلملايين
         </p>
       </div>
 

@@ -1,4 +1,4 @@
-TikTok SaaS AI Project
+SaaS AI Project
 
 - React Frontend
 - Node Backend
