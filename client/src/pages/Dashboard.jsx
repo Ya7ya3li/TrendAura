@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
 import { generateScript, fetchTrends, fetchHashtags } from '../services/api'
 import { showToast } from '../App'
+import { plans } from '../utils/plans' // 🟢 استدعاء مسمى صحيح بالأقواس الحاصرة
+import FeatureGuard from '../components/FeatureGuard' // 🟢 استدعاء صحيح لحارس الميزات
 
 export default function Dashboard() {
   const [prompt, setPrompt] = useState('')
@@ -12,7 +14,6 @@ export default function Dashboard() {
   const [loadingTrends, setLoadingTrends] = useState(false)
   const maxChars = 200
 
-  // حالات جديدة لمعرفة المستخدم وباقته
   const [currentUser, setCurrentUser] = useState(null)
   const [userPlan, setUserPlan] = useState('free')
 
@@ -40,7 +41,6 @@ export default function Dashboard() {
     initUserAndData()
   }, [])
 
-  // دالة مجمعة لجلب بيانات المستخدم أولاً ثم تحميل الترندات بناءً على باقته
   const initUserAndData = async () => {
     const { data: authData } = await supabase.auth.getUser()
     let currentPlan = 'free'
@@ -56,7 +56,7 @@ export default function Dashboard() {
         .eq('id', authData.user.id)
         .maybeSingle()
         
-      currentPlan = profileData?.plan?.toLowerCase() || 'free'
+      currentPlan = profileData?.plan?.toLowerCase()?.trim() || 'free'
       setUserPlan(currentPlan)
     }
 
@@ -66,14 +66,12 @@ export default function Dashboard() {
 
   const loadTrends = async (topic = null, uId = currentUser?.id, plan = userPlan) => {
     setLoadingTrends(true)
-    // تمرير الباقة لمعرفة كم ترند نرجع للمستخدم وجودتها
     const data = await fetchTrends(topic, uId, plan)
     if (data && data.length > 0) setTrends(data)
     setLoadingTrends(false)
   }
 
   const loadHashtags = async (topic = null, uId = currentUser?.id, plan = userPlan) => {
-    // تمرير الباقة لمعرفة كم هاشتاق نرجع للمستخدم وجودتها
     const data = await fetchHashtags(topic, uId, plan)
     if (data && data.length > 0) setHashtags(data)
   }
@@ -90,7 +88,7 @@ export default function Dashboard() {
 
     const { data: authData } = await supabase.auth.getUser()
     if (!authData?.user) {
-      showToast('سجّل دخول أولاً  لتولّد السكربتات', 'warning')
+      showToast('سجّل دخول أولاً لتولّد السكربتات', 'warning')
       setTimeout(() => { window.location.href = '/login' }, 1500)
       return
     }
@@ -104,23 +102,22 @@ export default function Dashboard() {
       .eq('id', userId)
       .maybeSingle()
 
-    const currentPlan = profileData?.plan?.toLowerCase() || 'free'
+    const currentPlan = profileData?.plan?.toLowerCase()?.trim() || 'free'
     setUserPlan(currentPlan)
     
-    // التحقق إذا كان المستخدم على أي باقة مدفوعة (Pro أو Pro Viral)
-    const isPaidPlan = currentPlan === 'pro' || currentPlan === 'pro_viral'
+    const planConfig = plans.find(p => 
+      p.id === currentPlan || 
+      (currentPlan === 'pro_viral' && p.id === 'viral_engine') ||
+      (currentPlan === 'viral engine' && p.id === 'viral_engine')
+    ) || plans[0]
 
-    // تطبيق نظام الحدود على المجاني فقط
-    if (!isPaidPlan) {
+    const isPaidPlan = planConfig.tier > 1
+
+    if (planConfig.id === 'free') {
       const now = new Date()
-      const resetDate = profileData?.count_reset_date
-        ? new Date(profileData.count_reset_date)
-        : now
+      const resetDate = profileData?.count_reset_date ? new Date(profileData.count_reset_date) : now
 
-      if (
-        now.getMonth() !== resetDate.getMonth() ||
-        now.getFullYear() !== resetDate.getFullYear()
-      ) {
+      if (now.getMonth() !== resetDate.getMonth() || now.getFullYear() !== resetDate.getFullYear()) {
         await supabase
           .from('profiles')
           .update({ monthly_count: 0, count_reset_date: now.toISOString() })
@@ -130,28 +127,44 @@ export default function Dashboard() {
 
       const currentCount = profileData?.monthly_count || 0
 
-      if (currentCount >= 5) {
+      if (currentCount >= planConfig.maxGenerations) {
         setLoading(false)
-        showToast('وصلت للحد المجاني — اشترك في PRO للوصول اللامحدود', 'warning')
+        showToast('وصلت للحد المجاني — اشترك للحصول على وصول لامحدود', 'warning')
         setTimeout(() => { window.location.href = '/pricing' }, 2000)
         return
       }
 
-      await supabase
-        .from('profiles')
-        .update({ monthly_count: currentCount + 1 })
-        .eq('id', userId)
+      await supabase.from('profiles').update({ monthly_count: currentCount + 1 }).eq('id', userId)
     }
 
-    // إرسال الـ Prompt مع الـ userId والـ userPlan للـ API
+    let premiumAIInstructions = ''
+    if (planConfig.viralMode) {
+      premiumAIInstructions = `
+- تفعيل محرك الفايرال الخارق (Viral Engine Activated) 🚀
+- اجعل الهوك هجومي، غامض ومثير جداً للجدل في أول 3 ثواني لمنع التمرير مطلقاً.
+- هندس تباعد أسطر النص لرفع معدلات الاحتفاظ والـ Retention لأعلى مستوى.
+- صغ السيناريو بأسلوب ترندي متفجر مخصص للانتشار المليوني السريع.
+- أضف حبكة غير متوقعة في المنتصف لجلب آلاف التعليقات التفاعلية.
+`
+    } else if (planConfig.id === 'pro') {
+      premiumAIInstructions = `
+- Rx استخدام Hooks احترافية وعناوين جذابة تشد انتباه المشاهدين بسرعة.
+- ركز على تحسين الجودة اللغوية للسيناريو ليكون جذاب وسلس ومقنع للنشر.
+`
+    } else {
+      premiumAIInstructions = `
+- صياغة أفكار وسيناريوهات أساسية ومبسطة ومناسبة للمبتدئين.
+`
+    }
+
     const formattedPrompt = `
 اصنع سكربت تيك توك احترافي جداً باللهجة العربية.
 
 الموضوع:
 ${prompt}
 
-الشروط:
-- هوك ناري قصير جداً
+الشروط الأساسية والاحترافية المفعّلة للحساب:
+${premiumAIInstructions}
 - بداية صادمة
 - سكربت طويل نسبيًا
 - لا تختصر التفاصيل
@@ -173,7 +186,7 @@ HOOK:
 SCRIPT:
 ...
 `
-    // استدعاء الـ API مع الباقة والمستخدم
+
     const result = await generateScript(formattedPrompt, userId, currentPlan)
 
     const hookMatch = result.match(/HOOK:(.*?)(SCRIPT:|$)/s)
@@ -185,7 +198,6 @@ SCRIPT:
     setHook(hookText)
     setScript(scriptText)
 
-    // ميزة الحفظ: يتم الحفظ فقط إذا كان المستخدم مدفوع (اختياري، يمكنك إلغاء الشرط إذا أردت الحفظ للكل)
     if (isPaidPlan) {
       await supabase.from('history').insert([{
         prompt,
@@ -252,10 +264,8 @@ SCRIPT:
       <Sidebar />
       <main className="main-content">
 
-        {/* ===== HERO جديد ===== */}
+        {/* ===== HERO SECTION ===== */}
         <div className="new-hero">
-
-          {/* Header */}
           <div className="new-hero-header">
             <div className="new-hero-badge">
               <span>✦</span> صناعة المحتوى بالذكاء الاصطناعي
@@ -280,13 +290,11 @@ SCRIPT:
             </div>
           </div>
 
-          {/* Title */}
           <div className="new-hero-title">
             <h1>اكتب فكرة المحتوى</h1>
             <p>حول فكرتك إلى سكربت احترافي <span className="highlight-text">جاهز للنشر</span> ويجذب المشاهدات</p>
           </div>
 
-          {/* Input Box */}
           <div className="new-hero-input-box">
             <div className="new-hero-input-header">
               <span>أدخل فكرتك هنا</span>
@@ -309,42 +317,27 @@ SCRIPT:
             </div>
           </div>
 
-          {/* Features Row */}
           <div className="new-hero-features">
-            <div className="hero-feature">
-              <span>✓</span> جاهز للنشر
-            </div>
-            <div className="hero-feature">
-              <span>🚀</span> مصمم للانتشار
-            </div>
-            <div className="hero-feature">
-              <span>📄</span> سكربت جذاب
-            </div>
+            <div className="hero-feature"><span>✓</span> جاهز للنشر</div>
+            <div className="hero-feature"><span>🚀</span> مصمم للانتشار</div>
+            <div className="hero-feature"><span>📄</span> سكربت جذاب</div>
           </div>
 
-          {/* Generate Button */}
-          <button
-            className="new-generate-btn"
-            onClick={generate}
-            disabled={loading || !prompt}
-          >
+          <button className="new-generate-btn" onClick={generate} disabled={loading || !prompt}>
             <div className="new-generate-btn-icon">⚡</div>
             <span>{loading ? 'جاري التوليد...' : '✨ توليد السكريت الآن'}</span>
             {loading && <span className="spinner" />}
           </button>
 
-          {/* Footer */}
           <div className="new-hero-footer">
             تم تطويره لأصحاب المحتوى
             <span>• ذكي ❤️</span>
             <span>• سريع ⚡</span>
             <span>• أمن 🛡️</span>
           </div>
-
         </div>
 
         <div className="dashboard-grid">
-
           <div className="glass-card">
             <h3>📝 السكريبت المقترح</h3>
             {hook || script ? (
@@ -357,12 +350,11 @@ SCRIPT:
                   <span className="script-label">السكريبت</span>
                   <p>{script}</p>
                 </div>
-                <button className="copy-btn" onClick={copyScript}>
-                  📋 نسخ السكريبت
-                </button>
-                <button className="export-btn" onClick={exportPDF}>
-                  📄 تصدير PDF
-                </button>
+                <button className="copy-btn" onClick={copyScript}>📋 نسخ السكريبت</button>
+                
+                <FeatureGuard currentPlan={userPlan} minRequiredPlan="pro" featureName="تصدير السكريبتات كـ PDF">
+                  <button className="export-btn" onClick={exportPDF} style={{ marginTop: '8px' }}>📄 تصدير PDF</button>
+                </FeatureGuard>
               </div>
             ) : (
               <p className="empty-state">اكتب فكرة واضغط توليد لتظهر هنا</p>
@@ -377,9 +369,7 @@ SCRIPT:
               </button>
             </div>
             {loadingTrends ? (
-              <div className="loading-trends">
-                <span className="spinner" /> جاري تحديث الترندات...
-              </div>
+              <div className="loading-trends"><span className="spinner" /> جاري تحديث الترندات...</div>
             ) : (
               trends.map((item, index) => (
                 <div className="trend-item" key={index}>
@@ -415,6 +405,18 @@ SCRIPT:
                 <span className="tag" key={index}>{tag}</span>
               ))}
             </div>
+          </div>
+
+          <div className="glass-card">
+            <FeatureGuard currentPlan={userPlan} minRequiredPlan="viral_engine" featureName="محرك أفكار وتحليل الـ Viral">
+              <div>
+                <h3 style={{ color: '#f8fafc', margin: '0 0 10px 0' }}>🚀 أدوات الـ Viral Engine النشطة</h3>
+                <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: '0 0 15px 0' }}>المحرك جاري تحليله المتقدم للهوكس الآن لرفع نسب البقاء والاحتفاظ (Retention).</p>
+                <button className="new-generate-btn" style={{ padding: '10px 16px', fontSize: '0.9rem' }}>
+                  🔥 فحص احتمالية صعود المقطع للتريند
+                </button>
+              </div>
+            </FeatureGuard>
           </div>
 
         </div>

@@ -1,3 +1,4 @@
+import { getPlanTier } from '../utils/plans'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from '../config/supabase'
