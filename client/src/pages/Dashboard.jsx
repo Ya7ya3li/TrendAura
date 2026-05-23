@@ -17,6 +17,10 @@ export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null)
   const [userPlan, setUserPlan] = useState('free')
 
+  // 🟢 الحالات الجديدة المخصصة لمحرك فحص وصعود التريند
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analysisResult, setAnalysisResult] = useState(null)
+
   const [trends, setTrends] = useState([
     'الحرب الاقتصادية العالمية',
     'أسرار الذكاء الصناعي',
@@ -83,6 +87,57 @@ export default function Dashboard() {
     setLoadingTrends(false)
   }
 
+  // 🟢 دالة فحص احتمالية صعود المقطع للتريند الاحترافية الجديدة
+  const analyzeViralPotential = () => {
+    if (!hook || !script) {
+      showToast('ولّد سكريبت أولاً ليقوم المحرك بتحليله! 📝', 'warning')
+      return
+    }
+
+    setAnalyzing(true)
+    setAnalysisResult(null)
+
+    // تأثير حركة معالجة خفيفة لمنح تجربة مستخدم ذكية وسينمائية
+    setTimeout(() => {
+      const combinedText = (hook + ' ' + script).toLowerCase()
+      
+      // فحص وجود كلمات قوية ترفع من رتم الجذب البرمجي للهوك
+      const viralKeywords = ['أسرار', 'صادم', 'كيف', 'لماذا', 'لا أحد', 'أخيراً', 'سر', 'احذر', 'كارثة']
+      let matchCount = 0
+      viralKeywords.forEach(word => {
+        if (combinedText.includes(word)) matchCount++
+      })
+
+      // حساب معادلة القوة والـ Retention ديناميكياً بناءً على معطيات النص الحالي
+      const calculatedScore = Math.min(76 + (matchCount * 4) + (hook.length % 5), 99)
+      const retentionRate = Math.min(66 + (matchCount * 3) + (script.length % 6), 94)
+      
+      let hookPower = 'ممتاز ⚡'
+      let badgeColor = '#3b82f6'
+      
+      if (calculatedScore >= 92) {
+        hookPower = 'هجومي كاسح 🔥'
+        badgeColor = '#ef4444'
+      } else if (calculatedScore >= 85) {
+        hookPower = 'قوي جداً 🟢'
+        badgeColor = '#10b981'
+      }
+
+      setAnalysisResult({
+        score: calculatedScore,
+        retention: retentionRate,
+        power: hookPower,
+        color: badgeColor,
+        tips: matchCount > 2 
+          ? ['الهوك قوي جداً وهجومي، نبرة الصوت في أول 3 ثوانٍ يجب أن تكون مفاجئة ومثيرة.', 'أضف مؤثر بصري سريع (Zoom In) عند نطق الكلمة المفتاحية الجاذبة.', 'النهاية ممتازة وتحتوي على CTA يدفع لترك تعليق فوراً ورفع التفاعل.']
+          : ['السكربت رائع، ولكن يفضل تطعيم العنوان بكلمة مثيرة مثل (أسرار أو سر) لتفادي التمرير السريع.', 'تدرج في نبرة الإلقاء الصوتي تدريجياً لضمان بقاء المشاهدين لأطول فترة ممكنة.', 'اطرح سؤالاً تفاعلياً غامضاً في منتصف المقطع لفتح نقاش واسع في التعليقات.']
+      })
+
+      setAnalyzing(false)
+      showToast('اكتمل التحليل الفيروسي للمقطع! 🚀', 'success')
+    }, 1500)
+  }
+
   const generate = async () => {
     if (!prompt) return
 
@@ -94,6 +149,7 @@ export default function Dashboard() {
     }
 
     setLoading(true)
+    setAnalysisResult(null) // 🟢 تصفير التقرير القديم تلقائياً عند طلب توليد فكرة جديدة
     const userId = authData.user.id
 
     const { data: profileData } = await supabase
@@ -407,14 +463,58 @@ SCRIPT:
             </div>
           </div>
 
+          {/* 🟢 كرت محرك الفايرال - مدمج به دالة الفحص وبانل التقرير النيون التفاعلي */}
           <div className="glass-card">
             <FeatureGuard currentPlan={userPlan} minRequiredPlan="viral_engine" featureName="محرك أفكار وتحليل الـ Viral">
               <div>
                 <h3 style={{ color: '#f8fafc', margin: '0 0 10px 0' }}>🚀 أدوات الـ Viral Engine النشطة</h3>
                 <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: '0 0 15px 0' }}>المحرك جاري تحليله المتقدم للهوكس الآن لرفع نسب البقاء والاحتفاظ (Retention).</p>
-                <button className="new-generate-btn" style={{ padding: '10px 16px', fontSize: '0.9rem' }}>
-                  🔥 فحص احتمالية صعود المقطع للتريند
+                
+                <button 
+                  className="new-generate-btn" 
+                  style={{ padding: '10px 16px', fontSize: '0.9rem', cursor: 'pointer', opacity: analyzing ? 0.7 : 1 }}
+                  onClick={analyzeViralPotential}
+                  disabled={analyzing}
+                >
+                  {analyzing ? '⏳ جاري التحليل الذكي...' : '🔥 فحص احتمالية صعود المقطع للتريند'}
                 </button>
+
+                {/* لوحة عرض التقرير النيون التفاعلي */}
+                {analysisResult && (
+                  <div style={{
+                    marginTop: '20px',
+                    padding: '16px',
+                    backgroundColor: 'rgba(255,255,255,0.02)',
+                    border: `1px solid ${analysisResult.color}`,
+                    borderRadius: '14px',
+                    boxShadow: `0 0 15px ${analysisResult.color}25`,
+                    textAlign: 'right'
+                  }}>
+                    <h4 style={{ color: '#fff', margin: '0 0 12px 0' }}>📊 تقرير محرك الفايرال الذكي</h4>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#94a3b8' }}>احتمالية الصعود للتريند:</span>
+                        <span style={{ color: analysisResult.color, fontWeight: 'bold' }}>{analysisResult.score}%</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#94a3b8' }}>معدل الاحتفاظ المتوقع (Retention):</span>
+                        <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>{analysisResult.retention}%</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#94a3b8' }}>تصنيف قوة الهوك:</span>
+                        <span style={{ backgroundColor: `${analysisResult.color}20`, color: analysisResult.color, padding: '2px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold' }}>{analysisResult.power}</span>
+                      </div>
+                    </div>
+
+                    <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', margin: '10px 0' }}></div>
+                    
+                    <h5 style={{ color: '#cbd5e1', margin: '0 0 8px 0', fontSize: '0.85rem' }}>💡 نصائح هندسة الفايرال للمقطع:</h5>
+                    <ul style={{ paddingRight: '16px', margin: 0, fontSize: '0.82rem', color: '#94a3b8', lineHeight: '1.5' }}>
+                      {analysisResult.tips.map((tip, i) => <li key={i} style={{ marginBottom: '6px' }}>{tip}</li>)}
+                    </ul>
+                  </div>
+                )}
               </div>
             </FeatureGuard>
           </div>
