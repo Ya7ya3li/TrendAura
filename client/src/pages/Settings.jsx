@@ -12,10 +12,6 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  
-  // حالات إدارة إلغاء الاشتراك
-  const [showCancelModal, setShowCancelModal] = useState(false)
-  const [canceling, setCanceling] = useState(false)
 
   // حالات مخصصة لإعادة تعيين كلمة المرور الجديدة
   const [isResettingPassword, setIsResettingPassword] = useState(false)
@@ -108,7 +104,7 @@ export default function Settings() {
         .update({ full_name: name })
         .eq('id', userData.user.id)
       
-      showToast('تم حفظ الاسم بنجاح', 'success')
+      showToast('تم حفظ الاسم بنجاح ✨', 'success')
     } catch (error) {
       console.error('Error saving name:', error)
       showToast('حدث خطأ أثناء حفظ الاسم', 'error')
@@ -150,7 +146,7 @@ export default function Settings() {
         .eq('id', userId)
         
       setAvatarUrl(`${publicUrl}?t=${new Date().getTime()}`)
-      showToast('تم رفع وتحديث الصورة بنجاح', 'success')
+      showToast('تم رفع وتحديث الصورة بنجاح 🎉', 'success')
     } catch (error) {
       console.error('Error uploading avatar:', error)
       showToast('حدث خطأ غير متوقع أثناء الرفع', 'error')
@@ -169,35 +165,13 @@ export default function Settings() {
       return
     }
     setDeleting(false)
-    showToast('تم حذف كل السكريبتات', 'success')
-  }
-
-  const handleCancelSubscription = async () => {
-    setShowCancelModal(false)
-    setCanceling(true)
-    setTimeout(() => {
-      setCanceling(false)
-      showToast('تم إلغاء التجديد التلقائي بنجاح. باقتك ستظل فعالة حتى نهاية الفترة الحالية لحفظ حقوقك 🌟', 'success')
-    }, 1500)
+    showToast('تم حذف كل السكريبتات بنجاح 🗑️', 'success')
   }
 
   const toggleTheme = () => {
     setDarkMode(!darkMode)
     document.body.classList.toggle('light-mode')
   }
-
-  // 🟢 التعديل الاحترافي الموحد لضمان قراءة باقة الفايرال بكل حالاتها
-  const getPlanDetails = () => {
-    const userPlan = profile?.plan?.toLowerCase()?.trim() || 'free'
-    if (userPlan === 'pro viral engine' || userPlan === 'viral_engine' || userPlan === 'viral engine') {
-      return { name: 'Viral Engine 🚀', color: '#a855f7', isPremium: true }
-    } else if (userPlan === 'pro') {
-      return { name: 'Pro ✨', color: '#3b82f6', isPremium: true }
-    }
-    return { name: 'الباقة المجانية 🌱', color: '#22c55e', isPremium: false }
-  }
-
-  const planInfo = getPlanDetails()
 
   return (
     <div className="layout">
@@ -217,29 +191,6 @@ export default function Settings() {
                 </button>
                 <button className="confirm-delete" onClick={deleteAll}>
                   نعم، احذف الكل
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal تأكيد إلغاء الاشتراك */}
-        {showCancelModal && (
-          <div className="confirm-overlay">
-            <div className="confirm-modal">
-              <div className="confirm-icon" style={{ color: '#ef4444' }}>🥺</div>
-              <h3>إلغاء الاشتراك</h3>
-              <p>هل أنت متأكد يا بطل؟ بإلغاء اشتراكك ستفقد ميزات الذكاء الاصطناعي الخارقة والـ VIP Support بنهاية الفترة الحالية.</p>
-              <div className="confirm-btns">
-                <button className="confirm-cancel" onClick={() => setShowCancelModal(false)}>
-                  تراجع، أريد البقاء
-                </button>
-                <button 
-                  className="confirm-delete" 
-                  style={{ backgroundColor: '#ef4444' }} 
-                  onClick={handleCancelSubscription}
-                >
-                  تأكيد الإلغاء
                 </button>
               </div>
             </div>
@@ -297,6 +248,7 @@ export default function Settings() {
 
         <div className="settings-grid">
 
+          {/* كرت صورة البروفايل */}
           <div className="glass-card">
             <h3>🖼️ صورة البروفايل</h3>
             <p className="setting-desc">ارفع صورة شخصية لحسابك</p>
@@ -326,6 +278,7 @@ export default function Settings() {
             </div>
           </div>
 
+          {/* كرت تعديل الحساب والاسم */}
           <div className="glass-card">
             <h3>✏️ تغيير الاسم</h3>
             <p className="setting-desc">غيّر اسمك الظاهر في الموقع</p>
@@ -348,40 +301,7 @@ export default function Settings() {
             </div>
           </div>
 
-          <div className="glass-card">
-            <h3>💳 باقة الاشتراك</h3>
-            <p className="setting-desc">إدارة تفاصيل خطتك الحالية والدفع</p>
-            <div className="subscription-info" style={{ marginTop: '15px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <div>
-                  {/* 🟢 تعديل التنسيق هنا بجعل لون النص أبيض متناسق مع الدايرك مود ومقروء بوضوح */}
-                  <p style={{ fontWeight: '600', color: '#f8fafc' }}>الخطة الحالية: <span style={{ color: planInfo.color, fontWeight: 'bold' }}>{planInfo.name}</span></p>
-                  <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>حالة التجديد: {planInfo.isPremium ? 'تلقائي' : 'غير نشط'}</p>
-                </div>
-              </div>
-              {planInfo.isPremium && (
-                <button 
-                  className="danger-btn" 
-                  style={{ 
-                    backgroundColor: '#fef2f2', 
-                    color: '#ef4444', 
-                    border: '1px solid #fee2e2',
-                    padding: '8px 16px',
-                    borderRadius: '9999px',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    fontWeight: '500',
-                    transition: 'all 0.2s'
-                  }} 
-                  onClick={() => setShowCancelModal(true)}
-                  disabled={canceling}
-                >
-                  {canceling ? 'جاري الإلغاء...' : 'إلغاء الاشتراك التلقائي'}
-                </button>
-              )}
-            </div>
-          </div>
-
+          {/* كرت مظهر الموقع */}
           <div className="glass-card">
             <h3>🎨 مظهر الموقع</h3>
             <p className="setting-desc">اختر بين الوضع الليلي والنهاري</p>
@@ -396,6 +316,7 @@ export default function Settings() {
             </div>
           </div>
 
+          {/* كرت حذف السكريبتات الخطر */}
           <div className="glass-card danger-card">
             <h3>🗑️ حذف السكريبتات</h3>
             <p className="setting-desc">حذف جميع السكريبتات المحفوظة نهائياً</p>
@@ -404,6 +325,7 @@ export default function Settings() {
             </button>
           </div>
 
+          {/* كرت معلومات المنصة */}
           <div className="glass-card">
             <h3>ℹ️ عن المنصة</h3>
             <div className="info-row"><span>الإصدار</span><span className="badge">v1.0.0</span></div>

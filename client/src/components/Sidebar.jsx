@@ -56,10 +56,12 @@ export default function Sidebar() {
   const cleanPlan = plan?.toLowerCase()?.trim()
   const isPremium = cleanPlan === 'pro' || cleanPlan === 'viral_engine' || cleanPlan === 'viral engine' || cleanPlan === 'pro viral engine'
 
+  // 💳 هنا السحر! تم حقن "إدارة الاشتراك" تحت الاشتراكات وقبل الإعدادات بالظبط وبنفس الهيكلية
   const links = [
-    { to: '/dashboard', label: 'الرئيسية', icon: '🏠' }, // 🟢 هذا هو التعديل الوحيد والمضمون
+    { to: '/dashboard', label: 'الرئيسية', icon: '🏠' }, 
     { to: '/history', label: 'السكريبتات', icon: '📋' },
     { to: '/pricing', label: 'الاشتراكات', icon: '💎' },
+    { to: '/subscription-management', label: 'إدارة الاشتراك', icon: '💳' }, // 🔥 السطر الجديد والمطلوب هنا بالملّي!
     { to: '/settings', label: 'الإعدادات', icon: '⚙️' },
     ...(isPremium ? [{ to: 'https://t.me/y33_w', label: 'دعم مباشر 24/7', icon: '💬', external: true }] : [])
   ]

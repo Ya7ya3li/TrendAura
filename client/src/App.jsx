@@ -6,7 +6,8 @@ import History from './pages/History'
 import Settings from './pages/Settings'
 import Pricing from './pages/Pricing'
 import Success from './pages/Success'
-import HeroSection from './components/HeroSection' // 🟢 الإضافة هنا: استيراد واجهة الـ Hero الجديدة
+import HeroSection from './components/HeroSection' // 🟢 واجهة الـ Hero الجديدة
+import SubscriptionManagement from './pages/SubscriptionManagement' // 💳 الإضافة هنا: استيراد صفحة إدارة الاشتراك الجديدة!
 
 export let showToast = () => {}
 
@@ -83,12 +84,15 @@ export default function App() {
     <BrowserRouter>
       <Toast />
       <Routes>
-        {/* 🟢 الآن: الرابط الرئيسي للموقع يعرض الواجهة التسويقية الخارقة مباشرة */}
+        {/* 🟢 الرابط الرئيسي للموقع يعرض الواجهة التسويقية الخارقة مباشرة */}
         <Route path="/" element={<HeroSection />} /> 
 
-        {/* 🟢 تم نقل لوحة التحكم (الـ Dashboard) لهذا المسار الآمن للمشتركين */}
+        {/* 🟢 لوحة التحكم (الـ Dashboard) الآمنة للمشتركين */}
         <Route path="/dashboard" element={<Dashboard />} /> 
         
+        {/* 💳 السحر هنا: تسجيل المسار الآمن لصفحة إدارة الاشتراك المطلب هندسياً */}
+        <Route path="/subscription-management" element={<SubscriptionManagement />} /> 
+
         {/* باقي مساراتك المستقرة والمحمية كما هي بالملّي */}
         <Route path="/login" element={<Login />} />
         <Route path="/history" element={<History />} />
@@ -96,7 +100,7 @@ export default function App() {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/success" element={<Success />} />
         
-        {/* 🟢 المسار الآمن والجديد لتجربة واجهتك التسويقية الفخمة بنظام الـ SaaS */}
+        {/* 🟢 المسار الآمن وتجربة واجهتك التسويقية بنظام الـ SaaS */}
         <Route path="/landing" element={<HeroSection />} /> 
       </Routes>
     </BrowserRouter>
