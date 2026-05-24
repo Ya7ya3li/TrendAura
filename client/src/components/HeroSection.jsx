@@ -1,271 +1,374 @@
-import { useEffect } from 'react' // 🟢 تم إضافة الاستدعاء الصحيح هنا لمنع الكراش
+import { useEffect } from 'react' 
 import { useNavigate } from 'react-router-dom'
 
 export default function HeroSection() {
-  const navigate = useNavigate()
+  const navigate = useNavigate()
 
-  // تعريف حركة النبض (Pulse) بالكود لتعمل تلقائياً وبأمان
-  useEffect(() => {
-    // التأكد من وجود StyleSheet متاح لمنع أي خطأ برمي
-    if (document.styleSheets && document.styleSheets.length > 0) {
-      const styleSheet = document.styleSheets[0];
-      const keyframes = `
-        @keyframes pulseAnimation {
-          0% { opacity: 0.6; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.02); }
-          100% { opacity: 0.6; transform: scale(1); }
-        }
-      `;
-      try {
-        styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
-      } catch (e) {
-        console.log("Animation injected");
-      }
-    }
-  }, []);
+  useEffect(() => {
+    if (document.styleSheets && document.styleSheets.length > 0) {
+      const styleSheet = document.styleSheets[0];
+      const keyframes = `
+        @keyframes pulseGlow {
+          0% { transform: scale(1); opacity: 0.4; }
+          50% { transform: scale(1.05); opacity: 0.7; }
+          100% { transform: scale(1); opacity: 0.4; }
+        }
+      `;
+      try {
+        styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
+      } catch (e) {
+        console.log("Animation ready");
+      }
+    }
+  }, []);
 
-  return (
-    <section style={{
-      backgroundColor: '#0f172a',
-      minHeight: '85vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '80px 20px',
-      direction: 'rtl',
-      fontFamily: 'system-ui, sans-serif',
-      textAlign: 'center',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      
-      {/* تأثير الإضاءة الخلفية الناعمة (Glow Effect) */}
-      <div style={{
-        position: 'absolute',
-        top: '10%',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '400px',
-        height: '400px',
-        background: 'radial-gradient(circle, rgba(168,85,247,0.15) 0%, rgba(15,23,42,0) 70%)',
-        zIndex: 1,
-        pointerEvents: 'none'
-      }} />
+  return (
+    <section style={{
+      backgroundColor: '#060913',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '60px 4% 40px 4%',
+      direction: 'rtl',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      position: 'relative',
+      overflow: 'hidden',
+      boxSizing: 'border-box'
+    }}>
+      
+      {/* ===== الإضاءة الخلفية المحيطية الكبرى لمجسم التطبيق ===== */}
+      <div style={{
+        position: 'absolute',
+        bottom: '10%',
+        left: '15%',
+        width: '600px',
+        height: '600px',
+        background: 'radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 70%)',
+        pointerEvents: 'none',
+        zIndex: 1
+      }} />
 
-      {/* 1. الشارة العلوية الصغيرة (Micro-Badge) */}
-      <div style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '8px',
-        backgroundColor: 'rgba(168, 85, 247, 0.1)',
-        border: '1px solid rgba(168, 85, 247, 0.2)',
-        padding: '6px 16px',
-        borderRadius: '9999px',
-        color: '#c084fc',
-        fontSize: '0.9rem',
-        fontWeight: '500',
-        marginBottom: '25px',
-        zIndex: 2,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-      }}>
-        <span>✨ مستقبل صناعة المحتوى الذكي</span>
-      </div>
+      {/* ===== المحتوى المركزي (التصميم المرن المقسم لجهتين) ===== */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        maxWidth: '1280px',
+        zIndex: 2,
+        gap: '40px',
+        boxSizing: 'border-box'
+      }}>
+        
+        {/* ---------------- 📝 الجهة اليمنى: العناوين والنصوص والكروت ---------------- */}
+        <div style={{
+          flex: '1 1 500px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          textAlign: 'right'
+        }}>
+          
+          {/* الشارة الصغيرة الفوقية */}
+          <div style={{
+            background: 'linear-gradient(90deg, rgba(30,41,59,0.5) 0%, rgba(15,23,42,0.8) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.05)',
+            padding: '6px 16px',
+            borderRadius: '999px',
+            color: '#cbd5e1',
+            fontSize: '0.85rem',
+            fontWeight: '600',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <span style={{ color: '#d946ef' }}>✨</span> منصة الذكاء الاصطناعي لصناع المحتوى
+          </div>
 
-      {/* 2. العنوان الرئيسي الخارق (Headline) */}
-      <h1 style={{
-        fontSize: 'clamp(2rem, 5vw, 3.8rem)',
-        fontWeight: '900',
-        color: '#f8fafc',
-        maxWidth: '850px',
-        lineHeight: '1.2',
-        marginBottom: '20px',
-        zIndex: 2,
-        letterSpacing: '-0.02em'
-      }}>
-        حوّل أفكارك إلى سيناريوهات <span style={{
-          background: 'linear-gradient(135deg, #a855f7, #ec4899)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          fontWeight: '900'
-        }}>فيروسية (Viral)</span> تتصدر التريند
-      </h1>
+          {/* العنوان الرئيسي المتوهج اللامع */}
+          <h1 style={{
+            fontSize: 'clamp(2.2rem, 4.5vw, 3.6rem)',
+            fontWeight: '900',
+            color: '#ffffff',
+            lineHeight: '1.25',
+            margin: '0 0 20px 0',
+            letterSpacing: '-0.5px'
+          }}>
+            حَوِّل فكرتك إلى <br />
+            <span style={{ 
+              background: 'linear-gradient(to right, #b55fe6, #d946ef)', 
+              WebkitBackgroundClip: 'text', 
+              WebkitTextFillColor: 'transparent' 
+            }}>سكريبت فايرل</span> <br />
+            خلال ثوانٍ <span style={{ color: '#a855f7' }}>⚡</span>
+          </h1>
 
-      {/* 3. العنوان الفرعي الذكي (Sub-headline) */}
-      <p style={{
-        fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-        color: '#94a3b8',
-        maxWidth: '650px',
-        lineHeight: '1.6',
-        marginBottom: '40px',
-        zIndex: 2,
-        padding: '0 10px'
-      }}>
-        منصة تمنحك قوة الذكاء الاصطناعي المتقدم لصياغة سكريبتات للملايين؛ ترفع معدل الاحتفاظ بالجمهور وتفجر مشاهداتك بضغطة زر.
-      </p>
+          {/* النص الوصفي الفرعي النظيف */}
+          <p style={{
+            fontSize: '1.05rem',
+            color: '#94a3b8',
+            lineHeight: '1.7',
+            maxWidth: '520px',
+            margin: '0 0 35px 0'
+          }}>
+            أنشئ سكريبتات قصيرة، هوكات قوية، وتحليلات ذكية مصممة خصيصاً لتيك توك، يوتيوب شورتس، وإنستغرام ريلز.
+          </p>
 
-      {/* 4. زر اتخاذ الإجراء المتوهج (Primary CTA Button) */}
-      <button
-        onClick={() => navigate('/pricing')}
-        style={{
-          background: 'linear-gradient(135deg, #a855f7, #ec4899)',
-          color: '#fff',
-          padding: '18px 42px',
-          borderRadius: '16px',
-          border: 'none',
-          fontSize: '1.2rem',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          boxShadow: '0 0 25px rgba(168, 85, 247, 0.4), 0 4px 15px rgba(236, 72, 153, 0.3)',
-          transition: 'all 0.3s ease',
-          zIndex: 2,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.transform = 'scale(1.03)'
-          e.currentTarget.style.boxShadow = '0 0 35px rgba(168, 85, 247, 0.6), 0 6px 20px rgba(236, 72, 153, 0.4)'
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.transform = 'scale(1)'
-          e.currentTarget.style.boxShadow = '0 0 25px rgba(168, 85, 247, 0.4), 0 4px 15px rgba(236, 72, 153, 0.3)'
-        }}
-      >
-        <span>ابدأ صناعة محتواك مجاناً</span>
-        <span style={{ fontSize: '1.3rem' }}>💎</span>
-      </button>
+          {/* أزرار العمليات المركزية (CTA Row) */}
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '45px', width: '100%' }}>
+            <button
+              onClick={() => navigate('/dashboard')}
+              style={{
+                background: 'linear-gradient(135deg, #7c3aed 0%, #d946ef 100%)',
+                color: '#fff',
+                padding: '14px 32px',
+                borderRadius: '14px',
+                border: 'none',
+                fontSize: '1.05rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                boxShadow: '0 8px 24px rgba(124, 58, 237, 0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>✨ ابدأ التوليد الآن</span>
+            </button>
 
-      {/* 5. المعاينة البصرية الفخمة جداً والمتحركة بالكود (Borderless App Mockup) */}
-      <div style={{
-        marginTop: '60px',
-        width: '100%',
-        maxWidth: '1100px',
-        borderRadius: '24px', 
-        border: '1px solid rgba(255, 255, 255, 0.05)', 
-        background: '#1e293b', 
-        padding: '6px', 
-        boxShadow: '0 30px 80px rgba(0,0,0,0.5), 0 0 50px rgba(168, 85, 247, 0.15)',
-        zIndex: 2,
-        aspectRatio: '16/9',
-        overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        transition: 'all 0.5s ease'
-      }}>
-        
-        {/* محتوى الواجهة التفاعلية الوهمية الفخمة */}
-        <div style={{
-          width: '100%',
-          height: '100%',
-          borderRadius: '18px',
-          backgroundColor: '#0f172a', 
-          display: 'flex',
-          direction: 'rtl',
-          fontFamily: 'system-ui, sans-serif',
-          overflow: 'hidden',
-          boxShadow: 'inset 0 0 25px rgba(0,0,0,0.4)'
-        }}>
-          
-          {/* القائمة الجانبية الوهمية */}
-          <div style={{
-            width: '22%',
-            borderLeft: '1px solid #1e293b',
-            padding: '25px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '18px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #a855f7, #ec4899)', boxShadow: '0 0 10px rgba(168,85,247,0.3)' }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <div style={{ height: '9px', width: '70px', backgroundColor: '#f8fafc', borderRadius: '4px' }} />
-                <div style={{ height: '7px', width: '45px', backgroundColor: '#475569', borderRadius: '4px' }} />
-              </div>
-            </div>
-            {[ {icon: '🏠', active: true}, {icon: '🤖', active: false}, {icon: '🕒', active: false}, {icon: '💳', active: false} ].map((item, idx) => (
-              <div key={idx} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                backgroundColor: item.active ? '#1e293b' : 'transparent',
-                padding: item.active ? '12px' : '0',
-                borderRadius: '10px'
-              }}>
-                <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
-                <div style={{ height: '8px', flexGrow: 1, backgroundColor: item.active ? '#a855f7' : '#334155', borderRadius: '4px', opacity: item.active ? 1 : 0.6 }} />
-              </div>
-            ))}
-          </div>
+            <button
+              onClick={() => navigate('/pricing')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.03)',
+                color: '#f1f5f9',
+                padding: '14px 28px',
+                borderRadius: '14px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                fontSize: '1.05rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>▶ مشاهدة التجربة</span>
+            </button>
+          </div>
 
-          {/* منطقة المحتوى الوهمية الفخمة */}
-          <div style={{ flexGrow: 1, padding: '35px 45px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-              <span style={{ fontSize: '1.8rem' }}>🤖</span>
-              <div style={{ flexGrow: 1, height: '45px', backgroundColor: '#1e293b', borderRadius: '14px', border: '1px solid #334155', display: 'flex', alignItems: 'center', padding: '0 18px' }}>
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>الموضوع: سكريبت لمنتج عطر رجالي غامض وجذاب...</p>
-              </div>
-              <div style={{ width: '65px', height: '45px', borderRadius: '14px', background: 'linear-gradient(135deg, #a855f7, #ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(168,85,247,0.3)' }}>
-                <span style={{ fontSize: '1.2rem' }}>💎</span>
-              </div>
-            </div>
+          {/* شبكة الكروت الثلاثة الذكية (Stats Grid) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', width: '100%', maxWidth: '520px' }}>
+            
+            {/* كرت 1 */}
+            <div style={{ background: '#0b1120', border: '1px solid rgba(255, 255, 255, 0.03)', padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#fff', marginBottom: '4px' }}>+50K</div>
+              <div style={{ fontSize: '0.78rem', color: '#64748b' }}>سكريبت تم توليده</div>
+            </div>
 
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-                <p style={{ color: '#ec4899', fontSize: '0.95rem', fontWeight: 'bold', margin: 0, animation: 'pulseAnimation 1.5s infinite' }}>جاري صناعة السكريبت Viral... 🚀</p>
-                <div style={{ height: '1px', flexGrow: 1, background: 'linear-gradient(to left, rgba(236,72,153,0.3), transparent)', margin: '0 18px' }} />
-            </div>
+            {/* كرت 2 */}
+            <div style={{ background: '#0b1120', border: '1px solid rgba(255, 255, 255, 0.03)', padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#fff', marginBottom: '4px' }}>92%</div>
+              <div style={{ fontSize: '0.78rem', color: '#64748b' }}>رضا المستخدمين</div>
+            </div>
 
-            <div style={{
-              flexGrow: 1,
-              borderRadius: '16px',
-              padding: '1.5px', 
-              background: 'linear-gradient(135deg, rgba(168,85,247,0.4), rgba(236,72,153,0.4))',
-              boxShadow: '0 0 20px rgba(168, 85, 247, 0.1)'
-            }}>
-                <div style={{
-                    backgroundColor: '#1e293b', 
-                    borderRadius: '14px',
-                    width: '100%',
-                    height: '100%',
-                    padding: '25px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '15px'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '1.2rem', color: '#a855f7' }}>✅</span>
-                            <p style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f8fafc', margin: 0 }}>سكريبت جاهز للاستخدام!</p>
-                        </div>
-                        <span style={{ fontSize: '0.85rem', color: '#64748b', marginRight: 'auto' }}>13:45</span>
-                    </div>
+            {/* كرت 3 */}
+            <div style={{ background: '#0b1120', border: '1px solid rgba(255, 255, 255, 0.03)', padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#a855f7', marginBottom: '4px' }}>AI</div>
+              <div style={{ fontSize: '0.78rem', color: '#64748b' }}>تحليل فايرل ذكي</div>
+            </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '0.8rem', color: '#a855f7', border: '1px solid rgba(168,85,247,0.3)', padding: '2px 8px', borderRadius: '4px', whiteSpace: 'nowrap', opacity: 0.8 }}>ث0:03 (Hook)</span>
-                            <div style={{ height: '10px', width: '20px', backgroundColor: '#a855f7', borderRadius: '2px' }} />
-                            <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: 0, textAlign: 'right' }}>ثانية وحدة! هذا العطر يخلي الكل يلتفت لك... غامض، جذاب، وفواح طوال اليوم.</p>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '0.8rem', color: '#ec4899', border: '1px solid rgba(236,72,153,0.3)', padding: '2px 8px', borderRadius: '4px', whiteSpace: 'nowrap', opacity: 0.8 }}>ث0:07 (بصري)</span>
-                            <div style={{ height: '10px', width: '20px', backgroundColor: '#ec4899', borderRadius: '2px' }} />
-                            <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: 0, textAlign: 'right' }}>[مشهد بطيء: رذاذ العطر يتطاير على خلفية داكنة متوهجة. انتقال سريع لصورة رجل واثق بنفسه].</p>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '0.8rem', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)', padding: '2px 8px', borderRadius: '4px', whiteSpace: 'nowrap', opacity: 0.8 }}>ث0:15 (الختام)</span>
-                            <div style={{ height: '10px', width: '20px', backgroundColor: '#38bdf8', borderRadius: '2px' }} />
-                            <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: 0, textAlign: 'right' }}>اسم العطر هو [الاسم]. متوفر الحين. الرابط في البايو! 🛒🔥📈</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-          </div>
-        </div>
-      </div>
+          </div>
 
-    </section>
-  )
+        </div>
+
+        {/* ---------------- 💻 الجهة اليسرى: مجسّم شاشة تطبيق الـ Viral Engine الخرافية ---------------- */}
+        <div style={{
+          flex: '1 1 550px',
+          position: 'relative',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          
+          {/* حلقة النيون البنفسجية المتوهجة أسفل الكرت الخارجي */}
+          <div style={{
+            position: 'absolute',
+            width: '105%',
+            height: '105%',
+            borderRadius: '28px',
+            border: '2px solid #a855f7',
+            opacity: 0.4,
+            filter: 'blur(12px)',
+            pointerEvents: 'none',
+            zIndex: 1
+          }} />
+
+          {/* حاوية الكرت الزجاجي الرئيسي للتطبيق */}
+          <div style={{
+            width: '100%',
+            backgroundColor: '#090e1a',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
+            borderRadius: '24px',
+            boxShadow: '0 30px 60px rgba(0,0,0,0.6)',
+            padding: '24px',
+            zIndex: 2,
+            display: 'flex',
+            gap: '20px',
+            boxSizing: 'border-box'
+          }}>
+            
+            {/* التبويب الداخلي الأيسر (Sidebar Tabs) */}
+            <div style={{
+              width: '28%',
+              borderLeft: '1px solid rgba(255,255,255,0.04)',
+              paddingLeft: '14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e2e8f0', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px' }}>
+                <span style={{ color: '#ef4444' }}>⚡</span> Viral Engine
+              </div>
+              
+              {[
+                { title: 'تحليل الفايرل', active: true, icon: '📈' },
+                { title: 'الهوكات', active: false, icon: '🎯' },
+                { title: 'السكريبتات', active: false, icon: '📝' },
+                { title: 'الأفكار', active: false, icon: '💡' },
+                { title: 'المفضلة', active: false, icon: '⭐' }
+              ].map((tab, i) => (
+                <div key={i} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  backgroundColor: tab.active ? 'rgba(168,85,247,0.08)' : 'transparent',
+                  color: tab.active ? '#c084fc' : '#64748b',
+                  fontSize: '0.8rem',
+                  fontWeight: tab.active ? 'bold' : '500',
+                  cursor: 'default'
+                }}>
+                  <span>{tab.icon}</span>
+                  <span>{tab.title}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* منطقة الفحص البياني اليمنى (Main Board View) */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              
+              {/* هيدر التحليل الرئيسي */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#f8fafc', fontSize: '0.9rem', fontWeight: 'bold' }}>تحليل احتمال الانتشار</span>
+                <span style={{ color: '#64748b', fontSize: '0.75rem' }}>مباشر لايف</span>
+              </div>
+
+              {/* قسم الدائرة الرقمية مع بارات الفحص الملونة */}
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+                
+                {/* دائرة النسبة المركزية الفخمة (84%) */}
+                <div style={{
+                  width: '110px',
+                  height: '110px',
+                  borderRadius: '50%',
+                  background: 'conic-gradient(#a855f7 0% 84%, rgba(255,255,255,0.03) 84% 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative'
+                }}>
+                  <div style={{
+                    width: '94px',
+                    height: '94px',
+                    borderRadius: '50%',
+                    backgroundColor: '#090e1a',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <span style={{ fontSize: '1.4rem', fontWeight: '900', color: '#fff' }}>84%</span>
+                    <span style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '2px' }}>احتمالية الترند</span>
+                  </div>
+                </div>
+
+                {/* مؤشرات البارات الجانبية الأربعة */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '160px' }}>
+                  
+                  {[
+                    { label: 'قوة الهوك', val: '92%', color: 'linear-gradient(90deg, #a855f7, #ec4899)' },
+                    { label: 'معدل الاحتفاظ', val: '78%', color: 'linear-gradient(90deg, #7c3aed, #3b82f6)' },
+                    { label: 'وضوح الرسالة', val: '85%', color: 'linear-gradient(90deg, #06b6d4, #10b981)' },
+                    { label: 'قوة الـ CTA', val: '80%', color: 'linear-gradient(90deg, #3b82f6, #06b6d4)' }
+                  ].map((bar, idx) => (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#94a3b8' }}>
+                        <span>{bar.label}</span>
+                        <span style={{ fontWeight: 'bold' }}>{bar.val}</span>
+                      </div>
+                      <div style={{ width: '100%', height: '5px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '99px', overflow: 'hidden' }}>
+                        <div style={{ width: bar.val, height: '100%', background: bar.color, borderRadius: '99px' }} />
+                      </div>
+                    </div>
+                  ))}
+
+                </div>
+              </div>
+
+              {/* المؤشر السفلي لقوة المقطع الحالية */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#cbd5e1' }}>
+                <span>التقييم الفيروسي:</span>
+                <span style={{ background: 'rgba(16px, 185px, 129px, 0.1)', color: '#10b981', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }}>🔥 ممتاز</span>
+              </div>
+
+              {/* كرت النصيحة الهندسية السفلي الذكي */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.01)',
+                border: '1px solid rgba(255, 255, 255, 0.04)',
+                borderRadius: '14px',
+                padding: '12px 14px',
+                display: 'flex',
+                gap: '12px',
+                alignItems: 'center'
+              }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: 'rgba(124,58,237,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🎯</div>
+                <div style={{ flex: 1, textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 'bold', marginBottom: '2px' }}>نصيحة لتحسين الانتشار</div>
+                  <p style={{ color: '#cbd5e1', fontSize: '0.75rem', margin: 0, lineHeight: '1.4' }}>السكريبت قوي جداً! جرب إضافة سؤال تفاعلي في بداية الفيديو لزيادة نسب الاحتفاظ والـ Retention لأطول فترة ممكنة.</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ===== 🌍 البار السفلي المخصص للشركاء ومنصات النشر ===== */}
+      <div style={{
+        marginTop: '70px',
+        borderTop: '1px solid rgba(255, 255, 255, 0.03)',
+        paddingTop: '25px',
+        width: '100%',
+        maxWidth: '1200px',
+        textAlign: 'center',
+        zIndex: 2
+      }}>
+        <p style={{ color: '#475569', fontSize: '0.82rem', margin: '0 0 16px 0', fontWeight: '500' }}>مستهدف ومعتمد من قبل آلاف صناع المحتوى عبر المنصات العالمية</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', color: '#334155', fontSize: '0.85rem', flexWrap: 'wrap', fontWeight: '600' }}>
+          <span>🎵 TikTok</span>
+          <span>📺 YouTube Shorts</span>
+          <span>📸 Instagram Reels</span>
+          <span>👥 Content Creators</span>
+        </div>
+      </div>
+
+    </section>
+  )
 }
