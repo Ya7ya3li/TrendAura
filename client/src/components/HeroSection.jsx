@@ -157,7 +157,7 @@ export default function HeroSection() {
                 gap: '8px'
               }}
             >
-              <span>▶ مشاهدة التجربة</span>
+              <span> مشاهدة التجربة</span>
             </button>
           </div>
 
@@ -360,12 +360,57 @@ export default function HeroSection() {
         textAlign: 'center',
         zIndex: 2
       }}>
-        <p style={{ color: '#475569', fontSize: '0.82rem', margin: '0 0 16px 0', fontWeight: '500' }}>مستهدف ومعتمد من قبل آلاف صناع المحتوى عبر المنصات العالمية</p>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', color: '#334155', fontSize: '0.85rem', flexWrap: 'wrap', fontWeight: '600' }}>
-          <span>🎵 TikTok</span>
-          <span>📺 YouTube Shorts</span>
-          <span>📸 Instagram Reels</span>
-          <span>👥 Content Creators</span>
+        <p style={{ color: '#475569', fontSize: '0.82rem', margin: '0 0 20px 0', fontWeight: '500' }}>
+          مستهدف ومعتمد من قبل آلاف صناع المحتوى عبر المنصات العالمية
+        </p>
+        
+        {/* حاوية الشعارات الرسمية المتناسقة بـ الـ SVG */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          gap: '35px', 
+          color: '#475569', 
+          fontSize: '0.9rem', 
+          flexWrap: 'wrap', 
+          fontWeight: '600' 
+        }}>
+          
+          {/* شعار تيك توك */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.3s' }} onMouseOver={(e)=>e.currentTarget.style.color='#fff'} onMouseOut={(e)=>e.currentTarget.style.color='#475569'}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.03 1.51 4.23 1.12.96 2.53 1.48 3.99 1.57V9.74c-1.72-.08-3.41-.69-4.79-1.74-.03 2.92-.01 5.84-.02 8.75-.11 1.71-.85 3.32-2.11 4.45-1.58 1.34-3.76 1.95-5.83 1.54-2.45-.42-4.57-2.31-5.18-4.72-.73-2.65.26-5.61 2.4-7.14 1.29-.98 2.94-1.44 4.55-1.28v3.9c-.87-.23-1.84-.01-2.52.56-.76.62-1.12 1.65-.91 2.6.24 1.15 1.29 1.99 2.47 1.93 1.32-.01 2.41-1.13 2.4-2.45V.02z"/>
+            </svg>
+            <span>TikTok</span>
+          </div>
+
+          {/* شعار يوتيوب شورتس */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.3s' }} onMouseOver={(e)=>e.currentTarget.style.color='#fff'} onMouseOut={(e)=>e.currentTarget.style.color='#475569'}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M23.498 6.163s-.233-1.64-.946-2.364c-.907-.951-1.926-.956-2.392-1.013C16.824 2.5 12 2.5 12 2.5s-4.823 0-8.16 2.286c-.466.057-1.485.062-2.392 1.013-.714.724-.947 2.364-.947 2.364S.281 8.127.281 10.09v1.82c0 1.963.22 3.927.22 3.927s.233 1.64.946 2.364c.907.951 1.926.956 2.392 1.013 3.337.286 8.16.286 8.16.286s4.824 0 8.16-.286c.466-.057 1.485-.062 2.392-1.013.714-.724.946-2.364.946-2.364s.22-1.963.22-3.927v-1.82c0-1.963-.22-3.927-.22-3.927zM9.545 15.568V8.113L15.818 11.83l-6.273 3.738z"/>
+            </svg>
+            <span>YouTube Shorts</span>
+          </div>
+
+          {/* شعار إنستغرام ريلز */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.3s' }} onMouseOver={(e)=>e.currentTarget.style.color='#fff'} onMouseOut={(e)=>e.currentTarget.style.color='#475569'}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204 0.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+            </svg>
+            <span>Instagram Reels</span>
+          </div>
+
+          {/* أيقونة صناع المحتوى */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.3s' }} onMouseOver={(e)=>e.currentTarget.style.color='#fff'} onMouseOut={(e)=>e.currentTarget.style.color='#475569'}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span>Content Creators</span>
+          </div>
+
         </div>
       </div>
 
