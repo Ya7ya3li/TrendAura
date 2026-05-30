@@ -1,9 +1,4 @@
-# 🔄 TrendAura V2 - Optimized Nixpacks Configuration
-
 providers = ["node"]
-
-[phases.setup]
-nixPkgs = ["...", "nodejs_24"]
 
 [start]
 cmd = "node server.js"
