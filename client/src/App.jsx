@@ -1,108 +1,122 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import Dashboard from './pages/Dashboard'
-import Login from './pages/Login'
-import History from './pages/History'
-import Settings from './pages/Settings'
-import Pricing from './pages/Pricing'
-import Success from './pages/Success'
-import HeroSection from './components/HeroSection' // 🟢 واجهة الـ Hero الجديدة
-import SubscriptionManagement from './pages/SubscriptionManagement' // 💳 الإضافة هنا: استيراد صفحة إدارة الاشتراك الجديدة!
+import React, { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
+// 🧭 استيراد سياقات إدارة الحالة العامة (Context Layer)
+import { AuthProvider } from './context/AuthContext'
+import { SubscriptionProvider } from './context/SubscriptionContext'
+import { ThemeProvider } from './context/ThemeContext'
+import { AppProvider } from './context/AppContext'
+
+// 📂 استيراد هياكل التوزيع البصري القياسية (Layouts Layer)
+import DashboardLayout from './layouts/DashboardLayout'
+import AuthLayout from './layouts/AuthLayout'
+import LandingLayout from './layouts/LandingLayout'
+
+// 📄 استيراد كامل الصفحات الإحدى عشر المعتمدة في الهيكل (Pages Layer)
+import Landing from './pages/Landing'
+import Dashboard from './pages/Dashboard'
+import History from './pages/History'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import Pricing from './pages/Pricing'
+import Settings from './pages/Settings'
+import SubscriptionManagement from './pages/SubscriptionManagement'
+import Success from './pages/Success'
+import NotFound from './pages/NotFound'
+import Maintenance from './pages/Maintenance'
+
+/**
+ * 🚨 المحرك الفيدرالي لرسائل التنبيه والتوست اللحظية (Global Toast Dispatcher)
+ * يسمح بضخ التنبيهات من أي ملف برمي فرعي مباشرة إلى واجهة المستخدم العميل.
+ */
 export let showToast = () => {}
 
-function Toast() {
-  const [toasts, setToasts] = useState([])
+export default function App() {
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
 
+  // ربط الدالة المحلية بالمشغل العالمي المصدر للخارج
   useEffect(() => {
     showToast = (message, type = 'success') => {
-      const id = Date.now()
-      setToasts(prev => [...prev, { id, message, type }])
-      setTimeout(() => {
-        setToasts(prev => prev.filter(t => t.id !== id))
-      }, 3500)
+      setToast({ show: true, message, type })
     }
   }, [])
 
-  const colors = {
-    success: '#10b981',
-    error: '#ef4444',
-    warning: '#f59e0b',
-    info: '#8b5cf6'
-  }
+  // عداد مجهري لتصفير وإخفاء رسالة التنبيه تلقائياً بعد 3.5 ثوانٍ
+  useEffect(() => {
+    if (toast.show) {
+      const timer = setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }))
+      }, 3500)
+      return () => clearTimeout(timer)
+    }
+  }, [toast.show])
 
-  const icons = {
-    success: '✅',
-    error: '❌',
-    warning: '⚠️',
-    info: '💡'
-  }
-
-  return (
-    <div style={{
-      position: 'fixed',
-      top: '24px',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      zIndex: 99999,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '10px',
-      alignItems: 'center',
-      pointerEvents: 'none'
-    }}>
-      {toasts.map(toast => (
-        <div key={toast.id} style={{
-          background: 'rgba(15,23,42,0.97)',
-          backdropFilter: 'blur(20px)',
-          border: `1px solid ${colors[toast.type]}50`,
-          borderRadius: '16px',
-          padding: '14px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          fontSize: '15px',
-          fontWeight: '600',
-          color: 'white',
-          boxShadow: `0 8px 32px ${colors[toast.type]}40`,
-          animation: 'slideDown 0.3s ease',
-          minWidth: '280px',
-          maxWidth: '360px',
-          justifyContent: 'center',
-          direction: 'rtl'
-        }}>
-          <span style={{ fontSize: '20px' }}>{icons[toast.type]}</span>
-          <span>{toast.message}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-export default function App() {
   return (
     <BrowserRouter>
-      <Toast />
-      <Routes>
-        {/* 🟢 الرابط الرئيسي للموقع يعرض الواجهة التسويقية الخارقة مباشرة */}
-        <Route path="/" element={<HeroSection />} /> 
+      {/* 🧬 حقن وتكامل ترسانة مقدمي البيانات للحسابات والمظهر والمالية */}
+      <AuthProvider>
+        <SubscriptionProvider>
+          <ThemeProvider>
+            <AppProvider>
+              
+              <div className="min-h-screen bg-slate-50/50 font-sans antialiased relative">
+                
+                {/* 🛡️ مصفوفة توزيع وفحص المسارات السيادية للمنصة */}
+                <Routes>
+                  
+                  {/* 1. مسارات الشاشات التسويقية العامة والتعريفية للبراند */}
+                  <Route element={<LandingLayout />}>
+                    <Route path="/" element={<Landing />} />
+                  </Route>
 
-        {/* 🟢 لوحة التحكم (الـ Dashboard) الآمنة للمشتركين */}
-        <Route path="/dashboard" element={<Dashboard />} /> 
-        
-        {/* 💳 السحر هنا: تسجيل المسار الآمن لصفحة إدارة الاشتراك المطلب هندسياً */}
-        <Route path="/subscription-management" element={<SubscriptionManagement />} /> 
+                  {/* 2. مسارات حماية جلسات المصادقة (دخول / تسجيل حساب جديد) */}
+                  <Route element={<AuthLayout />}>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                  </Route>
 
-        {/* باقي مساراتك المستقرة والمحمية كما هي بالملّي */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/success" element={<Success />} />
-        
-        {/* 🟢 المسار الآمن وتجربة واجهتك التسويقية بنظام الـ SaaS */}
-        <Route path="/landing" element={<HeroSection />} /> 
-      </Routes>
+                  {/* 3. مسارات الحصن الداخلي للوحة التحكم المتقدمة (Dashboard Bounds) */}
+                  <Route element={<DashboardLayout />}>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/history" element={<History />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/billing" element={<SubscriptionManagement />} />
+                  </Route>
+
+                  {/* 4. مسارات الدعم الفني، الصيانة، ونجاح الفواتير البنكية */}
+                  <Route path="/success" element={<Success />} />
+                  <Route path="/maintenance" element={<Maintenance />} />
+                  <Route path="/404" element={<NotFound />} />
+                  
+                  {/* إعادة توجيه أوتوماتيكية صارمة لأي مسار مجهول خارج النطاق */}
+                  <Route path="*" element={<Navigate to="/404" replace />} />
+
+                </Routes>
+
+                {/* 🎨 كبسولة التنبيهات الميكروية العائمة (Premium Animated Toast Node) */}
+                {toast.show && (
+                  <div className="fixed bottom-20 md:bottom-6 left-6 z-50 animate-scale-up select-none max-w-sm">
+                    <div className={`px-5 py-3.5 rounded-2xl text-xs font-black shadow-xl border flex items-center gap-2.5 dir-rtl text-right ${
+                      toast.type === 'success' ? 'bg-white text-emerald-600 border-emerald-100 shadow-emerald-100/30' :
+                      toast.type === 'error' ? 'bg-rose-50 text-rose-600 border-rose-100 shadow-rose-100/30' :
+                      toast.type === 'warning' ? 'bg-amber-50 text-amber-700 border-amber-100 shadow-amber-100/20' :
+                      'bg-slate-900 text-white border-slate-800'
+                    }`}>
+                      <span className="text-sm">
+                        {toast.type === 'success' ? '✨' : toast.type === 'error' ? '❌' : toast.type === 'warning' ? '⚠️' : '✦'}
+                      </span>
+                      <p className="leading-snug tracking-tight">{toast.message}</p>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+
+            </AppProvider>
+          </ThemeProvider>
+        </SubscriptionProvider>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

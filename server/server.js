@@ -1,51 +1,39 @@
-import express from 'express'
-import cors from 'cors'
-import dotenv from 'dotenv'
-import aiRoutes from './routes/ai.js'
-import paymentRoutes from './routes/payment.js'
+import express from 'express';
+import cors from 'cors';
+import { env } from './config/env.js';
+import { rateLimiter } from './middleware/rateLimiter.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
-dotenv.config()
+// 🧭 استيراد موجهات ومسارات النظام الشاملة
+import aiRoutes from './routes/ai.js';
+import authRoutes from './routes/auth.js';
+import paymentRoutes from './routes/payment.js';
+import subscriptionRoutes from './routes/subscription.js';
+import usageRoutes from './routes/usage.js';
 
-const app = express()
+const app = express();
 
-// 🛡️ كسر حماية CORS إجبارياً لموقعك (الضربة القاضية)
-app.use((req, res, next) => {
-  const allowedOrigins = ['http://localhost:5173', 'https://trendaura-two.vercel.app'];
-  const origin = req.headers.origin;
-  
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization,Accept');
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  
-  // معالجة طلبات Preflight (التي ترسلها بوابات الدفع)
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
+// 🛡️ إعداد بروتوكولات الميدل وير العالمية لحماية البيانات
+app.use(cors({ origin: '*' })); // السماح بالاتصال من كافة النطاقات المعتمدة لـ TrendAura
+app.use(express.json());       // تفعيل استقبال وتحليل حزم البيانات بصيغة JSON
+app.use(rateLimiter);          // حقن مضاد هجمات إغراق السيرفر
+
+// 🌐 ربط وتجميع خطوط الاتصال بالـ API
+app.use('/api/ai', aiRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/usage', usageRoutes);
+
+// نقطة فحص حيوية الخادم (Health Check Endpoint)
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'online', service: 'TrendAura Core Backend Engine' });
 });
 
-// إعدادات CORS الأساسية كطبقة حماية إضافية
-app.use(cors({
-  origin: [
-    'http://localhost:5173', 
-    'https://trendaura-two.vercel.app' 
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true
-}))
+// 🚨 جدار الحماية والتقاط الاستثناءات والأخطاء العام
+app.use(errorHandler);
 
-app.use(express.json())
-
-// الرواتس الأساسية للمنصة
-app.use('/api/ai', aiRoutes)
-app.use('/api/payment', paymentRoutes)
-
-const PORT = process.env.PORT || 5000
-
-app.listen(PORT, () => {
-  console.log(`🚀 TrendAura Server running on port ${PORT}`)
-})
+// 🚀 إطلاق خط الإنتاج واستقبال الاتصالات الحية
+app.listen(env.port, () => {
+  console.log(`🚀 [Server Boot]: Core online on port ${env.port} in [${env.nodeEnv}] production phase.`);
+});

@@ -1,0 +1,26 @@
+@import './animations.css';
+
+/**
+ * TrendAura Specialized Dashboard Styles
+ * Handles high-fidelity gradients and card elevation behaviors.
+ */
+.text-gradient-premium {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 50%, var(--pink) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* هندسة وتأمين كروت العرض الملوكية المضيئة */
+.glow-card-premium {
+  background: var(--bg-card);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: var(--shadow-md);
+  border-radius: 24px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glow-card-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  border-color: rgba(37, 99, 235, 0.12);
+}

@@ -1,217 +1,71 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '../config/supabase'
-import { plans } from '../utils/plans' // 🟢 استدعاء مسمى صحيح ومؤمن بالأقواس الحاصرة
-import axiosInstance from 'axios' 
-import toast from 'react-hot-toast' 
+import React, { useContext } from 'react'
+import { useNavigate } from 'react-router-dom' // 🚀 استدعاء محرك التنقل الحركي لربط العودة
+import { AuthContext } from '../context/AuthContext'
+import { ThemeContext } from '../context/ThemeContext' // 🧬 استدعاء شريان المظهر العالمي
+import { PLANS } from '../constants/plans'
+import PricingCard from '../components/pricing/PricingCard'
+import SectionTitle from '../components/common/SectionTitle'
 
-const showToast = (message, type) => {
-  if (type === 'error') {
-    toast.error(message, { style: { background: '#1e293b', color: '#fff', border: '1px solid #ef4444' } })
-  } else {
-    toast.success(message, { style: { background: '#1e293b', color: '#fff', border: '1px solid #22c55e' } })
-  }
-}
-
+/**
+ * TrendAura Commercial Tier Pricing Directory Viewport - V2 Master Edition
+ * Adaptive layout showcasing premium subscription blocks synced with global token distribution specs.
+ * Enhanced with a royal return bridge to the operational dashboard hub.
+ */
 export default function Pricing() {
   const navigate = useNavigate()
-  const [user, setUser] = useState(null)
-  const [currentPlan, setCurrentPlan] = useState('free')
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      if (data?.user) {
-        setUser(data.user)
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('plan')
-          .eq('id', data.user.id)
-          .maybeSingle()
-        
-        if (profile?.plan) {
-          setCurrentPlan(profile.plan.toLowerCase().trim())
-        }
-      }
-    }
-    checkUser()
-  }, [])
-
-  const handleSubscribe = async (planType) => {
-    if (!user) {
-      navigate('/login')
-      return
-    }
-
-    localStorage.setItem('selectedPlan', planType)
-    setLoading(true)
-
-    try {
-      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
-      const response = await axiosInstance.post(`${backendUrl}/api/payment/checkout`, {
-        userId: user.id,
-        planType: planType
-      })
-
-      if (response.data?.checkout_url) {
-        window.location.href = response.data.checkout_url
-      } else {
-        showToast('حدث خطأ أثناء تهيئة بوابة الدفع، يرجى المحاولة لاحقاً.', 'error')
-      }
-    } catch (error) {
-      console.error('Checkout error:', error)
-      showToast('فشل الاتصال بخادم الدفع.', 'error')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const isPlanActive = (planId) => {
-    const cleanPlan = currentPlan?.toLowerCase()?.trim()
-    if (planId === 'viral_engine') {
-      return cleanPlan === 'viral_engine' || cleanPlan === 'viral engine' || cleanPlan === 'pro viral engine' || cleanPlan === 'pro_viral'
-    }
-    if (planId === 'pro') return cleanPlan === 'pro'
-    if (planId === 'free') return cleanPlan === 'free' || !cleanPlan || cleanPlan === ''
-    return false
-  }
+  const { profile } = useContext(AuthContext)
+  const { theme } = useContext(ThemeContext)
+  const currentPlanId = profile?.plan || 'free'
 
   return (
-    <div style={{ backgroundColor: '#0f172a', minHeight: '100vh', padding: '40px 20px', direction: 'rtl', fontFamily: 'system-ui, sans-serif', boxSizing: 'border-box' }}>
+    <div className={`w-full max-w-6xl mx-auto select-none dir-rtl text-right animate-fade-in transition-colors duration-300 ${
+      theme === 'dark' ? 'text-slate-100' : 'text-slate-800'
+    }`}>
       
-      <div style={{ display: 'flex', justifyContent: 'flex-start', maxWidth: '1200px', margin: '0 auto 20px auto', width: '100%' }}>
+      {/* 👑 شريط التحكم العلوي المضاف: يحتوي على زر الرجوع الملوكي والخطّي المفرغ */}
+      <div className="flex justify-start mb-6 animate-fade-in">
         <button
+          type="button"
           onClick={() => navigate('/dashboard')}
-          style={{
-            background: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            color: '#94a3b8',
-            padding: '10px 22px',
-            borderRadius: '14px', 
-            cursor: 'pointer',
-            fontWeight: '600',
-            fontSize: '0.95rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'
-            e.currentTarget.style.color = '#f8fafc'
-            e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.15)'
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'
-            e.currentTarget.style.color = '#94a3b8'
-            e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.08)'
-          }}
+          className={`px-4 py-2 rounded-xl text-[10px] font-black flex items-center gap-2 transition-all active:scale-95 border ${
+            theme === 'dark'
+              ? 'bg-[#160f30]/40 border-[#1f1438] text-cyan-400 hover:bg-white/5 shadow-md shadow-black/20'
+              : 'bg-slate-50 border-slate-200/60 text-slate-600 hover:bg-slate-100 shadow-sm'
+          }`}
         >
-          <span>➡️</span>
-          <span>العودة للوحة التحكم</span>
+          {/* أيقونة السهم المفرغة المتناسقة Line Art Arrow */}
+          <svg className="w-4 h-4 transform rotate-180 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+          <span>الرجوع إلى لوحة التحكم ✦</span>
         </button>
       </div>
 
-      <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#f8fafc', marginBottom: '15px' }}>
-          اختر خطتك للنجاح
-        </h1>
-        <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>
-          انطلق بـ TrendAura وحوّل أفكارك إلى مشاهدات بلملايين
-        </p>
+      <div className="text-center mb-10">
+        <SectionTitle title="خطط واشتراكات النخبة" subtitle="اختر خطة القوة المناسبة لطموحك واكتسح خوارزميات تيك توك وسوشيال ميديا اليوم" badge="باقات الترقية" />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch', gap: '30px', flexWrap: 'wrap', maxWidth: '1200px', margin: '0 auto' }}>
-        {plans.map((plan) => {
-          const active = isPlanActive(plan.id)
-          
-          return (
-            <div 
-              key={plan.id} 
-              style={{
-                backgroundColor: '#1e293b',
-                border: `1px solid ${plan.borderColor}`,
-                boxShadow: plan.glow,
-                borderRadius: '24px',
-                padding: '40px 30px',
-                width: '100%',
-                maxWidth: '350px',
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                transition: 'transform 0.3s ease',
-                zIndex: plan.popular ? 10 : 1,
-                boxSizing: 'border-box'
-              }}
-            >
-              {plan.badge && (
-                <div style={{
-                  position: 'absolute',
-                  top: '-16px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: plan.popular ? 'linear-gradient(to right, #ff416c, #ff4b2b)' : 'linear-gradient(to right, #3b82f6, #8b5cf6)',
-                  color: '#fff',
-                  padding: '6px 20px',
-                  borderRadius: '20px',
-                  fontSize: '0.9rem',
-                  fontWeight: 'bold',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
-                }}>
-                  {plan.badge}
-                </div>
-              )}
+      {/* شبكة عرض كروت الأسعار القياسية الثلاثة الفاخرة بعد تحديث الثوابت */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        {PLANS.map((plan) => (
+          <PricingCard
+            key={plan.id}
+            plan={plan}
+            isCurrent={currentPlanId.toLowerCase().trim() === plan.id.toLowerCase().trim()}
+            userId={profile?.id}
+          />
+        ))}
+      </div>
 
-              <div style={{ textAlign: 'center', marginBottom: '30px', marginTop: '10px' }}>
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#f8fafc', marginBottom: '15px' }}>{plan.name}</h2>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: '5px' }}>
-                  <span style={{ fontSize: '3rem', fontWeight: '900', color: '#f8fafc' }}>{plan.price}</span>
-                  <span style={{ fontSize: '1rem', color: '#94a3b8' }}>ريال / شهر</span>
-                </div>
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '15px', lineHeight: '1.5', minHeight: '45px' }}>
-                  {plan.desc}
-                </p>
-              </div>
-
-              <div style={{ height: '1px', background: '#334155', marginBottom: '30px', width: '100%' }}></div>
-
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 30px 0', flexGrow: 1 }}>
-                {plan.features.map((feature, idx) => (
-                  <li key={idx} style={{ marginBottom: '16px', display: 'flex', alignItems: 'flex-start', gap: '12px', color: '#cbd5e1', fontSize: '0.95rem', lineHeight: '1.4', textAlign: 'right' }}>
-                    <div style={{ background: plan.popular ? 'rgba(236, 72, 153, 0.12)' : 'rgba(59, 130, 246, 0.12)', borderRadius: '50%', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '2px', flexShrink: 0 }}>
-                      <span style={{ color: plan.popular ? '#ec4899' : '#3b82f6', fontSize: '1rem' }}>✓</span>
-                    </div>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                onClick={() => plan.id !== 'free' ? handleSubscribe(plan.id) : null}
-                disabled={active || loading || plan.id === 'free'}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  borderRadius: '12px',
-                  fontWeight: 'bold',
-                  fontSize: '1.1rem',
-                  cursor: (active || plan.id === 'free') ? 'default' : 'pointer',
-                  background: active 
-                    ? 'rgba(34, 197, 94, 0.1)' 
-                    : (plan.id === 'free' ? 'rgba(255,255,255,0.02)' : (plan.popular ? 'linear-gradient(to right, #ff4b2b, #ff416c)' : '#2563eb')),
-                  color: active ? '#22c55e' : (plan.id === 'free' ? '#475569' : '#fff'),
-                  border: active ? '1px solid #22c55e' : (plan.id === 'free' ? '1px solid rgba(255,255,255,0.05)' : 'none'), 
-                  transition: 'all 0.3s ease',
-                  opacity: loading ? 0.7 : 1
-                }}
-              >
-                {active ? `خطتك الحالية ✅` : plan.id === 'free' ? 'باقة مجانية' : `اشترك الآن 💎`}
-              </button>
-            </div>
-          )
-        })}
+      {/* كرت أمان بوابات الدفع الميسر الفخم */}
+      <div className={`mt-12 p-6 border rounded-3xl text-center max-w-2xl mx-auto transition-colors duration-300 ${
+        theme === 'dark' ? 'bg-[#160f30]/40 border-[#1f1438]' : 'bg-slate-50 border-slate-100'
+      }`}>
+        <h4 className="text-xs font-black text-slate-800 dark:text-white mb-1">🛡️ ضمان أمان وسلامة المدفوعات</h4>
+        <p className="text-[10px] font-bold text-slate-400 leading-relaxed">
+          جميع المعاملات المالية مشفرة ومؤمنة بالكامل بنسبة 100% عبر بوابات دفع ميسر السعودية المعتمدة والمطابقة لمعايير الأمن السيبراني ومؤسسة النقد.
+        </p>
       </div>
     </div>
   )

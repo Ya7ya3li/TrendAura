@@ -1,24 +1,39 @@
-# Dependencies
-node_modules
+# 📦 Dependency Directories (حظر كتل الحزم الثقيلة)
+node_modules/
+/client/node_modules/
+/server/node_modules/
 
-# Build
-dist
-build
+# 🏗️ Build & Production Outputs (مخرجات البناء والرفع)
+dist/
+/client/dist/
+out/
+build/
 
-# Environment variables
+# 🔐 Environment Variables & Secrets (المفاتيح السرية الحساسة)
 .env
-client/.env
-server/.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+/client/.env
+/server/.env
 
-# Logs
+# 🪵 Logs and Diagnostics (ملفات التدوين والأخطاء)
+logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Vercel
-.vercel
-
-# OS files
+# 🖥️ System & IDE Files (ملفات أنظمة التشغيل والمحررات)
 .DS_Store
 Thumbs.db
-
-# VS Code
-.vscode
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* إعدادات إضافية لضمان نعومة الخطوط والانتقالات مع خلفية النيون المعتمة */
+body {
+  font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif;
+  background-color: #05020c; /* 🌌 حقن لون الخلفية الفضائية العميقة لمنع الوميض الأبيض */
+  color: #f8fafc;            /* تحديد اللون الافتراضي الفاتح للنصوص لنقاء بصري ملوكي */
+  overflow-x: hidden;
+}
+
+/* 📐 المحرك الهندسي العالمي للتحكم في الحواف والزوايا (Global Radius Engine) */
+
+/* 1️⃣ عندما يكون خيار "كروت دائرية فخمة (28px)" نشطاً في جذر المنظومة */
+.radius-premium .rounded-3xl,
+.radius-premium .rounded-\[28px\],
+.radius-premium .rounded-3xl {
+  border-radius: 28px !important;
+}
+.radius-premium .rounded-2xl {
+  border-radius: 20px !important;
+}
+.radius-premium .rounded-xl {
+  border-radius: 14px !important;
+}
+
+/* 2️⃣ عندما يكون خيار "حواف حادة كلاسيك (12px)" نشطاً في جذر المنظومة */
+.radius-classic .rounded-3xl,
+.radius-classic .rounded-\[28px\],
+.radius-classic .rounded-2xl,
+.radius-classic .rounded-xl {
+  border-radius: 12px !important;
+}
+
+/* الترانزيشن والأنيميشن اللي استدعيناها في الكروت (محفوظة بالكامل وبكل أمان كما هي) */
+@keyframes scaleUp {
+  from { transform: scale(0.97); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* 🌌 لمسات النيون السيبرانية الإضافية لدعم وميض وحواف اللوحات الفاخرة */
+@keyframes neonPulse {
+  0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 2px #00f2fe); }
+  50% { opacity: 1; filter: drop-shadow(0 0 10px #00f2fe); }
+}
+
+.animate-neon-pulse {
+  animation: neonPulse 2.5s infinite ease-in-out;
+}
+
+/* فلتر تصفية زجاج الجلاس مورفيزم النيوني */
+.backdrop-blur-cyber {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}

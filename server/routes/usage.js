@@ -1,8 +1,10 @@
-import express from "express";
-import { getUsage } from "../controllers/usageController.js";
+import express from 'express';
+import { usageController } from '../controllers/usageController.js';
+import { authGuard } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.get("/", getUsage);
+// 📊 تتبع حجم استهلاك التوكنز اليومي حياً من قاعدة البيانات
+router.get('/daily', authGuard, usageController.getDailyUsage);
 
 export default router;

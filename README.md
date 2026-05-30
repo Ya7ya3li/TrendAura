@@ -1,24 +1,21 @@
-# TrendAura
+# ⚡ TrendAura Core Backend Server Engine
 
-## 🚀 Project Overview
-A SaaS platform for AI tools and automation.
+العقل المدبر والقلب النابض لمنصة **TrendAura**. مهيأ ومبني بالكامل بهندسة برمجية فاخرة وخالية من العيوب لتنفيذ عمليات المعالجة السيكولوجية للنصوص والاتصالات المصرفية.
 
-## 📁 Project Structure
+## 🛠️ المواصفات والترسانة التقنية
+* **البيئة الأساسية:** Node.js (v20+ Runtime Env)
+* **إطار العمل:** Express.js (ES Modules Structure)
+* **المصادقة والمستندات:** Supabase Database / Identity Federation
+* **محرك الـ AI:** OpenAI API (`gpt-4o` Core Engine)
+* **بوابة الفوترة والدفع:** Moyasar Saudi Payment Gateway (مدى, Apple Pay, Visa)
 
+## 🚀 التنصيب والتشغيل المحلي
+1. انتقل إلى مجلد السيرفر: `cd server`
+2. ثبّت الحزم والاعتمادات: `npm install`
+3. قم بتكوين ملف المتغيرات البيئية وتعبئة المفاتيح: `cp .env.example .env`
+4. أطلق خادم التطوير المحلي: `npm run dev`
 
-## ⚙️ Tech Stack
-- React (Frontend)
-- Node.js (Backend)
-- Firebase (Auth/DB)
-- Stripe (Payments)
-- OpenAI API
-
-## 📦 Features
-- AI tools dashboard
-- User authentication
-- Subscription system (Free / Pro)
-- Payment integration
-- History tracking
-
-## 🧠 Status
-Project is under development.
+## 🛡️ معايير الأمن السيبراني المحقونة
+* جدار حماية لمنع هجمات الإغراق (DDOS Mitigation Rate Limiting).
+* حارس أمني لفك تشفير وفحص الـ JWT Bearer Tokens بكل طلب.
+* توحيد وتصفية لغة رسائل الخطأ والاستجابات لحماية ملفات النظام.

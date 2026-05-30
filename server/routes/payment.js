@@ -1,13 +1,9 @@
-import express from 'express'
-// أضفنا استدعاء دالة الدفع (createCheckout) مع دالة التحقق
-import { verifyMoyasarPayment, createCheckout } from '../controllers/paymentController.js'
+import express from 'express';
+import { paymentController } from '../controllers/paymentController.js';
 
-const router = express.Router()
+const router = express.Router();
 
-// 🟢 هذا المسار اللي كان ناقص ويسبب مشكلة 404! (تهيئة فاتورة الدفع)
-router.post('/checkout', createCheckout)
+// 💳 استقبال إشعارات السداد الآمنة واللحظية من بوابة ميسر السعودية
+router.post('/webhook', paymentController.handleWebhook);
 
-// مسار التحقق من الدفع (بعد نجاح العملية)
-router.post('/verify', verifyMoyasarPayment)
-
-export default router
+export default router;

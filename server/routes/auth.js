@@ -1,10 +1,11 @@
-import express from "express";
+import express from 'express';
+import { authController } from '../controllers/authController.js';
+import { authGuard } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.post("/login", (req, res) => {
-  const { email } = req.body;
-  res.json({ userId: email, token: "demo-token" });
-});
+// 👤 جلب وتحديث بيانات الهوية الشخصية المسجلة
+router.get('/profile', authGuard, authController.getProfile);
+router.put('/profile', authGuard, authController.updateProfile);
 
 export default router;

@@ -1,0 +1,22 @@
+/**
+ * TrendAura Touch-Target Ergonomic Protections
+ * Custom handling for mobile viewports and swipe engines.
+ */
+@media (max-width: 767px) {
+  /* منع المتصفح من عمل زووم تلقائي مشوه عند الضغط على حقول الكتابة في iOS */
+  textarea, input, select {
+    font-size: 16px !important;
+  }
+
+  /* تأمين حيز حماية سفلي لعدم تداخل كروت المحتوى مع شريط الملاحة السفلي للجوال */
+  .mobile-safe-padding {
+    padding-bottom: 6rem !important;
+  }
+
+  /* تأثير تفاعلي مرن بديل للـ Hover لمنع تجمد اللون بلمس الإصبع */
+  .active-touch:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+    transition: all 0.1s ease;
+  }
+}

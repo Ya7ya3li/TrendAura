@@ -1,22 +1,11 @@
-import express from 'express'
+import express from 'express';
+import { aiController } from '../controllers/aiController.js';
+import { authGuard } from '../middleware/auth.js';
+import { validateRequest } from '../middleware/validateRequest.js';
 
-import {
-  generateAI,
-  generateTrends,
-  generateHashtags
-} from '../controllers/aiController.js'
+const router = express.Router();
 
-import { 
-  checkUsageLimit 
-} from '../controllers/usageController.js' // 👈 استدعاء ميدل وير الحماية
+// 🧠 مسار توليد السكريبتات والهندسة النفسية الخاطفة للفيديو
+router.post('/generate', authGuard, validateRequest.generationBody, aiController.generateScript);
 
-const router = express.Router()
-
-// 🛡️ وضعنا checkUsageLimit لحماية مسارات الذكاء الاصطناعي
-router.post('/generate', checkUsageLimit, generateAI)
-router.post('/trends', checkUsageLimit, generateTrends)
-router.post('/hashtags', checkUsageLimit, generateHashtags)
-
-// 💡 تم إزالة مسارات Stripe من هنا لأننا نقلنا الدفع إلى بوابة ميسر في ملف (payment.js)
-
-export default router
+export default router;
