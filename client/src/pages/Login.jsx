@@ -1,23 +1,18 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { showToast } from '../App'
+import { supabase } from '../config/supabase' // الاستيراد الصحيح حسب الهيكل
 
-/**
- * TrendAura Ultimate Login Page - Zero Dependency Edition
- * Totally stripped from external OAuth packages to ensure instant Vite compiling.
- */
 export default function Login() {
   const navigate = useNavigate()
-
-  // الحالات الافتراضية للمدخلات
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
+  // 1. تسجيل الدخول بالبريد الرقمي الحقيقي
   const handleLoginSubmit = async (e) => {
     e.preventDefault()
-
     if (!email.trim() || !password.trim()) {
       showToast('يا قائد، فضلاً أدخل البريد الإلكتروني وكلمة المرور أولاً ⚠️', 'warning')
       return
@@ -27,23 +22,43 @@ export default function Login() {
     try {
       showToast('جاري التحقق من الهوية الرقمية وتأمين الجلسة... ✦', 'info')
       
-      setTimeout(() => {
-        // حقن التوكنز في المتصفح لترويض حراس البوابات
-        localStorage.setItem('trendaura_token', 'mock_master_session_2026')
-        localStorage.setItem('token', 'mock_master_session_2026')
-        localStorage.setItem('sb-access-token', 'mock_master_session_2026')
-        localStorage.setItem('supabase.auth.token', 'mock_master_session_2026')
-        
-        showToast('مرحباً بعودتك يا ملك الخوارزميات! تم الدخول بنجاح 👑', 'success')
-        setLoading(false)
-        
-        // العبور الصارم عبر هارد ريفريش لتحديث حالة الـ AuthGuard فوراً
-        window.location.href = '/dashboard'
-      }, 1200)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      })
 
+      if (error) throw error
+
+      showToast('مرحباً بعودتك يا ملك الخوارزميات! تم الدخول بنجاح 👑', 'success')
+      window.location.href = '/dashboard'
     } catch (error) {
       console.error('❌ [Login Critical Failure]:', error.message)
-      showToast('فشلت عملية تسجيل الدخول، يرجى مراجعة البيانات', 'error')
+      showToast(error.message || 'فشلت عملية تسجيل الدخول، يرجى مراجعة البيانات', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 2. معالج تسجيل الدخول الآمن عبر جوجل (OAuth)
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true)
+      showToast('جاري الاتصال بخوادم جوجل الآمنة... 🚀', 'info')
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account'
+          }
+        }
+      })
+      if (error) throw error
+    } catch (error) {
+      console.error('❌ [Google OAuth Failure]:', error.message)
+      showToast('فشل الاتصال ببوابة جوجل الرقمية', 'error')
       setLoading(false)
     }
   }
@@ -62,17 +77,30 @@ export default function Login() {
         <h3 className="text-center text-sm font-black text-slate-800 tracking-tight">
           تسجيل الدخول لبوابة المعالجة السلوكية
         </h3>
-        <p className="text-center text-[10px] font-bold text-slate-400 mt-1">
-          عد إلى منصتك واستكمل اكتساح ترندات تيك توك وسوشيال ميديا
-        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto w-full max-w-md animate-scale-up">
         <div className="bg-white py-8 px-6 shadow-xl shadow-slate-200/50 border border-slate-100 rounded-[28px] sm:px-10">
           
+          {/* زر تسجيل الدخول الملوكي عبر جوجل - تم استعادته وتأمينه */}
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full mb-5 py-3 px-4 inline-flex justify-center items-center gap-3 rounded-xl border border-slate-200 bg-white text-xs font-black text-slate-700 shadow-sm hover:bg-slate-50 transition-all active:scale-98 disabled:opacity-50"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.227-3.107C18.222 2.104 15.52 1 12.24 1c-6.077 0-11 4.923-11 11s4.923 11 11 11c6.34 0 10.564-4.426 10.564-10.75 0-.726-.077-1.282-.175-1.665H12.24z"/>
+            </svg>
+            الدخول السريع عبر حساب جوجل
+          </button>
+
+          <div className="relative mb-5">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
+            <div className="relative flex justify-center text-[10px] font-bold text-slate-400"><span className="bg-white px-3">أو عبر البريد الإلكتروني</span></div>
+          </div>
+
           <form className="space-y-5" onSubmit={handleLoginSubmit}>
-            
-            {/* حقل البريد الإلكتروني */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-black text-slate-500">البريد الإلكتروني</label>
               <div className="relative w-full">
@@ -87,7 +115,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* حقل كلمة المرور */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black text-slate-500">كلمة المرور</label>
@@ -114,7 +141,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* زر تسجيل الدخول */}
             <div className="pt-2">
               <button
                 type="submit"
@@ -124,10 +150,8 @@ export default function Login() {
                 {loading ? 'جاري فحص التراخيص...' : 'تسجيل الدخول الفوري ⚡'}
               </button>
             </div>
-
           </form>
 
-          {/* روابط النقل البينية */}
           <div className="mt-6 text-center border-t border-slate-50 pt-4">
             <p className="text-[10px] font-bold text-slate-400">
               ليس لديك حساب حتى الآن؟{' '}
