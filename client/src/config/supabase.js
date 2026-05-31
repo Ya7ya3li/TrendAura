@@ -1,22 +1,21 @@
-import { createClient } from '@supabase/supabase-js';
-import { ENV } from './env';
+import { createClient } from '@supabase/supabase-js'
 
-/**
- * TrendAura Supabase Infrastructure Config
- * Secure initialization layer using centralized environment abstraction.
- */
+// 1. استدعاء المتغيرات البيئية الحية القياسية لمحرك Vite
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-const supabaseUrl = ENV.SUPABASE_URL;
-const supabaseKey = ENV.SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.warn('⚡ [TrendAura Security Warning]: Core Supabase credentials are missing or bound to empty fallbacks.');
+// 2. فحص الحماية الهندسي لمنع انهيار الواجهة في بيئة الإنتاج
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error(
+    '❌ [TrendAura Security Alert]: مفقود! لم يتم العثور على المتغيرات البيئية VITE_SUPABASE_URL أو VITE_SUPABASE_ANON_KEY بداخل لوحة التحكم.'
+  )
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
+// 3. توليد وتصدير العميل المركزي المقاوم للثغرات
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,       // حفظ جلسة صانع المحتوى بداخل الـ LocalStorage لمنع خروجه عشوائياً
-    autoRefreshToken: true,     // إنعاش توكن الأمان (JWT) تلقائياً في الخلفية لمنع تجمد العمليات
-    detectSessionInUrl: true    // رصد التوكنز في الرابط فوراً لدعم الـ Recovery Flow واستعادة كلمة المرور
+    persistSession: true, // الحفاظ على جلسة المستخدم الملوكي نشطة لمنع تسجيل الخروج المفاجئ
+    autoRefreshToken: true, // تجديد التوكن تلقائياً مع خوادم سوبابيس الحية
+    detectSessionInUrl: true // التقاط توكن جوجل القادم من الـ Redirect فوراً وتمريره للوحة
   }
-});
+})
