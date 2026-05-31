@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { showToast } from '../App'
-import { supabase } from '../config/supabase' // الاستيراد الصحيح حسب الهيكل
+import { supabase } from '../config/supabase'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -10,7 +10,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  // 1. تسجيل الدخول بالبريد الرقمي الحقيقي
   const handleLoginSubmit = async (e) => {
     e.preventDefault()
     if (!email.trim() || !password.trim()) {
@@ -21,16 +20,14 @@ export default function Login() {
     setLoading(true)
     try {
       showToast('جاري التحقق من الهوية الرقمية وتأمين الجلسة... ✦', 'info')
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       })
-
       if (error) throw error
 
       showToast('مرحباً بعودتك يا ملك الخوارزميات! تم الدخول بنجاح 👑', 'success')
-      window.location.href = '/dashboard'
+      // ❌ تم حذف window.location.href من هنا لترك الحارس المركزي في الـ Context يتولى النقل الآمن
     } catch (error) {
       console.error('❌ [Login Critical Failure]:', error.message)
       showToast(error.message || 'فشلت عملية تسجيل الدخول، يرجى مراجعة البيانات', 'error')
@@ -39,7 +36,6 @@ export default function Login() {
     }
   }
 
-  // 2. معالج تسجيل الدخول الآمن عبر جوجل (OAuth)
   const handleGoogleLogin = async () => {
     try {
       setLoading(true)
@@ -48,7 +44,8 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          // ✅ التعديل الذهبي: التوجيه للأصل المجرد ليتمكن سوبابيس من التقاط التوكن أولاً
+          redirectTo: window.location.origin, 
           queryParams: {
             access_type: 'offline',
             prompt: 'select_account'
@@ -82,7 +79,6 @@ export default function Login() {
       <div className="mt-8 sm:mx-auto w-full max-w-md animate-scale-up">
         <div className="bg-white py-8 px-6 shadow-xl shadow-slate-200/50 border border-slate-100 rounded-[28px] sm:px-10">
           
-          {/* زر تسجيل الدخول الملوكي عبر جوجل - تم استعادته وتأمينه */}
           <button
             type="button"
             onClick={handleGoogleLogin}
