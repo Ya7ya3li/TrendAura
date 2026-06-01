@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../config/supabase'
 
 export const AuthContext = createContext(null)
@@ -7,58 +8,52 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
-    let mounted = true
-
-    const initialize = async () => {
+    const initializeAuth = async () => {
       try {
-        const { data } = await supabase.auth.getUser()
-        const currentUser = data?.user
-
-        if (currentUser && mounted) {
-          setUser(currentUser)
-          await fetchUserProfile(currentUser.id)
+        // ✅ استخدام getUser الآمنة بدلاً من getSession لمنع تصادم وتكرار سحب توكن الـ PKCE
+        const { data: { user: authUser }, error } = await supabase.auth.getUser()
+        if (error) throw error
+        
+        if (authUser) {
+          setUser(authUser)
+          await fetchUserProfile(authUser.id)
         }
       } catch (err) {
-        console.error(err.message)
+        console.warn('ℹ️ [AuthContext Initialization]: لا توجد جلسة نشطة حالياً.')
       } finally {
-        if (mounted) setLoading(false)
+        setLoading(false)
       }
     }
 
-    initialize()
+    initializeAuth()
 
-    const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const currentUser = session?.user
-
-      console.log('AUTH EVENT:', event)
-
-      if (event === 'SIGNED_IN' && currentUser) {
-        setUser(currentUser)
-        await fetchUserProfile(currentUser.id)
-
-        if (
-          window.location.pathname === '/login' ||
-          window.location.pathname === '/'
-        ) {
-          window.location.href = '/dashboard'
+    // ⚡ التسمع المركزي للأحداث والتحويل التلقائي النظيف بعد استقرار الجلسة
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`🔒 [Auth Event Triggered]: ${event}`)
+      
+      if (session?.user) {
+        setUser(session.user)
+        await fetchUserProfile(session.user.id)
+        
+        if (event === 'SIGNED_IN') {
+          if (window.location.pathname === '/login' || window.location.pathname === '/') {
+            navigate('/dashboard', { replace: true }) // توجيه داخلي مرن وبتر السجل القديم
+          }
         }
-      }
-
-      if (event === 'SIGNED_OUT') {
+      } else {
         setUser(null)
         setProfile(null)
       }
-
       setLoading(false)
     })
 
     return () => {
-      mounted = false
-      data.subscription?.unsubscribe()
+      subscription?.unsubscribe()
     }
-  }, [])
+  }, [navigate])
 
   const fetchUserProfile = async (userId) => {
     try {
@@ -66,27 +61,38 @@ export const AuthProvider = ({ children }) => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single()
+        .maybeSingle()
 
       if (error) throw error
-
       if (data) {
-        setProfile(data)
+        const localAvatar = localStorage.getItem('trendaura_user_avatar')
+        const localName = localStorage.getItem('trendaura_user_name')
+        setProfile({
+          ...data,
+          full_name: localName || data.full_name,
+          avatar_url: localAvatar || data.avatar_url
+        })
       }
     } catch (err) {
-      console.error('Profile error:', err.message)
+      console.error('❌ [AuthContext Profile Fetch Error]:', err.message)
     }
   }
 
   const logout = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setProfile(null)
-    window.location.href = '/login'
+    setLoading(true)
+    try {
+      await supabase.auth.signOut()
+      localStorage.clear()
+      navigate('/login', { replace: true })
+    } catch (err) {
+      console.error('❌ [Auth Logout Exception]:', err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, logout }}>
+    <AuthContext.Provider value={{ user, profile, setProfile, loading, logout, refetchProfile: () => fetchUserProfile(user?.id) }}>
       {!loading && children}
     </AuthContext.Provider>
   )
