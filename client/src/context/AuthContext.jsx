@@ -7,21 +7,22 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     let mounted = true
 
-    const fetchProfile = async (userId, email) => {
+    const fetchProfile = async (user) => {
       const { data } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('id', user.id)
         .single()
 
       return (
         data || {
-          id: userId,
-          full_name: email,
+          id: user.id,
+          full_name: user.email,
           plan: 'free',
           tokens: 0
         }
@@ -31,56 +32,53 @@ export default function AuthProvider({ children }) {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession()
 
-      const currentUser = session?.user || null
-
       if (!mounted) return
 
+      const currentUser = session?.user || null
       setUser(currentUser)
 
       if (currentUser) {
-        const p = await fetchProfile(currentUser.id, currentUser.email)
+        const p = await fetchProfile(currentUser)
         setProfile(p)
       } else {
         setProfile(null)
       }
 
       setLoading(false)
+      setInitialized(true)
     }
 
     init()
 
-    const { data } = supabase.auth.onAuthStateChange(
+    const { data: listener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        const currentUser = session?.user || null
+        if (!initialized) return
 
+        const currentUser = session?.user || null
         setUser(currentUser)
 
         if (currentUser) {
-          const p = await fetchProfile(currentUser.id, currentUser.email)
+          const p = await fetchProfile(currentUser)
           setProfile(p)
         } else {
           setProfile(null)
         }
-
-        setLoading(false)
       }
     )
 
     return () => {
       mounted = false
-      data?.subscription?.unsubscribe?.()
+      listener?.subscription?.unsubscribe()
     }
-  }, [])
+  }, [initialized])
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        setProfile: null, // 🚫 مهم: منع التعديل الخارجي
-        loading
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      profile,
+      setProfile,
+      loading
+    }}>
       {children}
     </AuthContext.Provider>
   )
