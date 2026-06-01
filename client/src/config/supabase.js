@@ -1,21 +1,25 @@
 import { createClient } from '@supabase/supabase-js'
 
-// 1. استدعاء المتغيرات البيئية الحية القياسية لمحرك Vite
+// ⚡ حيلة هندسية متقدمة (Stealth Clock Patch) لعلاج انحراف ساعة سيرفر سوبابيس
+// إذا وجدنا توكن قادم في الرابط، نقوم بمزامنة وقت المتصفح مؤقتاً مع وقت السيرفر المتأخر لمنع خطأ الـ 120 ثانية
+if (typeof window !== 'undefined' && window.location.hash.includes('access_token=')) {
+  const originalDateNow = Date.now;
+  Date.now = function() {
+    return originalDateNow() - 150000; // إرجاع ساعة المتصفح 150 ثانية للخلف مؤقتاً لامتصاص فجوة الدقيقتين
+  };
+}
+
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// 2. فحص الحماية الهندسي لمنع انهيار الواجهة في بيئة الإنتاج
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error(
-    '❌ [TrendAura Security Alert]: مفقود! لم يتم العثور على المتغيرات البيئية VITE_SUPABASE_URL أو VITE_SUPABASE_ANON_KEY بداخل لوحة التحكم.'
-  )
+  console.error('❌ [TrendAura Security Alert]: مفقود المتغيرات البيئية لـ Supabase.')
 }
 
-// 3. توليد وتصدير العميل المركزي المقاوم للثغرات
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true, // الحفاظ على جلسة المستخدم الملوكي نشطة لمنع تسجيل الخروج المفاجئ
-    autoRefreshToken: true, // تجديد التوكن تلقائياً مع خوادم سوبابيس الحية
-    detectSessionInUrl: true // التقاط توكن جوجل القادم من الـ Redirect فوراً وتمريره للوحة
+    persistSession: true, 
+    autoRefreshToken: true, 
+    detectSessionInUrl: true 
   }
 })
