@@ -9,48 +9,54 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const initializeAuth = async () => {
+    let mounted = true
+
+    const initialize = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        if (error) throw error
-        
-        if (session?.user) {
-          setUser(session.user)
-          await fetchUserProfile(session.user.id)
+        const { data } = await supabase.auth.getUser()
+        const currentUser = data?.user
+
+        if (currentUser && mounted) {
+          setUser(currentUser)
+          await fetchUserProfile(currentUser.id)
         }
       } catch (err) {
-        console.error('❌ [AuthContext Initialization Crash]:', err.message)
+        console.error(err.message)
       } finally {
-        setLoading(false)
+        if (mounted) setLoading(false)
       }
     }
 
-    initializeAuth()
+    initialize()
 
-    // ⚡ التسمع الفوري واللحظي للتنقل الآمن بناءً على فكرتك الذكية
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`🔒 [Auth Event Triggered]: ${event}`)
-      
-      if (session?.user) {
-        setUser(session.user)
-        await fetchUserProfile(session.user.id)
-        
-        // ✅ التعديل الحاسم: إذا كان الحدث دخول ناجح وثابت، ننقله فوراً للوحة التحكم بأمان
-        if (event === 'SIGNED_IN') {
-          // نتحقق إذا كنا واقفين في صفحة اللوجن حالياً لمنع التكرار اللانهائي
-          if (window.location.pathname === '/login' || window.location.pathname === '/') {
-            window.location.href = '/dashboard'
-          }
+    const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const currentUser = session?.user
+
+      console.log('AUTH EVENT:', event)
+
+      if (event === 'SIGNED_IN' && currentUser) {
+        setUser(currentUser)
+        await fetchUserProfile(currentUser.id)
+
+        if (
+          window.location.pathname === '/login' ||
+          window.location.pathname === '/'
+        ) {
+          window.location.href = '/dashboard'
         }
-      } else {
+      }
+
+      if (event === 'SIGNED_OUT') {
         setUser(null)
         setProfile(null)
       }
+
       setLoading(false)
     })
 
     return () => {
-      subscription?.unsubscribe()
+      mounted = false
+      data.subscription?.unsubscribe()
     }
   }, [])
 
@@ -60,38 +66,27 @@ export const AuthProvider = ({ children }) => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle()
+        .single()
 
       if (error) throw error
+
       if (data) {
-        const localAvatar = localStorage.getItem('trendaura_user_avatar')
-        const localName = localStorage.getItem('trendaura_user_name')
-        setProfile({
-          ...data,
-          full_name: localName || data.full_name,
-          avatar_url: localAvatar || data.avatar_url
-        })
+        setProfile(data)
       }
     } catch (err) {
-      console.error('❌ [AuthContext Profile Fetch Error]:', err.message)
+      console.error('Profile error:', err.message)
     }
   }
 
   const logout = async () => {
-    setLoading(true)
-    try {
-      await supabase.auth.signOut()
-      localStorage.clear()
-      window.location.href = '/login'
-    } catch (err) {
-      console.error('❌ [Auth Logout Exception]:', err.message)
-    } finally {
-      setLoading(false)
-    }
+    await supabase.auth.signOut()
+    setUser(null)
+    setProfile(null)
+    window.location.href = '/login'
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, setProfile, loading, logout, refetchProfile: () => fetchUserProfile(user?.id) }}>
+    <AuthContext.Provider value={{ user, profile, loading, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   )
