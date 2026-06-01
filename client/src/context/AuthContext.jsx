@@ -11,70 +11,68 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        // ✅ استخدام getUser الآمنة بدلاً من getSession لمنع تصادم وتكرار سحب توكن الـ PKCE
-        const { data: { user: authUser }, error } = await supabase.auth.getUser()
-        if (error) throw error
-        
-        if (authUser) {
-          setUser(authUser)
-          await fetchUserProfile(authUser.id)
-        }
-      } catch (err) {
-        console.warn('ℹ️ [AuthContext Initialization]: لا توجد جلسة نشطة حالياً.')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    initializeAuth()
-
-    // ⚡ التسمع المركزي للأحداث والتحويل التلقائي النظيف بعد استقرار الجلسة
+    // محرك مفرّد وآمن لإدارة التدفق الرقمي للجلسات
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`🔒 [Auth Event Triggered]: ${event}`)
+      console.log(`🔒 [Core Auth Event]: ${event}`)
       
       if (session?.user) {
         setUser(session.user)
-        await fetchUserProfile(session.user.id)
+        // تمرير كائن المستخدم مباشرة لتجنب فخ الـ State Closure
+        await fetchUserProfile(session.user.id, session.user)
         
         if (event === 'SIGNED_IN') {
           if (window.location.pathname === '/login' || window.location.pathname === '/') {
-            navigate('/dashboard', { replace: true }) // توجيه داخلي مرن وبتر السجل القديم
+            navigate('/dashboard', { replace: true })
           }
         }
       } else {
         setUser(null)
         setProfile(null)
+        if (window.location.pathname.startsWith('/dashboard') || window.location.pathname.startsWith('/settings')) {
+          navigate('/login', { replace: true })
+        }
       }
       setLoading(false)
     })
 
-    return () => {
-      subscription?.unsubscribe()
-    }
+    return () => subscription?.unsubscribe()
   }, [navigate])
 
-  const fetchUserProfile = async (userId) => {
+  const fetchUserProfile = async (userId, currentUser) => {
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle()
 
       if (error) throw error
-      if (data) {
-        const localAvatar = localStorage.getItem('trendaura_user_avatar')
-        const localName = localStorage.getItem('trendaura_user_name')
-        setProfile({
-          ...data,
-          full_name: localName || data.full_name,
-          avatar_url: localAvatar || data.avatar_url
-        })
+
+      // إذا كان المستخدم جديداً، ننشئ له سطر قياسي آمن في قاعدة البيانات
+      if (!data) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert([
+            { 
+              id: userId, 
+              full_name: currentUser?.user_metadata?.full_name || 'قائد تريند أورا',
+              plan: 'free',
+              tokens: 5000,
+              subscription_status: 'inactive'
+            }
+          ])
+          .select()
+          .single()
+        
+        if (createError) throw createError
+        data = newProfile
       }
+
+      setProfile(data)
     } catch (err) {
-      console.error('❌ [AuthContext Profile Fetch Error]:', err.message)
+      console.error('❌ [Critical Profile Anchor Error]:', err.message)
+      // خط دفاع احتياطي لمنع انهيار الواجهة (Graceful Degradation)
+      setProfile({ id: userId, plan: 'free', tokens: 1000, full_name: 'مستخدم تريند أورا', subscription_status: 'inactive' })
     }
   }
 
@@ -92,8 +90,8 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, setProfile, loading, logout, refetchProfile: () => fetchUserProfile(user?.id) }}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, profile, setProfile, loading, logout, refetchProfile: () => fetchUserProfile(user?.id, user) }}>
+      {children}
     </AuthContext.Provider>
   )
 }

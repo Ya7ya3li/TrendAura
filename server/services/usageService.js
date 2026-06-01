@@ -2,14 +2,14 @@ import { supabase } from './supabase.js';
 
 /**
  * TrendAura User Token & Usage Verification Service - V2 Database Core
- * Validates, checks, and decrements user tokens from Supabase dynamically.
+ * Validates, checks, enforces subscription tiers, and decrements tokens securely.
  */
 export const usageService = {
-  checkAndIncrementUsage: async (userId) => {
+  checkAndIncrementUsage: async (userId, featureRequired = 'free') => {
     try {
       if (!userId) return false;
 
-      // 1. جلب بيانات رصيد التوكنز الحالي الخاص بالمستخدم من جدول البروفايل
+      // 1. جلب بيانات رصيد التوكنز الحالي ونوع الباقة من جدول البروفايل
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('tokens, plan')
@@ -21,12 +21,24 @@ export const usageService = {
         return false;
       }
 
-      // 2. فحص الأمان: إذا كان رصيد التوكنز مخلص أو صفر، نرفض التوليد فوراً ليظهر كرت الترقية
+      // 2. فحص صلاحيات الباقة (Subscription Logic Check)
+      // إذا كانت الميزة تطلب محرك الفايرال، ولا يملكها المستخدم في باقته، نمنع الوصول
+      if (featureRequired === 'viral_engine' && profile.plan !== 'viral_engine') {
+        console.warn(`⚠️ [Block]: User ${userId} with plan ${profile.plan} tried to access Viral Engine.`);
+        return false;
+      }
+
+      if (featureRequired === 'pro' && profile.plan !== 'pro' && profile.plan !== 'viral_engine') {
+        console.warn(`⚠️ [Block]: User ${userId} tried to access Pro features.`);
+        return false;
+      }
+
+      // 3. فحص الأمان المالي للتوكنز
       if (profile.tokens <= 0) {
         return false;
       }
 
-      // 3. خصم توكن واحد (1 Token) من الحساب مقابل عملية هندسة وتوليد السكريبت الحالية
+      // 4. خصم توكن واحد (1 Token) بطريقة آمنة
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ tokens: profile.tokens - 1 })
@@ -37,7 +49,7 @@ export const usageService = {
         return false;
       }
 
-      return true; // تم التحقق والخصم بنجاح، مرر الطلب للذكاء الاصطناعي
+      return true; 
     } catch (err) {
       console.error('❌ [usageService Internal Failure]:', err.message);
       return false;

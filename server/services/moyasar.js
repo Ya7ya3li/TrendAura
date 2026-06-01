@@ -1,15 +1,11 @@
 import axios from 'axios';
 import { env } from '../config/env.js';
 
-/**
- * TrendAura Commercial Moyasar Invoicing Gateway Integration Service
- */
 export const paymentService = {
-  createInvoice: async (priceAmount, planId, userId) => {
+  createInvoice: async (priceAmount, planId, userId, tokensToAdd = 0) => {
     try {
-      // بوابة ميسر تستقبل القيمة بالهللات (مثال: 100 ريال يتم تمريرها 10000 هللة)
+      // بوابة ميسر تستقبل القيمة بالهللات
       const parsedAmountInHalalas = Math.round(parseFloat(priceAmount) * 100);
-      
       const authBase64 = Buffer.from(`${env.moyasarSecretKey}:`).toString('base64');
 
       const payload = {
@@ -19,7 +15,8 @@ export const paymentService = {
         callback_url: `${process.env.VITE_API_URL || 'http://localhost:3000'}/success`,
         metadata: {
           user_id: userId,
-          plan_id: planId
+          plan_id: planId,
+          tokens_to_add: tokensToAdd // شحن القيمة برمجياً بداخل خوادم ميسر للحماية من التلاعب
         }
       };
 
