@@ -11,61 +11,75 @@ export default function AuthProvider({ children }) {
   useEffect(() => {
     let mounted = true
 
-    const loadSession = async () => {
+    const loadUser = async () => {
       try {
         const {
-          data: { session },
+          data: { session }
         } = await supabase.auth.getSession()
 
         if (!mounted) return
 
-        const currentUser = session?.user ?? null
+        const currentUser = session?.user || null
 
         setUser(currentUser)
 
-        setProfile({
-          id: currentUser?.id || null,
-          full_name:
-            currentUser?.user_metadata?.full_name ||
-            currentUser?.email ||
-            'Guest',
-          plan: 'free',
-        })
+        if (currentUser) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .single()
+
+          setProfile(
+            profileData || {
+              id: currentUser.id,
+              full_name: currentUser.email,
+              plan: 'free',
+              tokens: 0
+            }
+          )
+        } else {
+          setProfile(null)
+        }
       } catch (err) {
         console.error(err)
-
-        setUser(null)
-
-        setProfile({
-          id: null,
-          full_name: 'Guest',
-          plan: 'free',
-        })
       } finally {
         setLoading(false)
       }
     }
 
-    loadSession()
+    loadUser()
 
     const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      const currentUser = session?.user ?? null
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        const currentUser = session?.user || null
 
-      setUser(currentUser)
+        setUser(currentUser)
 
-      setProfile({
-        id: currentUser?.id || null,
-        full_name:
-          currentUser?.user_metadata?.full_name ||
-          currentUser?.email ||
-          'Guest',
-        plan: 'free',
-      })
+        if (currentUser) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .single()
 
-      setLoading(false)
-    })
+          setProfile(
+            profileData || {
+              id: currentUser.id,
+              full_name: currentUser.email,
+              plan: 'free',
+              tokens: 0
+            }
+          )
+        } else {
+          setProfile(null)
+        }
+
+        setLoading(false)
+      }
+    )
 
     return () => {
       mounted = false
@@ -73,23 +87,13 @@ export default function AuthProvider({ children }) {
     }
   }, [])
 
-  const loginSystem = (fakeUser) => {
-    setUser(fakeUser)
-
-    setProfile({
-      id: fakeUser?.id,
-      full_name: fakeUser?.email,
-      plan: 'free',
-    })
-  }
-
   return (
     <AuthContext.Provider
       value={{
         user,
         profile,
-        loading,
-        loginSystem,
+        setProfile,
+        loading
       }}
     >
       {children}
