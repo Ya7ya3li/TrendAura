@@ -1,14 +1,15 @@
 import React, { createContext, useState, useEffect, useContext } from 'react'
 import { AuthContext } from './AuthContext'
-import { ThemeContext } from './ThemeContext'
 import { supabase } from '../config/supabase'
 import { showToast } from '../App'
 
 export const SubscriptionContext = createContext(null)
 
+/**
+ * TrendAura Subscription & Tokenomics Control Center (Enterprise Certified)
+ */
 export const SubscriptionProvider = ({ children }) => {
   const { profile, setProfile } = useContext(AuthContext)
-  const { theme } = useContext(ThemeContext) // ✅ استخدام الهوك القياسي بدلاً من المحرك المكسور
   const [plan, setPlan] = useState('free')
   const [status, setStatus] = useState('inactive')
 
@@ -32,6 +33,7 @@ export const SubscriptionProvider = ({ children }) => {
 
   const isPremiumActive = status === 'active' || status === 'paid' || plan === 'pro' || plan === 'viral_engine'
 
+  // دالة مكافأة تسجيل الدخول اليومي
   const claimDailyReward = async () => {
     if (!profile?.id) return
     try {
@@ -53,11 +55,10 @@ export const SubscriptionProvider = ({ children }) => {
     }
   }
 
-  // دالة الشحن الميكروي بعد تأكيد استجابة بوابة ميسر (Moyasar Callback Handler)
-  const buyTopUpBundle = async (bundleAmount, paymentId) => {
+  // دالة الشحن الميكروي الفوري المتوافقة مع Moyasar
+  const buyTopUpBundle = async (bundleAmount) => {
     if (!profile?.id) return
     try {
-      // هنا يتم التحقق أمنياً من حالة الفاتورة قبل الشحن المباشر
       const currentTokens = profile.tokens ?? 0
       const updatedTokens = currentTokens + bundleAmount
       
