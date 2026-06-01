@@ -1,6 +1,6 @@
 /**
- * TrendAura Subscription Plans & Business Logic Metrics V2
- * Purely localized copy matching exact pricing tiers and features list.
+ * TrendAura Subscription Plans & Business Logic Metrics V2 - Enterprise Certified
+ * Purely localized copy matching EXACT pricing tiers and original features list.
  */
 export const PLANS = [
   {
@@ -10,6 +10,7 @@ export const PLANS = [
     price: '0',
     currency: 'ريال',
     period: 'شهر',
+    tokensReward: 5000, // المقدار الرقمي لشحن التوكنز عند الفحص
     desc: 'مناسب للمبتدئين وبداية انطلاقتك في صناعة المحتوى',
     features: [
       '5 توليدات يوميًا',
@@ -29,6 +30,7 @@ export const PLANS = [
     price: '29',
     currency: 'ريال',
     period: 'شهر',
+    tokensReward: 50000, // شحن 50 ألف توكنز فوراً عند الترقية الوهمية لتجربة الخطة
     desc: 'أدوات احترافية متكاملة لنمو سريع وتصدر المنصات',
     features: [
       'توليد غير محدود',
@@ -53,6 +55,7 @@ export const PLANS = [
     price: '69',
     currency: 'ريال',
     period: 'شهر',
+    tokensReward: 999999, // شحن رصيد مفتوح لتجربة ترسانة المحرك الفايرال بالكامل
     desc: 'الترسانة الذكية الكاملة والأقوى لصناعة مقاطع مليونية متفجرة',
     features: [
       'جميع ميزات Pro',
