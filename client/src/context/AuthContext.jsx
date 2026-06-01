@@ -11,68 +11,53 @@ export default function AuthProvider({ children }) {
   useEffect(() => {
     let mounted = true
 
-    const loadUser = async () => {
-      try {
-        const {
-          data: { session }
-        } = await supabase.auth.getSession()
+    const fetchProfile = async (userId, email) => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
 
-        if (!mounted) return
-
-        const currentUser = session?.user || null
-
-        setUser(currentUser)
-
-        if (currentUser) {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', currentUser.id)
-            .single()
-
-          setProfile(
-            profileData || {
-              id: currentUser.id,
-              full_name: currentUser.email,
-              plan: 'free',
-              tokens: 0
-            }
-          )
-        } else {
-          setProfile(null)
+      return (
+        data || {
+          id: userId,
+          full_name: email,
+          plan: 'free',
+          tokens: 0
         }
-      } catch (err) {
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
+      )
     }
 
-    loadUser()
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
 
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange(
+      const currentUser = session?.user || null
+
+      if (!mounted) return
+
+      setUser(currentUser)
+
+      if (currentUser) {
+        const p = await fetchProfile(currentUser.id, currentUser.email)
+        setProfile(p)
+      } else {
+        setProfile(null)
+      }
+
+      setLoading(false)
+    }
+
+    init()
+
+    const { data } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         const currentUser = session?.user || null
 
         setUser(currentUser)
 
         if (currentUser) {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', currentUser.id)
-            .single()
-
-          setProfile(
-            profileData || {
-              id: currentUser.id,
-              full_name: currentUser.email,
-              plan: 'free',
-              tokens: 0
-            }
-          )
+          const p = await fetchProfile(currentUser.id, currentUser.email)
+          setProfile(p)
         } else {
           setProfile(null)
         }
@@ -83,7 +68,7 @@ export default function AuthProvider({ children }) {
 
     return () => {
       mounted = false
-      subscription.unsubscribe()
+      data?.subscription?.unsubscribe?.()
     }
   }, [])
 
@@ -92,7 +77,7 @@ export default function AuthProvider({ children }) {
       value={{
         user,
         profile,
-        setProfile,
+        setProfile: null, // 🚫 مهم: منع التعديل الخارجي
         loading
       }}
     >
