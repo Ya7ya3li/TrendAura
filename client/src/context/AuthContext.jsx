@@ -4,21 +4,53 @@ import { supabase } from '../config/supabase'
 
 export const AuthContext = createContext(null)
 
+/**
+ * TrendAura Core Authentication Provider (Enterprise Production-Grade)
+ * Engineered with safe pre-flight checks to guarantee zero loading-state freezes in distributed environments.
+ */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true) // يبدأ true لتأمين الفحص الأولي فقط
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
-    // تسمع مركزي وحيد مبرمج بأعلى معايير الحماية لمنع التعليق والصدام اللانهائي
+    let isMounted = true
+
+    // ⚡ الفحص الاستباقي المضمون (Pre-flight Safe Check)
+    // يضمن كسر حالة التحميل وتحديث الواجهة حتى لو تسببت سرعة خوادم الإنتاج في إسقاط حدث التسمع الأول
+    const preFlightAuthCheck = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) throw error
+
+        if (isMounted) {
+          if (session?.user) {
+            setUser(session.user)
+            await fetchUserProfile(session.user.id, session.user)
+          } else {
+            setUser(null)
+            setProfile(null)
+          }
+        }
+      } catch (err) {
+        console.error('❌ [Auth Pre-flight Exception]:', err.message)
+      } finally {
+        if (isMounted) setLoading(false) // ضمان سرمدي لإغلاق اللودر وعدم تعليق المستخدم
+      }
+    }
+
+    // إطلاق الفحص الفوري بالتوازي مع تركيب المستمع المركزي
+    preFlightAuthCheck()
+
+    // 📡 التسمع التفاعلي المركزي لدورة حياة المصادقة
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`🔒 [Core Auth Event]: ${event}`)
-      
+      console.log(`🔒 [Core Auth Event Triggered]: ${event}`)
+      if (!isMounted) return
+
       try {
         if (session?.user) {
           setUser(session.user)
-          // تمرير كائن المستخدم مباشرة لتجنب فخ الـ Asynchronous State Closure
           await fetchUserProfile(session.user.id, session.user)
           
           if (event === 'SIGNED_IN') {
@@ -29,20 +61,21 @@ export const AuthProvider = ({ children }) => {
         } else {
           setUser(null)
           setProfile(null)
-          // حارس ذكي: لا يطرد إلا إذا كان المستخدم يحاول دخول مسار داخلي محمي وهو مجهول الهوية
           if (window.location.pathname.startsWith('/dashboard') || window.location.pathname.startsWith('/settings')) {
             navigate('/login', { replace: true })
           }
         }
       } catch (error) {
-        console.error('❌ [Auth System Event Crash]:', error.message)
+        console.error('❌ [Auth Event Processing Error]:', error.message)
       } finally {
-        // ضمان ملوكي صلب: إغلاق شاشة التحميل فوراً وكسر أي فخ تعليق لانهائي
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     })
 
-    return () => subscription?.unsubscribe()
+    return () => {
+      isMounted = false
+      subscription?.unsubscribe()
+    }
   }, [navigate])
 
   const fetchUserProfile = async (userId, currentUser) => {
@@ -76,8 +109,8 @@ export const AuthProvider = ({ children }) => {
 
       setProfile(data)
     } catch (err) {
-      console.error('❌ [Profile Fetch/Create Error]:', err.message)
-      // خط دفاع احتياطي لمنع انهيار الواجهة والتحول لبيضاء (Graceful Degradation)
+      console.error('❌ [Profile Synchronization Crash]:', err.message)
+      // حماية معمارية احتياطية (Fallback Mechanism) لمنع سقوط الشاشات الداخلية
       setProfile({ id: userId, plan: 'free', tokens: 1000, full_name: 'مستخدم تريند أورا', subscription_status: 'inactive' })
     }
   }
@@ -89,7 +122,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.clear()
       navigate('/login', { replace: true })
     } catch (err) {
-      console.error('❌ [Auth Logout Exception]:', err.message)
+      console.error('❌ [Auth SignOut Exception]:', err.message)
     } finally {
       setLoading(false)
     }
