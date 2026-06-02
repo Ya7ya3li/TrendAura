@@ -1,12 +1,9 @@
-import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { showToast } from '../App'
+import React, { useState, useEffect } from 'react'
+// 🧭 تصحيح الاستيرادات: تم جلب الـ useNavigate والـ Link وحذف العناصر الزائدة
+import { useNavigate, Link } from 'react-router-dom' 
 import { supabase } from '../config/supabase'
+import { showToast } from '../App'
 
-/**
- * TrendAura Core Authentication Portal - V2 Enterprise Certified
- * Fixed Google OAuth route tracking and established instant SPA navigation hooks.
- */
 export default function Login() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -32,8 +29,6 @@ export default function Login() {
       if (error) throw error
 
       showToast('مرحباً بعودتك يا ملك الخوارزميات! تم الدخول بنجاح 👑', 'success')
-      
-      // 🏆 التعديل الهندسي: فرض القذف المباشر والسريع لداخل لوحة التحكم وكسر تجميد الزر نهائياً
       navigate('/dashboard')
       
     } catch (error) {
@@ -52,7 +47,7 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // 🏆 التعديل الذهبي: إجبار سوبابيس على قذف المستخدم مباشرة إلى لوحة التحكم فور نجاح الدخول ومنع رميته في الهيرو
+          // 🏆 توجيه صارم ومباشر إلى لوحة التحكم فور النجاح
           redirectTo: `${window.location.origin}/dashboard`, 
           queryParams: {
             access_type: 'offline',
@@ -75,7 +70,7 @@ export default function Login() {
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-500 text-white text-base font-black flex items-center justify-center shadow-lg shadow-blue-100 animate-scale-up">
             ▲
           </div>
-          <h2 className="text-lg font-black text-slate-900 font-sans tracking-tight">
+          <h2 className="text-lg font-black text-slate-900 tracking-tight">
             Trend<span className="text-blue-600">Aura</span>
           </h2>
         </div>
@@ -160,7 +155,7 @@ export default function Login() {
             <p className="text-[10px] font-bold text-slate-400">
               ليس لديك حساب حتى الآن؟{' '}
               <Link to="/register" className="text-blue-600 hover:text-blue-700 font-black transition-colors">
-                أنشئ حسابك الملوكي الآن
+                أنشئ حسابك الآن
               </Link>
             </p>
           </div>
