@@ -1,7 +1,7 @@
 import { supabase } from '../config/supabase';
 
 /**
- * TrendAura Federated Identity and Authentication Services
+ * TrendAura Federated Identity and Authentication Services - Standardized Version
  */
 export const authService = {
   /**
@@ -14,13 +14,17 @@ export const authService = {
   },
 
   /**
-   * 📝 إنشاء حساب لمبدع جديد في منظومة الأمان
+   * 📝 إنشاء حساب لمبدع جديد في منظومة الأمان - تم تصحيح مسمى الحقل ليتوافق مع السيرفر
    */
   async register(email, password, fullName) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { display_name: fullName } }
+      options: { 
+        data: { 
+          full_name: fullName // 👈 التعديل: تم التوحيد إلى full_name ليتطابق مع الـ Trigger وجوجل
+        } 
+      }
     });
     if (error) throw error;
     return data;

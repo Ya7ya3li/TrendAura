@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef } from 'react'
+import React, { useState, useContext, useRef, useEffect } from 'react'
 import { AuthContext } from '../../context/AuthContext'
 import { authService } from '../../services/authService'
 import { showToast } from '../../App'
@@ -10,9 +10,16 @@ import Button from '../common/Button'
  */
 export default function ProfileSettings() {
   const { profile, setProfile } = useContext(AuthContext)
-  const [fullName, setFullName] = useState(profile?.full_name || localStorage.getItem('trendaura_user_name') || 'يحيى أحمد')
+  const [fullName, setFullName] = useState('')
   const [loading, setLoading] = useState(false)
   const fileInputRef = useRef(null)
+
+  // 🔄 مزامنة تفاعلية فورية: أول ما يوصل البروفايل الحقيقي من سوبابيس، يتحدث الاسم تلقائياً في الشاشة
+  useEffect(() => {
+    if (profile?.full_name) {
+      setFullName(profile.full_name)
+    }
+  }, [profile])
 
   // 📸 معالجة رفع وتغيير صورة البروفايل وحفظها فوراً بالذاكرة العامة لتعكس بالسايدبار
   const handleAvatarChange = (e) => {
@@ -24,10 +31,9 @@ export default function ProfileSettings() {
       }
       const reader = new FileReader()
       reader.onloadend = () => {
-        // تحديث دفاعي فوري بداخل الحالات العامة والمحلية لضمان قفز الصورة بالسايدبار
         setProfile(prev => ({ ...(prev || {}), avatar_url: reader.result }))
         localStorage.setItem('trendaura_user_avatar', reader.result)
-        showToast('تمت مزامنة وتحديث صورة الهوية الشخصية بنجاح ملوكي! 📸', 'success')
+        showToast('تمت مزامنة وتحديث الصورة  الشخصية بنجاح ! 📸', 'success')
       }
       reader.readAsDataURL(file)
     }
@@ -47,16 +53,14 @@ export default function ProfileSettings() {
         await authService.updateProfile(profile.id, { full_name: fullName.trim() })
       }
       
-      // مزامنة أوتوماتيكية فورية تكسر جمود الواجهة وتحديث السايدبار بالملّي
       setProfile(prev => ({ ...(prev || {}), full_name: fullName.trim() }))
       localStorage.setItem('trendaura_user_name', fullName.trim())
-      showToast('تم تحديث بيانات هويتك الشخصية بنجاح ملوكي! ✨', 'success')
+      showToast('تم تحديث البيانات الشخصية بنجاح ! ✨', 'success')
     } catch (error) {
       console.error('❌ [ProfileSettings Save Error]:', error.message)
-      // عبور آمن في بيئة التطوير لتشغيل التحديث محلياً بدون قيود
       setProfile(prev => ({ ...(prev || {}), full_name: fullName.trim() }))
       localStorage.setItem('trendaura_user_name', fullName.trim())
-      showToast('تم الحفظ وتأمين البيانات بنجاح في نظام التفضيلات! ✨', 'success')
+      showToast('تم الحفظ وتأمين البيانات بنجاح   ! ✨', 'success')
     } finally {
       setLoading(false)
     }
@@ -65,8 +69,8 @@ export default function ProfileSettings() {
   return (
     <form onSubmit={handleUpdateProfile} className="space-y-6 text-right dir-rtl select-none animate-fade-in font-sans">
       <div>
-        <h3 className="text-xs font-black text-slate-900 tracking-tight mb-1">البيانات الشخصية للهوية</h3>
-        <p className="text-[10px] font-bold text-slate-400">قم بتحديث اسم العرض الخاص بك وصورة الهوية البصرية التي تظهر في المنظومة.</p>
+        <h3 className="text-xs font-black text-slate-900 tracking-tight mb-1">البيانات الشخصية </h3>
+        <p className="text-[10px] font-bold text-slate-400">قم بتحديث اسم العرض الخاص بك وصورة العرض     .</p>
       </div>
 
       {/* 🔮 كبسولة تعديل الصورة والرفع الفوري الفخمة */}
@@ -75,9 +79,9 @@ export default function ProfileSettings() {
           onClick={() => fileInputRef.current.click()}
           className="relative w-16 h-16 rounded-2xl cursor-pointer group overflow-hidden border-2 border-dashed border-slate-200 hover:border-blue-500 transition-all flex items-center justify-center bg-slate-50"
         >
-          {profile?.avatar_url || localStorage.getItem('trendaura_user_avatar') ? (
+          {profile?.avatar_url ? (
             <img 
-              src={profile?.avatar_url || localStorage.getItem('trendaura_user_avatar')} 
+              src={profile.avatar_url} 
               alt="Avatar" 
               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
             />
@@ -96,8 +100,8 @@ export default function ProfileSettings() {
           className="hidden" 
         />
         <div className="flex flex-col">
-          <span className="text-xs font-black text-slate-800">الصورة الرمزية للهوية</span>
-          <span className="text-[9px] font-bold text-slate-400 mt-0.5">انقر على المربع لرفع ملف صورة جديد وفوراً ستتغير بالسايدبار</span>
+          <span className="text-xs font-black text-slate-800">الصورة  </span>
+          <span className="text-[9px] font-bold text-slate-400 mt-0.5">صورة جديده</span>
         </div>
       </div>
 
@@ -111,20 +115,20 @@ export default function ProfileSettings() {
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="يحيى أحمد"
+              placeholder="جاري التحميل..."
               className="w-full bg-slate-50 text-slate-800 pr-10 pl-4 py-3 rounded-xl border border-slate-200/60 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 transition-all"
             />
           </div>
         </div>
 
-        {/* حقل البريد الإلكتروني */}
+        {/* حقل البريد الإلكتروني - تم تطهيره من الإيميل الثابت */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-black text-slate-400">البريد الإلكتروني (حساب ثابت)</label>
           <div className="relative w-full opacity-60">
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs">✉️</span>
             <input
               type="email"
-              value={profile?.email || 'ya7ya31400@gmail.com'}
+              value={profile?.email || 'جاري جلب البريد الشخصي...'}
               readOnly
               disabled
               className="w-full bg-slate-100 text-slate-500 pr-10 pl-4 py-3 rounded-xl border border-slate-200/40 text-xs font-bold outline-none cursor-not-allowed"

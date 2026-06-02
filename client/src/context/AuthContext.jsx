@@ -25,21 +25,34 @@ export const AuthProvider = ({ children }) => {
 
         if (error) throw error
 
-        return (
-          data || {
-            id: currentUser.id,
-            full_name: currentUser.email?.split('@')[0] || 'قائد تريند أورا',
-            plan: 'free',
-            tokens: 5000
+        // 🛡️ دمج أمني: إذا وجدنا السطر بداخل قاعدة البيانات، نضمن تدعيمه ببيانات الحساب الحية
+        if (data) {
+          return {
+            ...data,
+            email: data.email || currentUser.email,
+            avatar_url: data.avatar_url || currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture
           }
-        )
-      } catch (err) {
-        console.error('❌ [AuthContext Profile Sync Error]:', err.message)
+        }
+
+        // ⚡ خيار احتياطي ذكي ومتكامل يمنع ظهور بيانات وهمية أو قديمة في الواجهات
         return {
           id: currentUser.id,
-          full_name: currentUser.email,
+          full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'قائد تريند أورا',
+          email: currentUser.email,
+          avatar_url: currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || null,
           plan: 'free',
-          tokens: 0
+          tokens: 5000
+        }
+      } catch (err) {
+        console.error('❌ [AuthContext Profile Sync Error]:', err.message)
+        // عبور آمن ومكتمل الأركان عند حدوث أخطاء شبكة أو حماية
+        return {
+          id: currentUser.id,
+          full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0],
+          email: currentUser.email,
+          avatar_url: currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || null,
+          plan: 'free',
+          tokens: 5000 // نثبت التوكن دفاعياً لحين استقرار الشبكة
         }
       }
     }
@@ -62,8 +75,6 @@ export const AuthProvider = ({ children }) => {
       } catch (err) {
         console.error('❌ [AuthContext Session Init Error]:', err.message)
       } finally {
-        // 🛡️ التعديل العبقري: إذا كان الرابط يحتوي على توكن قوقل (hash)، لا تغلق اللودر أبداً! 
-        // اترك المستمع المركزي بالأسفل يعالجه أولاً لكي لا يطردك الراوتر لصفحة الـ Login ويضيع التوكن.
         const hasOAuthHash = window.location.hash.includes('access_token') || window.location.hash.includes('error');
         if (mounted && !hasOAuthHash) {
           setLoading(false)
@@ -71,10 +82,8 @@ export const AuthProvider = ({ children }) => {
       }
     }
 
-    // إطلاق التحقق الابتدائي
     initAuthSystem()
 
-    // 🔒 المستمع المركزي لأحداث الحساب: هو الوحيد المخول بإغلاق اللودر عند التقاط توكن قوقل
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return
@@ -90,7 +99,6 @@ export const AuthProvider = ({ children }) => {
           if (mounted) setProfile(null)
         }
         
-        // قفل اللودر هنا دائماً لأن سوبابيس التقط الـ Token وفك التشفير حياً بنجاح!
         if (mounted) setLoading(false)
       }
     )
