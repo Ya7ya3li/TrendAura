@@ -5,7 +5,7 @@ import { supabase } from '../config/supabase';
  */
 export const authService = {
   /**
-   * 🔐 تسجيل دخول مستخدم قياسي عبر البريد وكلمة المرور
+   * 🔐 تسجيل دخول مستخدم  عبر البريد وكلمة المرور
    */
   async login(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -31,7 +31,7 @@ export const authService = {
   },
 
   /**
-   * 🔒 تسجيل الخروج الكلي وتطهير جلسة العميل
+   * 🔒 تسجيل الخروج    
    */
   async logout() {
     const { error } = await supabase.auth.signOut();
