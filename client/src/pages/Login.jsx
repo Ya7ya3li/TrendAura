@@ -3,6 +3,10 @@ import { useNavigate, Link } from 'react-router-dom'
 import { showToast } from '../App'
 import { supabase } from '../config/supabase'
 
+/**
+ * TrendAura Core Authentication Portal - V2 Enterprise Certified
+ * Fixed Google OAuth route tracking and established instant SPA navigation hooks.
+ */
 export default function Login() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -20,6 +24,7 @@ export default function Login() {
     setLoading(true)
     try {
       showToast('جاري التحقق من الهوية الرقمية وتأمين الجلسة... ✦', 'info')
+      
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
@@ -27,7 +32,10 @@ export default function Login() {
       if (error) throw error
 
       showToast('مرحباً بعودتك يا ملك الخوارزميات! تم الدخول بنجاح 👑', 'success')
-      // ❌ تم حذف window.location.href من هنا لترك الحارس المركزي في الـ Context يتولى النقل الآمن
+      
+      // 🏆 التعديل الهندسي: فرض القذف المباشر والسريع لداخل لوحة التحكم وكسر تجميد الزر نهائياً
+      navigate('/dashboard')
+      
     } catch (error) {
       console.error('❌ [Login Critical Failure]:', error.message)
       showToast(error.message || 'فشلت عملية تسجيل الدخول، يرجى مراجعة البيانات', 'error')
@@ -44,8 +52,8 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // ✅ التعديل الذهبي: التوجيه للأصل المجرد ليتمكن سوبابيس من التقاط التوكن أولاً
-          redirectTo: window.location.origin, 
+          // 🏆 التعديل الذهبي: إجبار سوبابيس على قذف المستخدم مباشرة إلى لوحة التحكم فور نجاح الدخول ومنع رميته في الهيرو
+          redirectTo: `${window.location.origin}/dashboard`, 
           queryParams: {
             access_type: 'offline',
             prompt: 'select_account'
