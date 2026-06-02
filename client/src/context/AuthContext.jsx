@@ -5,9 +5,8 @@ export const AuthContext = createContext(null)
 
 /**
  * TrendAura Authentication Provider - V2 Enterprise Certified
- * Engineered to eliminate Rollup deployment mismatches and secure persistent session memory.
+ * Completely cleanses lifecycle dependency arrays to eradicate unmount-loops during profile syncs.
  */
-// 🏆 التعديل الهندسي: تحويل التصدير إلى Named Export ليطابق الاستيراد بداخل App.jsx تماماً ويسحق خطأ Vercel
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
@@ -31,7 +30,7 @@ export const AuthProvider = ({ children }) => {
             id: currentUser.id,
             full_name: currentUser.email?.split('@')[0] || 'قائد تريند أورا',
             plan: 'free',
-            tokens: 5000 // حقن القيمة الابتدائية للتوكنز كخط دفاع لمنع تصفير الرصيد
+            tokens: 5000
           }
         )
       } catch (err) {
@@ -45,7 +44,7 @@ export const AuthProvider = ({ children }) => {
       }
     }
 
-    const init = async () => {
+    const initAuthSystem = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
 
@@ -61,23 +60,22 @@ export const AuthProvider = ({ children }) => {
           if (mounted) setProfile(null)
         }
       } catch (err) {
-        console.error('❌ [AuthContext Initialization Error]:', err.message)
+        console.error('❌ [AuthContext Session Init Error]:', err.message)
       } finally {
         if (mounted) setLoading(false)
       }
     }
 
-    // إطلاق عملية الفحص الاستباقي الفوري
-    init()
+    // تشغيل الفحص الاستباقي الفوري عند الإقلاع
+    initAuthSystem()
 
-    // تسمع مركزي تفاعلي مستقر طوال دورة حياة التطبيق
+    // الاستماع المركزي لأحداث الحساب السحابي بدون التسبب في حلقات إعادة تحميل
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log(`🔒 [Core Auth Event Production]: ${event}`)
-        const currentUser = session?.user || null
-        
         if (!mounted) return
-
+        
+        console.log(`🔒 [Core Auth Event Node]: ${event}`)
+        const currentUser = session?.user || null
         setUser(currentUser)
 
         if (currentUser) {
@@ -95,7 +93,7 @@ export const AuthProvider = ({ children }) => {
       mounted = false
       subscription?.unsubscribe()
     }
-  }, []) // 🛡️ مصفوفة فارغة تماماً لقطع دابر الـ Infinite Loop وضمان استقرار الجلسة في السيرفر الحي
+  }, []) // مصفوفة فارغة تماماً تضمن التشغيل لمرة واحدة فقط وعدم الانهيار عند تحديث التوكنز
 
   return (
     <AuthContext.Provider value={{
