@@ -11,33 +11,24 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true
 
-    // 🛡️ حارس الوقت الأمني: 8 ثوانٍ (أطول للـ OAuth)
     const safetyTimer = setTimeout(() => {
-      if (mounted && loading) {
-        console.log('🛡️ [Safety Timeout]: Closing loader')
-        setLoading(false)
-      }
+      if (mounted && loading) setLoading(false)
     }, 8000)
 
     const fetchProfile = async (currentUser) => {
       try {
+        // نحدد الأعمدة المطلوبة بدقة لضمان جلب الصورة
         const { data, error } = await supabase
           .from('profiles')
-          .select('*')
+          .select('id, full_name, email, avatar_url, plan, tokens')
           .eq('id', currentUser.id)
           .maybeSingle()
 
         if (error) throw error
 
-        if (data) {
-          return {
-            ...data,
-            email: data.email || currentUser.email,
-            avatar_url: data.avatar_url || currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture
-          }
-        }
+        if (data) return data
 
-        // إنشاء بروفايل جديد للمستخدم الجديد
+        // إنشاء بروفايل جديد إذا لم يوجد
         const newProfile = {
           id: currentUser.id,
           full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'مستخدم',
@@ -47,60 +38,53 @@ export const AuthProvider = ({ children }) => {
           tokens: 5000
         }
 
-        // حفظه في Supabase
         await supabase.from('profiles').insert([newProfile])
         return newProfile
       } catch (err) {
-        console.error('❌ Profile Error:', err.message)
-        return {
-          id: currentUser.id,
-          full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0],
-          email: currentUser.email,
-          avatar_url: currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || null,
-          plan: 'free',
-          tokens: 5000
-        }
+        console.error('❌ Profile Fetch Error:', err.message)
+        return null // نرجع null ليعرف النظام أن هناك خطأ
       }
     }
 
     const initAuthSystem = async () => {
       try {
-        // التحقق من الجلسة الحالية
         const { data: { session } } = await supabase.auth.getSession()
         if (!mounted) return
 
         if (session?.user) {
           setUser(session.user)
           const p = await fetchProfile(session.user)
-          if (mounted) setProfile(p)
-          if (mounted) setLoading(false)
-          clearTimeout(safetyTimer)
+          if (mounted) {
+            setProfile(p)
+            setLoading(false)
+            clearTimeout(safetyTimer)
+          }
+        } else {
+          setLoading(false)
         }
       } catch (err) {
-        console.error('❌ Init Error:', err.message)
+        setLoading(false)
       }
     }
 
     initAuthSystem()
 
-    // 🔒 المستمع الأساسي لتغيرات المصادقة
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return
 
-        console.log(`🔒 Auth Event: ${event}`)
-
         if (session?.user) {
           setUser(session.user)
           const p = await fetchProfile(session.user)
-          if (mounted) setProfile(p)
-          if (mounted) setLoading(false)
-          clearTimeout(safetyTimer)
+          if (mounted) {
+            setProfile(p)
+            setLoading(false)
+            clearTimeout(safetyTimer)
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null)
           setProfile(null)
           if (mounted) setLoading(false)
-          clearTimeout(safetyTimer)
         }
       }
     )
