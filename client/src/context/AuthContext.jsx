@@ -17,7 +17,6 @@ export const AuthProvider = ({ children }) => {
 
     const fetchProfile = async (currentUser) => {
       try {
-        // نحدد الأعمدة المطلوبة بدقة لضمان جلب الصورة
         const { data, error } = await supabase
           .from('profiles')
           .select('id, full_name, email, avatar_url, plan, tokens')
@@ -25,10 +24,8 @@ export const AuthProvider = ({ children }) => {
           .maybeSingle()
 
         if (error) throw error
-
         if (data) return data
 
-        // إنشاء بروفايل جديد إذا لم يوجد
         const newProfile = {
           id: currentUser.id,
           full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'مستخدم',
@@ -42,7 +39,7 @@ export const AuthProvider = ({ children }) => {
         return newProfile
       } catch (err) {
         console.error('❌ Profile Fetch Error:', err.message)
-        return null // نرجع null ليعرف النظام أن هناك خطأ
+        return null
       }
     }
 
@@ -72,7 +69,6 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return
-
         if (session?.user) {
           setUser(session.user)
           const p = await fetchProfile(session.user)
@@ -97,7 +93,13 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, profile, setProfile, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      // التعديل الجوهري هنا: نضمن دائماً وجود كائن آمن حتى لا ينهار الكود (id: null)
+      profile: profile || { id: null, full_name: 'جاري التحميل...', tokens: 0, plan: 'free' }, 
+      setProfile, 
+      loading 
+    }}>
       {children}
     </AuthContext.Provider>
   )
