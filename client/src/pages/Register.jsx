@@ -2,14 +2,15 @@ import React, { useState, useContext } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
 import { showToast } from '../App'
+import { supabase } from '../config/supabase' // 🏆 استيراد محرك سوبابيس الحقيقي
 
 /**
- * TrendAura World-Class Register Page
- * Features active password visibility toggles and smart offline-dashboard routing.
+ * TrendAura World-Class Register Page - V2 Live Production
+ * Enforces real-time Supabase signups with instant auto-login execution.
  */
 export default function Register() {
   const navigate = useNavigate()
-  const { loginSystem } = useContext(AuthContext) || {} // جلب سياق المصادقة إن وجد
+  const { loginSystem } = useContext(AuthContext) || {}
 
   // الحالات الافتراضية للمدخلات
   const [fullName, setFullName] = useState('')
@@ -25,7 +26,7 @@ export default function Register() {
 
     // فحص أولي للمدخلات
     if (!fullName.trim() || !email.trim() || !password.trim()) {
-      showToast('يا قبطان، فضلاً املأ جميع الحقول المطلوبة أولاً ⚠️', 'warning')
+      showToast('  فضلاً املأ جميع الحقول المطلوبة أولاً ⚠️', 'warning')
       return
     }
 
@@ -36,23 +37,31 @@ export default function Register() {
 
     setLoading(true)
     try {
-      showToast('جاري تهيئة حسابك الملوكي الجديد... ✦', 'info')
+      showToast('جاري تهيئة حسابك الجديد في قاعدة البيانات... ✦', 'info')
       
-      // 🚀 محاكاة اتصال مرنة: إذا السيرفر الخلفي مو شغال، نسوي هبوط آمن للداشبورد فوراً
-      setTimeout(() => {
-        // تخزين توكن وهمي في المتصفح لتجاوز جدار الحماية مؤقتاً أثناء الفحص
-        localStorage.setItem('trendaura_token', 'mock_master_session_2026')
-        
-        showToast('تم إنشاء الحساب بنجاح! أهلاً بك في عصر الفايرال 👑', 'success')
-        setLoading(false)
-        
-        // توجيه فوري ومباشر لقلب لوحة التحكم
-        navigate('/dashboard')
-      }, 1200)
+      // 🏆 قذيفة الاتصال الحقيقي بالسيرفر لإنشاء الحساب حياً
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password,
+        options: {
+          // حقن الاسم الكريم بداخل الميتاداتا ليلقطه الـ Profile تلقائياً
+          data: {
+            full_name: fullName.trim()
+          }
+        }
+      })
+
+      if (error) throw error
+
+      showToast('تم إنشاء الحساب بنجاح! أهلاً بك    👑', 'success')
+      
+      // طالما خيار تأكيد الإيميل OFF، سوبابيس يشحن الجلسة فوراً، ونقذفك مباشرة للداخل!
+      navigate('/dashboard')
 
     } catch (error) {
-      console.error('❌ [Register Submit Error]:', error.message)
-      showToast('حدث خطأ أثناء الاتصال، جاري تحويلك أوتوماتيكياً للأمان', 'error')
+      console.error('❌ [Register Critical Failure]:', error.message)
+      showToast(error.message || 'حدث خطأ أثناء الاتصال بالخادم ', 'error')
+    } finally {
       setLoading(false)
     }
   }
@@ -60,7 +69,6 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 text-right dir-rtl select-none font-sans animate-fade-in">
       <div className="sm:mx-auto w-full max-w-md">
-        {/* الشعار بروح شات جي بي تي وعين الشركات العالمية */}
         <div className="flex justify-center items-center gap-2.5 mb-4">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-500 text-white text-base font-black flex items-center justify-center shadow-lg shadow-blue-100 animate-scale-up">
             ▲
@@ -91,7 +99,7 @@ export default function Register() {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="يحيى أحمد"
+                  placeholder="     "
                   className="w-full bg-slate-50 text-slate-800 pr-10 pl-4 py-3 rounded-xl border border-slate-200/60 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 transition-all"
                 />
               </div>
@@ -112,13 +120,11 @@ export default function Register() {
               </div>
             </div>
 
-            {/* 3. حقل كلمة المرور مع زر التبديل والـ Eye Toggle الاحترافي */}
+            {/* 3. حقل كلمة المرور */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-slate-500">كلمة المرور السرية</label>
+              <label className="text-[10px] font-black text-slate-500">كلمة المرور </label>
               <div className="relative w-full">
-                {/* أيقونة القفل اليمنى */}
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔒</span>
-                
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
@@ -126,8 +132,6 @@ export default function Register() {
                   placeholder="••••••••"
                   className="w-full bg-slate-50 text-slate-800 pr-10 pl-12 py-3 rounded-xl border border-slate-200/60 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 transition-all font-sans"
                 />
-
-                {/* 👁️ زر إظهار / إخفاء كلمة المرور المثبت جهة اليسار بدقة فخمة */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -138,7 +142,7 @@ export default function Register() {
               </div>
             </div>
 
-            {/* زر الإرسال وإنشاء الحساب الحركي */}
+            {/* زر الإرسال وإنشاء الحساب */}
             <div className="pt-2">
               <button
                 type="submit"
@@ -151,19 +155,18 @@ export default function Register() {
                     <span>جاري تشييد الحصن...</span>
                   </>
                 ) : (
-                  <span>إنشاء حسابي الملوكي الآن </span>
+                  <span>إنشاء حساب الآن 👑</span>
                 )}
               </button>
             </div>
 
           </form>
 
-          {/* روابط التوجيه السفلية الناعمة */}
           <div className="mt-6 text-center border-t border-slate-50 pt-4">
             <p className="text-[10px] font-bold text-slate-400">
               لديك حساب بالفعل؟{' '}
               <Link to="/login" className="text-blue-600 hover:text-blue-700 font-black transition-colors">
-                تسجيل الدخول من هنا
+                تسجيل الدخول  
               </Link>
             </p>
           </div>
