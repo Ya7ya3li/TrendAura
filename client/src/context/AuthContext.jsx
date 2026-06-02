@@ -3,10 +3,6 @@ import { supabase } from '../config/supabase'
 
 export const AuthContext = createContext(null)
 
-/**
- * TrendAura Authentication Provider - V3 Production Shield
- * Standardized OAuth sequence to eliminate the INITIAL_SESSION router race condition.
- */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
@@ -15,13 +11,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true
 
-    // 🛡️ حارس الوقت الأمني: لو علق سيرفر قوقل أو سوبابيس لأي سبب، يقفل اللودر تلقائياً بعد 4 ثوانٍ لمنع تجميد الشاشة
+    // 🛡️ حارس الوقت الأمني: 8 ثوانٍ (أطول للـ OAuth)
     const safetyTimer = setTimeout(() => {
       if (mounted && loading) {
-        console.log('🛡️ [Safety Timeout Triggered]: Force closing loader')
+        console.log('🛡️ [Safety Timeout]: Closing loader')
         setLoading(false)
       }
-    }, 4000)
+    }, 8000)
 
     const fetchProfile = async (currentUser) => {
       try {
@@ -41,16 +37,21 @@ export const AuthProvider = ({ children }) => {
           }
         }
 
-        return {
+        // إنشاء بروفايل جديد للمستخدم الجديد
+        const newProfile = {
           id: currentUser.id,
-          full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'قائد تريند أورا',
+          full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'مستخدم',
           email: currentUser.email,
           avatar_url: currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || null,
           plan: 'free',
           tokens: 5000
         }
+
+        // حفظه في Supabase
+        await supabase.from('profiles').insert([newProfile])
+        return newProfile
       } catch (err) {
-        console.error('❌ [AuthContext Profile Sync Error]:', err.message)
+        console.error('❌ Profile Error:', err.message)
         return {
           id: currentUser.id,
           full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0],
@@ -64,60 +65,42 @@ export const AuthProvider = ({ children }) => {
 
     const initAuthSystem = async () => {
       try {
+        // التحقق من الجلسة الحالية
         const { data: { session } } = await supabase.auth.getSession()
         if (!mounted) return
 
-        const currentUser = session?.user || null
-        if (currentUser) {
-          setUser(currentUser)
-          const p = await fetchProfile(currentUser)
+        if (session?.user) {
+          setUser(session.user)
+          const p = await fetchProfile(session.user)
           if (mounted) setProfile(p)
           if (mounted) setLoading(false)
+          clearTimeout(safetyTimer)
         }
       } catch (err) {
-        console.error('❌ [AuthContext Session Init Error]:', err.message)
-      } finally {
-        // فحص وجود توكن قوقل أو كود المصادقة في الرابط الحالي
-        const hasOAuthHash = window.location.hash.includes('access_token') || 
-                             window.location.hash.includes('id_token') ||
-                             window.location.search.includes('code=');
-        
-        // لا نغلق اللودر أبداً إذا كان هناك توكن قوقل جاري معالجته في الرابط
-        if (mounted && !hasOAuthHash && !user) {
-          setLoading(false)
-        }
+        console.error('❌ Init Error:', err.message)
       }
     }
 
     initAuthSystem()
 
-    // 🔒 المستمع المركزي لأحداث الحساب
+    // 🔒 المستمع الأساسي لتغيرات المصادقة
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return
-        
-        console.log(`🔒 [Core Auth Event Node]: ${event}`)
-        const currentUser = session?.user || null
-        
-        const hasOAuthHash = window.location.hash.includes('access_token') || 
-                             window.location.hash.includes('id_token') ||
-                             window.location.search.includes('code=');
 
-        if (currentUser) {
-          setUser(currentUser)
-          const p = await fetchProfile(currentUser)
+        console.log(`🔒 Auth Event: ${event}`)
+
+        if (session?.user) {
+          setUser(session.user)
+          const p = await fetchProfile(session.user)
           if (mounted) setProfile(p)
           if (mounted) setLoading(false)
-          clearTimeout(safetyTimer) // إلغاء التايمر الأمني فور نجاح الدخول
-        } else {
+          clearTimeout(safetyTimer)
+        } else if (event === 'SIGNED_OUT') {
           setUser(null)
           setProfile(null)
-          
-          // 🛑 هنا المفتاح الكوني: إذا كانت الجلسة فارغة ولكن الرابط يحتوي على توكن قوقل،
-          // نرفض إغلاق اللودر تماماً ونتركه true لينتظر التقاط حدث SIGNED_IN الفعلي
-          if (!hasOAuthHash) {
-            setLoading(false)
-          }
+          if (mounted) setLoading(false)
+          clearTimeout(safetyTimer)
         }
       }
     )
@@ -135,4 +118,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   )
 }
-export default AuthProvider;
+
+export default AuthProvider
