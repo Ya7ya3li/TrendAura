@@ -5,7 +5,7 @@ export const AuthContext = createContext(null)
 
 /**
  * TrendAura Authentication Provider - V2 Enterprise Certified
- * Completely cleanses lifecycle dependency arrays to eradicate unmount-loops during profile syncs.
+ * Infused with URL hash-detection matrix to completely destroy OAuth routing race conditions.
  */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
@@ -62,14 +62,19 @@ export const AuthProvider = ({ children }) => {
       } catch (err) {
         console.error('❌ [AuthContext Session Init Error]:', err.message)
       } finally {
-        if (mounted) setLoading(false)
+        // 🛡️ التعديل العبقري: إذا كان الرابط يحتوي على توكن قوقل (hash)، لا تغلق اللودر أبداً! 
+        // اترك المستمع المركزي بالأسفل يعالجه أولاً لكي لا يطردك الراوتر لصفحة الـ Login ويضيع التوكن.
+        const hasOAuthHash = window.location.hash.includes('access_token') || window.location.hash.includes('error');
+        if (mounted && !hasOAuthHash) {
+          setLoading(false)
+        }
       }
     }
 
-    // تشغيل الفحص الاستباقي الفوري عند الإقلاع
+    // إطلاق التحقق الابتدائي
     initAuthSystem()
 
-    // الاستماع المركزي لأحداث الحساب السحابي بدون التسبب في حلقات إعادة تحميل
+    // 🔒 المستمع المركزي لأحداث الحساب: هو الوحيد المخول بإغلاق اللودر عند التقاط توكن قوقل
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return
@@ -85,6 +90,7 @@ export const AuthProvider = ({ children }) => {
           if (mounted) setProfile(null)
         }
         
+        // قفل اللودر هنا دائماً لأن سوبابيس التقط الـ Token وفك التشفير حياً بنجاح!
         if (mounted) setLoading(false)
       }
     )
@@ -93,7 +99,7 @@ export const AuthProvider = ({ children }) => {
       mounted = false
       subscription?.unsubscribe()
     }
-  }, []) // مصفوفة فارغة تماماً تضمن التشغيل لمرة واحدة فقط وعدم الانهيار عند تحديث التوكنز
+  }, [])
 
   return (
     <AuthContext.Provider value={{
