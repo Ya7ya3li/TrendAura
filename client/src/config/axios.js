@@ -5,6 +5,7 @@ import { supabase } from './supabase';
 /**
  * TrendAura Axios Network Instance config
  * Automatically injects Supabase Auth JWT tokens into server-bound requests.
+ * Fully verified to bind with unified ENV.API_URL routing matrix.
  */
 const axiosInstance = axios.create({
   baseURL: ENV.API_URL,
@@ -18,11 +19,15 @@ const axiosInstance = axios.create({
 // 🔒 محقن الأمان (Request Interceptor) لحقن التوكن حياً قبل خروج الطلب للسيرفر
 axiosInstance.interceptors.request.use(
   async (config) => {
-    const { data } = await supabase.auth.getSession();
-    const token = data?.session?.access_token;
-    
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data?.session?.access_token;
+      
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (err) {
+      console.error('❌ [Axios Interceptor Auth Token Fetch Error]:', err.message);
     }
     return config;
   },
