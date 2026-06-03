@@ -1,48 +1,46 @@
-import React, { useState, useContext } from 'react'
-import { ThemeContext } from '../context/ThemeContext' // 🧬 حقن شريان المظهر العالمي
+import React, { useContext, useState } from 'react'
+import { ThemeContext } from '../context/ThemeContext'
 import ProfileSettings from '../components/settings/ProfileSettings'
 import ThemeSettings from '../components/settings/ThemeSettings'
 import SectionTitle from '../components/common/SectionTitle'
 import { showToast } from '../App'
 
-/**
- * TrendAura Central Account Settings Operations Console - V2 Purged Edition
- * Strictly holds personal details and data wipe safety valves.
- */
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState('profile') // profile | theme
+  const [activeTab, setActiveTab] = useState('profile')
+  const [isDeleting, setIsDeleting] = useState(false)
   const { theme } = useContext(ThemeContext)
 
-  const handleDeleteAllScripts = () => {
-    const confirmDelete = window.confirm('هل أنت متأكد من مسح وحذف جميع السكريبتات والسيناريوهات المحفوظة نهائياً من مستودع أرشيفك؟ هذا الإجراء لا يمكن التراجع عنه.')
+  const handleDeleteAllScripts = async () => {
+    const confirmDelete = window.confirm('تحذير: هل أنت متأكد من تصفير مستودع السكريبتات؟ هذا الإجراء نهائي ولا يمكن استرجاع البيانات.')
     if (confirmDelete) {
-      showToast('تم تصفير وتطهير كامل مستودع السيناريوهات المخزنة بنجاح! 🗑️', 'success')
+      setIsDeleting(true)
+      // محاكاة لعملية حذف حقيقية من Supabase
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      showToast('تم تطهير مستودع السكريبتات بنجاح 🗑️', 'success')
+      setIsDeleting(false)
     }
   }
 
-  return (
-    <div className={`w-full max-w-4xl mx-auto select-none dir-rtl text-right animate-fade-in font-sans transition-colors duration-300 ${
-      theme === 'dark' ? 'text-slate-100' : 'text-slate-800'
-    }`}>
-      <SectionTitle title="الإعدادات العامة للحساب" subtitle="قم بتحديث بيانات ملفك الشخصي وإدارة تفضيلات لوحة التحكم الملوكية" badge="تكوين الحساب" />
+  // Neon Glassmorphism Card Style
+  const cardClass = "bg-[#0d071d]/50 backdrop-blur-xl border border-white/5 rounded-[32px] p-8 shadow-2xl";
 
-      {/* شريط تبديل التبويبات الفخم المصفى ثنائياً */}
-      <div className={`flex items-center gap-2 border-b pb-3 mb-6 transition-colors ${
-        theme === 'dark' ? 'border-[#1f1438]/50' : 'border-slate-100'
-      }`}>
+  return (
+    <div className={`w-full max-w-4xl mx-auto p-6 font-sans ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+      <SectionTitle title="إعدادات الحساب" subtitle="تكوين الهوية الشخصية وتفضيلات النظام" badge="System Config" />
+
+      {/* شريط التبويبات النيوني */}
+      <div className="flex items-center gap-4 mb-8">
         {[
-          { id: 'profile', label: '👤 البروفايل الشخصي' },
-          { id: 'theme', label: '🎨 مظهر الواجهات' }
+          { id: 'profile', label: '👤 البروفايل' },
+          { id: 'theme', label: '🎨 المظهر' }
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all active:scale-95 ${
+            className={`px-6 py-3 rounded-full text-[10px] font-black transition-all ${
               activeTab === tab.id 
-                ? (theme === 'dark' 
-                    ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-purple-500/10' 
-                    : 'bg-blue-600 text-white shadow-md shadow-blue-100')
-                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-transparent'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20'
+                : 'bg-white/5 text-slate-400 hover:bg-white/10'
             }`}
           >
             {tab.label}
@@ -50,30 +48,23 @@ export default function Settings() {
         ))}
       </div>
 
-      {/* الرندرة الهندسية والمطابقة */}
-      <div className={`border rounded-3xl p-6 shadow-sm transition-all duration-300 ${
-        theme === 'dark' ? 'bg-[#160f30]/40 border-[#1f1438]' : 'bg-white border-slate-100'
-      }`}>
+      {/* محتوى الإعدادات */}
+      <div className={cardClass}>
         {activeTab === 'profile' && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-8 animate-fade-in">
             <ProfileSettings />
             
-            {/* 🛑 كرت الحذف التكتيكي المضاف بنقاء 100% متناسب الألوان سيبرانياً */}
-            <div className={`pt-5 border-t flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl border-dashed border ${
-              theme === 'dark' ? 'border-rose-500/20 bg-rose-500/5' : 'border-rose-200 bg-rose-50/30'
-            }`}>
-              <div className="flex flex-col">
-                <span className="text-xs font-black text-rose-600 dark:text-rose-400">منطقة التحكم الحساسة والأرشيف</span>
-                <span className="text-[10px] font-bold text-slate-400 mt-0.5 leading-normal">
-                  تنظيف الذاكرة السحابية من مسودات السكريبتات المحفوظة وتصفير الألبومات دفعة واحدة.
-                </span>
+            <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <h4 className="text-xs font-black text-rose-400">منطقة التحكم الحساسة</h4>
+                <p className="text-[10px] text-slate-400 mt-1">حذف نهائي لكامل محتوى السكريبتات والألبومات.</p>
               </div>
               <button
-                type="button"
                 onClick={handleDeleteAllScripts}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-black rounded-xl transition-all active:scale-95 shrink-0"
+                disabled={isDeleting}
+                className="px-6 py-3 bg-rose-600/20 border border-rose-500/50 hover:bg-rose-600 text-rose-400 hover:text-white text-[10px] font-black rounded-full transition-all"
               >
-                🗑️ حذف السكريبتات المحفوظة
+                {isDeleting ? 'جاري التطهير...' : '🗑️ مسح الأرشيف نهائياً'}
               </button>
             </div>
           </div>
