@@ -9,9 +9,10 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   const fetchProfile = async (userId, email, metadata) => {
-    // 🔍 سطر تتبع هندسي: لرؤية من هو المستخدم الذي يتم طلبه
+    // 1. منع استدعاء القاعدة إذا كان لدينا بروفايل بالفعل في الـ State (لحل مشكلة الـ Loop)
+    if (profile && profile.id === userId) return profile;
+
     console.log("🔍 [Auth] جارٍ جلب بروفايل للمستخدم:", userId);
-    
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -19,12 +20,11 @@ export const AuthProvider = ({ children }) => {
         .eq('id', userId)
         .maybeSingle()
 
-      // 📊 سطر تتبع هندسي: لمعرفة ما إذا كانت القاعدة ترجع بيانات أم لا
       console.log("📊 [Auth] نتيجة البحث من سوبابيس:", data);
 
       if (data) return data
 
-      // إنشاء بروفايل جديد إذا لم يوجد
+           // إنشاء بروفايل جديد إذا لم يوجد
       const newProfile = {
         id: userId,
         full_name: metadata?.full_name || metadata?.name || email?.split('@')[0] || 'مستخدم جديد',
