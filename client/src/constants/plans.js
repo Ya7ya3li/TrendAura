@@ -1,7 +1,8 @@
 /**
- * TrendAura Subscription Plans & Business Logic Metrics V2 - Enterprise Certified
- * Purely localized copy matching EXACT pricing tiers and original features list.
+ * TrendAura Subscription Plans & Business Logic Engine - V2 Optimized
+ * ⚠️ المرجع الأساسي لجميع القيود المنطقية وصلاحيات المحرك
  */
+
 export const PLANS = [
   {
     id: 'free',
@@ -10,7 +11,7 @@ export const PLANS = [
     price: '0',
     currency: 'ريال',
     period: 'شهر',
-    tokensReward: 5000, // المقدار الرقمي لشحن التوكنز عند الفحص
+    tokensReward: 5000,
     desc: 'مناسب للمبتدئين وبداية انطلاقتك في صناعة المحتوى',
     features: [
       '5 توليدات يوميًا',
@@ -19,9 +20,9 @@ export const PLANS = [
       'سكربتات قصيرة محدودة',
       'تجربة المحرك الأساسي',
       'سرعة توليد عادية',
-      'بدون حفظ كامل للسجل.'
+      'بدون حفظ كامل للسجل'
     ],
-    buttonText: 'اشترك الان'
+    buttonText: 'المستوى الحالي'
   },
   {
     id: 'pro',
@@ -30,7 +31,7 @@ export const PLANS = [
     price: '29',
     currency: 'ريال',
     period: 'شهر',
-    tokensReward: 50000, // شحن 50 ألف توكنز فوراً عند الترقية الوهمية لتجربة الخطة
+    tokensReward: 50000,
     desc: 'أدوات احترافية متكاملة لنمو سريع وتصدر المنصات',
     features: [
       'توليد غير محدود',
@@ -41,12 +42,12 @@ export const PLANS = [
       'سرعة توليد أعلى',
       'حفظ السكربتات',
       'إعادة توليد السكربت',
-      'VIP 24/7 دعم',
+      'دعم VIP 24/7',
       'إزالة حدود الانتظار',
       'تحسين CTA للنهاية',
       'توليد أفكار يومية ترند'
     ],
-    buttonText: 'اشترك الآن'
+    buttonText: 'ترقية إلى Pro'
   },
   {
     id: 'viral_engine',
@@ -55,36 +56,52 @@ export const PLANS = [
     price: '69',
     currency: 'ريال',
     period: 'شهر',
-    tokensReward: 999999, // شحن رصيد مفتوح لتجربة ترسانة المحرك الفايرال بالكامل
+    tokensReward: 999999,
     desc: 'الترسانة الذكية الكاملة والأقوى لصناعة مقاطع مليونية متفجرة',
     features: [
       'جميع ميزات Pro',
       'أفكار Viral قوية',
       'سكربتات 60 ثانية احترافية',
-      'أسلوب ترندي مخصص لكل منصة',
+      'أسلوب ترندي مخصص',
       'نسخ متعددة لنفس الفكرة',
       'Hooks هجومية عالية التفاعل',
-      'Retention تحسين',
+      'تحسين Retention',
       'كتابة محتوى سريع الانتشار',
       'تحليل قوة الهوك',
       'تحليل احتمالية المشاهدات',
       'أوامر خاصة للترندات',
       'توليد بأسلوب مشهورين',
-      'أولوية في التوليد',
-      'VIP 24/7 دعم'
+      'أولوية مطلقة في التوليد',
+      'دعم VIP 24/7'
     ],
-    buttonText: 'اشترك الآن.'
+    buttonText: 'تفعيل المحرك'
   }
 ];
 
+// إنشاء خريطة سريعة للبحث (O(1)) لأداء صاروخي
+const PLANS_MAP = new Map(PLANS.map(p => [p.id, p]));
+
+/**
+ * دالة استرجاع مستوى الصلاحية (Tier)
+ * أسرع طريقة للتحقق من الصلاحيات داخل الكود
+ */
 export const getPlanTier = (planId) => {
-  const cleanId = planId?.toLowerCase()?.trim() || 'free';
-  if (cleanId === 'viral_engine' || cleanId === 'viral engine') return 3;
-  if (cleanId === 'pro') return 2;
-  return 1;
+  const plan = PLANS_MAP.get(planId?.toLowerCase()?.trim());
+  return plan ? plan.tier : 1;
 };
 
+/**
+ * دالة استرجاع كامل إعدادات الخطة
+ * تضمن دائماً إرجاع كائن سليم حتى في حال خطأ البيانات
+ */
 export const getPlanConfig = (planId) => {
-  const cleanId = planId?.toLowerCase()?.trim() || 'free';
-  return PLANS.find(p => p.id === cleanId) || PLANS[0];
+  return PLANS_MAP.get(planId?.toLowerCase()?.trim()) || PLANS[0];
+};
+
+/**
+ * ميزة احترافية جديدة: التحقق من الصلاحية (هل المستخدم يملك الميزة؟)
+ * تمنع تكرار الـ if-else في المشروع
+ */
+export const hasFeature = (userPlanId, requiredTier) => {
+  return getPlanTier(userPlanId) >= requiredTier;
 };
