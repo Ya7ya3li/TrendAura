@@ -23,7 +23,7 @@ export default function Pricing() {
       theme === 'dark' ? 'text-slate-100' : 'text-slate-800'
     }`}>
       
-      {/* زر العودة الملوكي */}
+      {/* زر العودة  */}
       <div className="flex justify-start mb-6">
         <button
           type="button"
