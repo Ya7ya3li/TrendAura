@@ -17,7 +17,9 @@ export const authGuard = (req, res, next) => {
 
     jwt.verify(token, env.jwtSecret, (err, decoded) => {
       if (err) {
-        // إذا كان التوكن موجوداً ولكن غير صالح، نرفض فقط في هذه الحالة
+        // 🔴 أضف هذا السطر ليفضح لنا السيرفر سبب الرفض الحقيقي:
+        console.error('❌ [JWT Verification Error]:', err.message, ' | Token:', token.substring(0, 15) + '...');
+        
         return res.status(CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json({
           success: false,
           error: 'انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول.'
