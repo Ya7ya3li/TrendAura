@@ -1,10 +1,16 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
-/**
- * TrendAura Micro Spinning Loop
- * Centralizes processing indicators with soft pulses matching image_43.png design language.
- */
 export default function Loader({ size = 'md', label = 'جاري هندسة الأفكار...' }) {
+  const [show, setShow] = useState(true);
+
+  // 🛡️ هذا الموقت يضمن اختفاء الشاشة البيضاء بعد 5 ثوانٍ مهما حدث
+  useEffect(() => {
+    const timer = setTimeout(() => setShow(false), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!show) return null;
+
   const sizeClasses = {
     sm: 'w-6 h-6 border-2',
     md: 'w-10 h-10 border-3',
