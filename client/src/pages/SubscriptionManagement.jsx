@@ -20,11 +20,8 @@ export default function SubscriptionManagement() {
   const [selectedPlan, setSelectedPlan] = useState(null)
   const [paymentLoading, setPaymentLoading] = useState(false)
 
-  const userPlan = profile?.plan || 'free'
-  const isUpgraded = userPlan.toLowerCase().trim() !== 'free'
+  const userPlan = profile?.plan?.toLowerCase()?.trim() || 'free'
   const activeTokensCount = profile?.tokens ?? 0
-  const userReferralCode = profile?.referral_code || `TA-${profile?.id?.substring(0, 5).toUpperCase()}`
-  const referralLink = `${window.location.origin}/register?ref=${userReferralCode}`
 
   useEffect(() => {
     if (profile?.last_login_date) {
@@ -52,23 +49,18 @@ export default function SubscriptionManagement() {
     if (profile?.id) loadBillingStatements()
   }, [profile])
 
-  const copyReferralLink = () => {
-    navigator.clipboard.writeText(referralLink)
-    showToast('تم نسخ رابط الإحالة!', 'success')
-  }
-
   const handleDailyClick = async () => {
     if (dailyClaimed) return
     await claimDailyReward()
     setDailyClaimed(true)
   }
 
-  const openCheckout = (planConfig) => {
-    if (planConfig.id === userPlan) {
-      showToast('أنت مشترك بالفعل في هذه الباقة', 'warning')
+  const openCheckout = (plan) => {
+    if (plan.id === userPlan) {
+      showToast('أنت مشترك بالفعل في هذه الباقة يا قائد 👑', 'warning')
       return
     }
-    setSelectedPlan(planConfig)
+    setSelectedPlan(plan)
     setShowMoyasarModal(true)
   }
 
@@ -77,109 +69,76 @@ export default function SubscriptionManagement() {
     setPaymentLoading(true)
     
     try {
-      const mockPaymentId = 'pay_' + Math.random().toString(36).substring(2, 11).toUpperCase()
+      const mockPaymentId = `pay_${Math.random().toString(36).substring(2, 11).toUpperCase()}`
       const updatedTokens = activeTokensCount + selectedPlan.tokensReward
       
+      // 1. تحديث البروفايل في السيرفر
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
           plan: selectedPlan.id,
-          subscription_status: 'active',
           tokens: updatedTokens
         })
         .eq('id', profile.id)
 
       if (profileError) throw profileError
 
-      const { error: invoiceError } = await supabase
-        .from('invoices')
-        .insert([{
-          user_id: profile.id,
-          payment_id: mockPaymentId,
-          plan_type: selectedPlan.name,
-          amount: parseFloat(selectedPlan.price),
-          created_at: new Date().toISOString()
-        }])
-
-      if (invoiceError) throw invoiceError
-
-      setProfile(prev => ({
-        ...prev,
-        plan: selectedPlan.id,
-        subscription_status: 'active',
-        tokens: updatedTokens
-      }))
-
-      setInvoices(prev => [{
-        id: mockPaymentId,
+      // 2. تسجيل الفاتورة
+      const newInvoice = {
+        user_id: profile.id,
         payment_id: mockPaymentId,
         plan_type: selectedPlan.name,
         amount: parseFloat(selectedPlan.price),
         created_at: new Date().toISOString()
-      }, ...prev])
+      }
 
-      showToast(`مبروك ترقية حسابك إلى ${selectedPlan.name}`, 'success')
+      const { error: invoiceError } = await supabase
+        .from('invoices')
+        .insert([newInvoice])
+
+      if (invoiceError) throw invoiceError
+
+      // 3. تحديث الـ State فورياً
+      setProfile(prev => ({ ...prev, plan: selectedPlan.id, tokens: updatedTokens }))
+      setInvoices(prev => [newInvoice, ...prev])
+
+      showToast(`تم الترقية إلى ${selectedPlan.name} بنجاح! 💳🔥`, 'success')
       setShowMoyasarModal(false)
     } catch (err) {
-      console.error('Error:', err.message)
-      showToast('فشل السداد', 'error')
+      console.error('❌ [Payment Error]:', err)
+      showToast('حدث خطأ أثناء معالجة السداد', 'error')
     } finally {
       setPaymentLoading(false)
     }
   }
 
   return (
-    <div className={`w-full max-w-5xl mx-auto select-none dir-rtl text-right font-sans pb-12 transition-colors duration-300 ${
-      theme === 'dark' ? 'text-slate-100' : 'text-slate-800'
-    }`}>
-      <SectionTitle title="إدارة الحساب" subtitle="تتبع عمليات السداد" badge="الفوترة" />
-
-      {/* الرصيد */}
-      <div className={`border rounded-3xl p-6 mb-8 ${theme === 'dark' ? 'bg-[#160f30]/20' : 'bg-white'}`}>
-        <h2 className="text-3xl font-black">{activeTokensCount.toLocaleString()} <span className="text-xs">توكن متاح</span></h2>
-      </div>
-
-      {/* الفواتير */}
-      <div className={`border rounded-3xl p-6 ${theme === 'dark' ? 'bg-[#160f30]/40' : 'bg-white'}`}>
-        <h3 className="text-xs font-black mb-4">سجل الفواتير</h3>
-        {loading ? (
-          <div className="text-xs text-slate-400">جاري تحميل الفواتير...</div>
-        ) : (
-          <div className="w-full overflow-x-auto">
-            <table className="w-full text-xs font-bold text-right">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="pb-3">رقم الفاتورة</th>
-                  <th className="pb-3">التاريخ</th>
-                  <th className="pb-3">الباقة</th>
-                  <th className="pb-3">المبلغ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {invoices.map((inv) => (
-                  <tr key={inv.id}>
-                    <td className="py-3 font-mono">{inv.payment_id}</td>
-                    <td className="py-3">{new Date(inv.created_at).toLocaleDateString('ar-SA')}</td>
-                    <td className="py-3">{inv.plan_type}</td>
-                    <td className="py-3 text-blue-600">{inv.amount} SAR</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+    <div className={`w-full max-w-5xl mx-auto p-6 font-sans ${theme === 'dark' ? 'text-slate-100' : 'text-slate-800'}`}>
+      <SectionTitle title="إدارة الاشتراك" subtitle="تحكم في باقتك واستعرض فواتيرك" badge="الفوترة" />
+      
+      {/* عرض الباقات */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
+        {PLANS.map(plan => (
+          <div key={plan.id} className="border p-6 rounded-3xl bg-white shadow-sm">
+            <h4 className="text-sm font-black mb-2">{plan.name}</h4>
+            <p className="text-2xl font-black mb-4">{plan.price} <span className="text-xs font-normal">ريال</span></p>
+            <Button onClick={() => openCheckout(plan)} disabled={userPlan === plan.id} className="w-full">
+              {userPlan === plan.id ? 'الباقة الحالية' : plan.buttonText}
+            </Button>
           </div>
-        )}
+        ))}
       </div>
 
-      {/* Modal */}
+      {/* مودال ميسر */}
       {showMoyasarModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-            <div className="bg-white p-6 rounded-[32px] max-w-sm w-full">
-                <h3 className="text-sm font-black mb-4">تأكيد عملية السداد</h3>
-                <button onClick={executeMockPayment} disabled={paymentLoading} className="w-full py-3 bg-emerald-600 text-white rounded-xl text-xs font-black">
-                  {paymentLoading ? 'جاري المعالجة...' : 'تأكيد السداد'}
-                </button>
-                <button onClick={() => setShowMoyasarModal(false)} className="w-full py-2 mt-2 text-[10px] font-black text-slate-400">إلغاء</button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white p-8 rounded-[32px] max-w-sm w-full text-center">
+            <h3 className="font-black text-lg mb-4">تأكيد السداد التجريبي</h3>
+            <Button onClick={executeMockPayment} loading={paymentLoading} className="w-full">
+              تأكيد الدفع ⚡
+            </Button>
+            <Button onClick={() => setShowMoyasarModal(false)} variant="secondary" className="w-full mt-2">إلغاء</Button>
+          </div>
         </div>
       )}
     </div>
