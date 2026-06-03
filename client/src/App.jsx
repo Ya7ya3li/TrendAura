@@ -77,9 +77,10 @@ export default function App() {
  * تم فصلها لتقرأ الـ AuthContext حياً وتكسر الـ Race Condition لـجوجل كلياً.
  */
 function AppContent({ toast }) {
+  // نقرأ فقط حالة Auth، ولا ننتظر الـ Providers الأخرى للبدء
   const { user, loading } = useContext(AuthContext)
 
-  // 🛑 كسر الـ Race Condition: طالما سوبابيس يتحقق من توكن OAuth، جمّد الشاشة على اللودر وافشل خطط الطرد!
+  // 🛡️ حماية ضد التعليق: نكتفي بانتظار التحقق من هوية المستخدم فقط
   if (loading) {
     return (
       <div className="min-h-screen w-screen flex items-center justify-center bg-slate-50">
@@ -90,22 +91,16 @@ function AppContent({ toast }) {
 
   return (
     <div className="min-h-screen bg-slate-50/50 font-sans antialiased relative">
-      
-      {/* 🛡️ مصفوفة توزيع وفحص المسارات السيادية للمنصة */}
       <Routes>
-        
-        {/* 1. مسارات الشاشات التسويقية العامة والتعريفية للبراند */}
         <Route element={<LandingLayout />}>
           <Route path="/" element={<Landing />} />
         </Route>
 
-        {/* 2. مسارات حماية جلسات المصادقة (منع الوصول لها إذا كان المستخدم مسجل دخول بالفعل) */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
           <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
         </Route>
 
-        {/* 3. مسارات الحصن الداخلي للوحة التحكم (مؤمنة بالكامل على مستوى الراوتر الفرعي) */}
         <Route element={user ? <DashboardLayout /> : <Navigate to="/login" replace />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/history" element={<History />} />
@@ -114,33 +109,55 @@ function AppContent({ toast }) {
           <Route path="/billing" element={<SubscriptionManagement />} />
         </Route>
 
-        {/* 4. مسارات الدعم الفني، الصيانة، ونجاح الفواتير البنكية */}
         <Route path="/success" element={<Success />} />
         <Route path="/maintenance" element={<Maintenance />} />
         <Route path="/404" element={<NotFound />} />
-        
-        {/* إعادة توجيه أوتوماتيكية صارمة لأي مسار مجهول خارج النطاق */}
         <Route path="*" element={<Navigate to="/404" replace />} />
-
       </Routes>
 
-      {/* 🎨 كبسولة التنبيهات الميكروية العائمة (Premium Animated Toast Node) */}
-      {toast.show && (
-        <div className="fixed bottom-20 md:bottom-6 left-6 z-50 animate-scale-up select-none max-w-sm">
-          <div className={`px-5 py-3.5 rounded-2xl text-xs font-black shadow-xl border flex items-center gap-2.5 dir-rtl text-right ${
-            toast.type === 'success' ? 'bg-white text-emerald-600 border-emerald-100 shadow-emerald-100/30' :
-            toast.type === 'error' ? 'bg-rose-50 text-rose-600 border-rose-100 shadow-rose-100/30' :
-            toast.type === 'warning' ? 'bg-amber-50 text-amber-700 border-amber-100 shadow-amber-100/20' :
-            'bg-slate-900 text-white border-slate-800'
-          }`}>
-            <span className="text-sm">
-              {toast.type === 'success' ? '✨' : toast.type === 'error' ? '❌' : toast.type === 'warning' ? '⚠️' : '✦'}
-            </span>
-            <p className="leading-snug tracking-tight">{toast.message}</p>
-          </div>
-        </div>
-      )}
+      {/* التوست ... (باقي الكود كما هو) */}
+    </div>
+  )
+}function AppContent({ toast }) {
+  // نقرأ فقط حالة Auth، ولا ننتظر الـ Providers الأخرى للبدء
+  const { user, loading } = useContext(AuthContext)
 
+  // 🛡️ حماية ضد التعليق: نكتفي بانتظار التحقق من هوية المستخدم فقط
+  if (loading) {
+    return (
+      <div className="min-h-screen w-screen flex items-center justify-center bg-slate-50">
+        <Loader />
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50/50 font-sans antialiased relative">
+      <Routes>
+        <Route element={<LandingLayout />}>
+          <Route path="/" element={<Landing />} />
+        </Route>
+
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
+          <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
+        </Route>
+
+        <Route element={user ? <DashboardLayout /> : <Navigate to="/login" replace />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/billing" element={<SubscriptionManagement />} />
+        </Route>
+
+        <Route path="/success" element={<Success />} />
+        <Route path="/maintenance" element={<Maintenance />} />
+        <Route path="/404" element={<NotFound />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
+      </Routes>
+
+      {/* التوست ... (باقي الكود كما هو) */}
     </div>
   )
 }

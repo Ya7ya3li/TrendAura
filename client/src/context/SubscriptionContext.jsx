@@ -51,7 +51,7 @@ export const SubscriptionProvider = ({ children }) => {
       showToast('تم شحن حسابك بمكافأة تسجيل الدخول اليومي (+2 توكنز)! ⚡', 'success')
     } catch (err) {
       console.error('❌ [Daily Claim Error]:', err.message)
-      showToast('عذراً، فشل تحديث رصيد المكافأة بالسيرفر', 'error')
+      showToast('عذراً، فشل تحديث رصيد المكافأة ', 'error')
     }
   }
 
