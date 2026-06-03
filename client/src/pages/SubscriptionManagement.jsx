@@ -11,111 +11,73 @@ import { showToast } from '../App'
 export default function SubscriptionManagement() {
   const { profile, setProfile } = useContext(AuthContext)
   const { theme } = useContext(ThemeContext)
-  const { claimDailyReward } = useContext(SubscriptionContext)
   
   const [invoices, setInvoices] = useState([])
   const [loading, setLoading] = useState(true)
-  const [dailyClaimed, setDailyClaimed] = useState(false)
-  const [showMoyasarModal, setShowMoyasarModal] = useState(false)
-  const [selectedPlan, setSelectedPlan] = useState(null)
   const [paymentLoading, setPaymentLoading] = useState(false)
 
-  const userPlan = profile?.plan?.toLowerCase()?.trim() || 'free'
-  const activeTokensCount = profile?.tokens ?? 0
-  const referralLink = `${window.location.origin}/register?ref=${profile?.referral_code || profile?.id?.substring(0, 5).toUpperCase()}`
+  const activePlan = PLANS.find(p => p.id === (profile?.plan || 'free')) || PLANS[0]
+  const isFree = activePlan.id === 'free'
 
   useEffect(() => {
-    if (profile?.last_login_date) {
-      setDailyClaimed(profile.last_login_date === new Date().toISOString().split('T')[0])
+    const loadBilling = async () => {
+      const { data } = await supabase.from('invoices').select('*').eq('user_id', profile?.id).order('created_at', { ascending: false })
+      setInvoices(data || [])
+      setLoading(false)
     }
-    const loadBillingStatements = async () => {
-      try {
-        const { data } = await supabase.from('invoices').select('*').eq('user_id', profile?.id).order('created_at', { ascending: false })
-        setInvoices(data || [])
-      } catch (err) { console.error(err) } finally { setLoading(false) }
-    }
-    if (profile?.id) loadBillingStatements()
+    if (profile?.id) loadBilling()
   }, [profile])
 
-  const executeMockPayment = async () => {
-    if (!profile?.id || !selectedPlan) return
+  const handleAction = async (action) => {
     setPaymentLoading(true)
     try {
-      const mockPaymentId = `pay_${Math.random().toString(36).substring(2, 11).toUpperCase()}`
-      const updatedTokens = activeTokensCount + selectedPlan.tokensReward
-      await supabase.from('profiles').update({ plan: selectedPlan.id, tokens: updatedTokens }).eq('id', profile.id)
-      const newInvoice = { user_id: profile.id, payment_id: mockPaymentId, plan_type: selectedPlan.name, amount: parseFloat(selectedPlan.price), created_at: new Date().toISOString() }
-      await supabase.from('invoices').insert([newInvoice])
-      setProfile(prev => ({ ...prev, plan: selectedPlan.id, tokens: updatedTokens }))
-      setInvoices(prev => [newInvoice, ...prev])
-      showToast(`تم الترقية إلى ${selectedPlan.name} بنجاح!`, 'success')
-      setShowMoyasarModal(false)
-    } catch (err) { showToast('فشل السداد', 'error') } finally { setPaymentLoading(false) }
+      if (action === 'cancel') {
+        await supabase.from('profiles').update({ plan: 'free' }).eq('id', profile.id)
+        setProfile(prev => ({ ...prev, plan: 'free' }))
+        showToast('تم إلغاء الاشتراك بنجاح', 'success')
+      } else if (action === 'add_tokens') {
+        const newTokens = (profile.tokens || 0) + 1000
+        await supabase.from('profiles').update({ tokens: newTokens }).eq('id', profile.id)
+        setProfile(prev => ({ ...prev, tokens: newTokens }))
+        showToast('تم إضافة 1000 توكنز لرصيدك', 'success')
+      }
+    } catch (err) { showToast('حدث خطأ', 'error') } finally { setPaymentLoading(false) }
   }
 
   return (
-    <div className={`w-full max-w-5xl mx-auto p-4 md:p-6 font-sans ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>
-      <SectionTitle title="إدارة الحساب المالي" subtitle="الفوترة والمكافآت" badge="لوحة التحكم" />
-      
-      {/* الرصيد */}
-      <div className={`border rounded-3xl p-8 mb-8 ${theme === 'dark' ? 'bg-[#160f30]/40 border-white/10' : 'bg-white border-slate-100'}`}>
-        <p className="text-[10px] font-bold text-slate-400">رصيد التوكنز الحالي</p>
-        <h2 className="text-4xl font-black mt-2">{activeTokensCount.toLocaleString()}</h2>
-      </div>
+    <div className={`w-full max-w-4xl mx-auto p-6 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+      <SectionTitle title="إدارة الاشتراك" subtitle="تحكم في باقتك الحالية وإعدادات الفوترة" badge="الإعدادات" />
 
-      {/* الباقات */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {PLANS.map(plan => (
-          <div key={plan.id} className={`p-6 rounded-3xl border ${userPlan === plan.id ? 'border-blue-500 bg-blue-50/5' : 'bg-white border-slate-100'}`}>
-            <h4 className="text-sm font-black mb-2 text-slate-800">{plan.name}</h4>
-            <p className="text-2xl font-black mb-6 text-slate-900">{plan.price} <span className="text-xs font-normal">ر.س</span></p>
-            <Button onClick={() => { setSelectedPlan(plan); setShowMoyasarModal(true); }} disabled={userPlan === plan.id} className="w-full">
-              {userPlan === plan.id ? 'الباقة الحالية' : plan.buttonText}
-            </Button>
-          </div>
-        ))}
-      </div>
-
-      {/* الإحالة والمكافآت */}
+      {/* لوحة الحالة */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="p-6 rounded-3xl border border-slate-100 bg-white">
-          <h4 className="text-xs font-black text-slate-800 mb-4">المكافأة اليومية</h4>
-          <Button onClick={async () => { await claimDailyReward(); setDailyClaimed(true); }} disabled={dailyClaimed} className="w-full">
-            {dailyClaimed ? 'تم الحصد ✅' : 'امتصاص 2 توكنز ⚡'}
-          </Button>
-        </div>
-        <div className="p-6 rounded-3xl border border-slate-100 bg-white">
-          <h4 className="text-xs font-black text-slate-800 mb-4">رابط الإحالة</h4>
+        <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm">
+          <p className="text-[10px] font-bold text-slate-400">الباقة الحالية</p>
+          <h2 className="text-2xl font-black mt-1 mb-4">{activePlan.name}</h2>
           <div className="flex gap-2">
-            <input readOnly value={referralLink} className="text-[10px] bg-slate-50 p-2 rounded-lg flex-1 border border-slate-100" />
-            <Button onClick={() => navigator.clipboard.writeText(referralLink)} variant="secondary">نسخ</Button>
+            {!isFree && <Button onClick={() => handleAction('cancel')} variant="secondary" className="w-full text-[10px]">إلغاء الاشتراك</Button>}
+            <Button className="w-full text-[10px]">ترقية الباقة</Button>
           </div>
+        </div>
+        
+        <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400">رصيد التوكنز</p>
+            <h2 className="text-2xl font-black mt-1">{(profile?.tokens || 0).toLocaleString()}</h2>
+          </div>
+          <Button onClick={() => handleAction('add_tokens')} loading={paymentLoading} className="w-full text-[10px] mt-4">شراء توكنز إضافية ⚡</Button>
         </div>
       </div>
 
       {/* سجل الفواتير */}
-      <div className="border border-slate-100 rounded-3xl p-6 bg-white">
-        <h3 className="text-xs font-black text-slate-800 mb-4">سجل العمليات</h3>
-        {loading ? <p className="text-[10px] text-slate-400">جاري التحميل...</p> : 
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-[10px] text-slate-800">
-              <thead><tr className="border-b"><th className="pb-2">رقم العملية</th><th className="pb-2">الباقة</th><th className="pb-2">القيمة</th></tr></thead>
-              <tbody>{invoices.map(inv => <tr key={inv.id} className="border-b"><td className="py-3 font-mono">{inv.payment_id}</td><td>{inv.plan_type}</td><td>{inv.amount} SAR</td></tr>)}</tbody>
-            </table>
-          </div>
-        }
+      <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm">
+        <h3 className="text-xs font-black mb-4">سجل الفواتير</h3>
+        {loading ? <p>جاري التحميل...</p> : (
+          <table className="w-full text-right text-[10px]">
+            <thead className="text-slate-400"><tr className="border-b"><th className="pb-2">رقم العملية</th><th className="pb-2">التاريخ</th><th className="pb-2">المبلغ</th></tr></thead>
+            <tbody>{invoices.map(inv => <tr key={inv.id} className="border-b"><td className="py-3">{inv.payment_id}</td><td className="py-3">{new Date(inv.created_at).toLocaleDateString()}</td><td className="py-3">{inv.amount} SAR</td></tr>)}</tbody>
+          </table>
+        )}
       </div>
-
-      {/* مودال السداد */}
-      {showMoyasarModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white p-8 rounded-[32px] max-w-sm w-full text-center">
-            <h3 className="font-black text-lg mb-4 text-slate-900">تأكيد عملية السداد</h3>
-            <Button onClick={executeMockPayment} loading={paymentLoading} className="w-full">تأكيد الآن ⚡</Button>
-            <Button onClick={() => setShowMoyasarModal(false)} variant="secondary" className="w-full mt-2">إلغاء</Button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
