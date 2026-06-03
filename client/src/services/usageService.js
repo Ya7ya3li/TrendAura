@@ -44,7 +44,7 @@ export const usageService = {
       
       const tokensUsed = data?.tokens_used || 0;
       
-      // تعريف سقف الاستهلاك (يمكنك لاحقاً سحب هذه القيم من جدول plans في الداتابيز مباشرة)
+      // تعريف سقف الاستهلاك ( يمكنك لاحقاً سحب هذه القيم من جدول plans في الداتابيز مباشرة)
       const limits = { free: 5, pro: 1000, enterprise: 999999 };
       const maxLimit = limits[currentPlan.toLowerCase().trim()] || 5;
       
