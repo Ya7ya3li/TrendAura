@@ -7,7 +7,6 @@ import { AppProvider } from './context/AppContext'
 import DashboardLayout from './layouts/DashboardLayout'
 import AuthLayout from './layouts/AuthLayout'
 import LandingLayout from './layouts/LandingLayout'
-import Loader from './components/common/Loader'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import History from './pages/History'
@@ -49,10 +48,11 @@ export default function App() {
 function AppContent({ toast }) {
   const { user, loading } = useContext(AuthContext)
 
+  // تم استبدال الـ  المعلق بنص بسيط جداً لضمان عدم تعليق الموقع
   if (loading) {
     return (
-      <div className="min-h-screen w-screen flex items-center justify-center bg-slate-50">
-        <Loader />
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif' }}>
+        جاري تهيئة البيانات...
       </div>
     )
   }

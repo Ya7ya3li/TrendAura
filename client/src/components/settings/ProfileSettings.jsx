@@ -16,7 +16,6 @@ export default function ProfileSettings() {
     }
   }, [profile])
 
-  // 📸 الكود الكامل لحفظ الصورة في القاعدة (Storage + DB)
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -29,35 +28,33 @@ export default function ProfileSettings() {
     setLoading(true)
     try {
       const fileExt = file.name.split('.').pop()
-      const fileName = `${profile.id}_${Math.random()}.${fileExt}`
+      const fileName = `${profile.id}.${fileExt}`
       
-      // 1. رفع الصورة
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, { upsert: true })
 
       if (uploadError) throw uploadError
 
-      // 2. الحصول على الرابط
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName)
 
-      // 3. تثبيت الرابط في قاعدة البيانات (جدول profiles)
+      const freshUrl = `${publicUrl}?t=${new Date().getTime()}`
+
       const { error: dbError } = await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ avatar_url: freshUrl })
         .eq('id', profile.id)
 
       if (dbError) throw dbError
 
-      // 4. تحديث الواجهة فوراً
-      setProfile(prev => ({ ...prev, avatar_url: publicUrl }))
-      showToast('تم حفظ الصورة وتثبيتها في القاعدة بنجاح 🖼️', 'success')
+      setProfile(prev => ({ ...prev, avatar_url: freshUrl }))
+      showToast('تم تحديث الصورة بنجاح 🖼️', 'success')
       
     } catch (error) {
       console.error('Error:', error)
-      showToast('فشل حفظ الصورة، تأكد من إعدادات التخزين في سوبابيس', 'error')
+      showToast('فشل حفظ الصورة', 'error')
     } finally {
       setLoading(false)
     }
@@ -80,10 +77,10 @@ export default function ProfileSettings() {
       if (error) throw error
       
       setProfile(prev => ({ ...prev, full_name: fullName.trim() }))
-      showToast('تم تحديث البيانات الشخصية بنجاح ! ✨', 'success')
+      showToast('تم تحديث البيانات بنجاح ! ✨', 'success')
     } catch (error) {
       console.error('❌ [ProfileSettings Save Error]:', error.message)
-      showToast('حدث خطأ أثناء الحفظ، يرجى المحاولة لاحقاً', 'error')
+      showToast('حدث خطأ أثناء الحفظ', 'error')
     } finally {
       setLoading(false)
     }
@@ -93,7 +90,7 @@ export default function ProfileSettings() {
     <form onSubmit={handleUpdateProfile} className="space-y-6 text-right dir-rtl select-none animate-fade-in font-sans">
       <div>
         <h3 className="text-xs font-black text-slate-900 tracking-tight mb-1">البيانات الشخصية</h3>
-        <p className="text-[10px] font-bold text-slate-400">قم بتحديث اسم العرض الخاص بك وصورة العرض.</p>
+        <p className="text-[10px] font-bold text-slate-400">قم بتحديث اسم العرض وصورة البروفايل.</p>
       </div>
 
       <div className="flex items-center gap-4 pb-2">
@@ -107,13 +104,12 @@ export default function ProfileSettings() {
             <span className="text-xl text-slate-400 group-hover:text-blue-500 transition-colors">📸</span>
           )}
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[9px] text-white font-black">
-            {loading ? 'جاري...' : 'تعديل'}
+            {loading ? '...' : 'تعديل'}
           </div>
         </div>
         <input type="file" ref={fileInputRef} onChange={handleAvatarChange} accept="image/*" className="hidden" />
         <div className="flex flex-col">
-          <span className="text-xs font-black text-slate-800">الصورة</span>
-          <span className="text-[9px] font-bold text-slate-400 mt-0.5">صورة جديدة</span>
+          <span className="text-xs font-black text-slate-800">الصورة الشخصية</span>
         </div>
       </div>
 
@@ -140,7 +136,7 @@ export default function ProfileSettings() {
 
       <div className="pt-2 border-t border-slate-50 flex justify-end">
         <Button type="submit" variant="primary" loading={loading} className="px-6 py-2.5 rounded-xl text-[11px]">
-          حفظ التغييرات الفورية 💾
+          حفظ التغييرات 💾
         </Button>
       </div>
     </form>

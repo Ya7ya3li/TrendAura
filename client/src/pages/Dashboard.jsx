@@ -8,20 +8,16 @@ import BestTimeCard from '../components/dashboard/BestTimeCard'
 import ViralIdeasCard from '../components/dashboard/ViralIdeasCard'
 import ViralEngineCard from '../components/dashboard/ViralEngineCard'
 import useAiGenerator from '../hooks/useAiGenerator'
-import Loader from '../components/common/Loader'
 
 export default function Dashboard() {
-  // استخدام authLoading لضمان جاهزية البيانات قبل العرض
   const { profile, loading: authLoading } = useContext(AuthContext)
-  
-  // استدعاء الهوك المحدث
   const { prompt, setPrompt, loading: aiLoading, result, generateScript } = useAiGenerator()
 
-  // منع الرندرة تماماً وإظهار الـ Loader فقط أثناء جلب البيانات
+  // تم استبدال الـ Loader المعلق بـ نص بسيط يمنع تجميد الصفحة
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader />
+      <div className="flex items-center justify-center min-h-[60vh] text-slate-400 font-bold text-xs">
+        جاري تحميل البيانات...
       </div>
     )
   }
@@ -29,7 +25,7 @@ export default function Dashboard() {
   return (
     <div className="w-full max-w-[1400px] mx-auto select-none animate-fade-in dir-rtl text-right font-sans">
       
-      {/* الترويسة - ترحيب شرطي */}
+      {/* الترويسة */}
       <div className="w-full flex items-center justify-between mb-8 pb-4 border-b border-slate-100 dark:border-[#1f1438]/50">
         <div className="flex flex-col">
           <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
@@ -51,7 +47,7 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* مصفوفة الشبكة - يتم عرض البيانات فقط إذا توفرت */}
+      {/* مصفوفة الشبكة */}
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-1 h-full">
           <ScriptCard 
