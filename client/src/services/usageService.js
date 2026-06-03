@@ -26,6 +26,9 @@ export const usageService = {
   /**
    * 🛡️ فحص أهلية وصلاحية العميل للتوليد بناءً على سقف الباقة المحددة
    */
+ /**
+   * 🛡️ فحص أهلية وصلاحية العميل للتوليد (نسخة المحترفين)
+   */
   async checkEligibility(userId, currentPlan = 'free') {
     try {
       const { data, error } = await supabase
@@ -34,16 +37,21 @@ export const usageService = {
         .eq('id', userId)
         .single();
       
-      if (error) throw error;
+      // إذا حدث خطأ في الاتصال، لا نمنع المستخدم فوراً، بل نفحص الـ data
+      if (error || !data) {
+        console.warn('⚠️ [usageService]: تعذر جلب الاستهلاك، استخدام القيمة الافتراضية 0');
+      }
       
-      // التوفيق والربط المباشر مع أسقف الثوابت القياسية للباقات المعتمدة
-      const planKey = currentPlan.toLowerCase().trim();
-      const maxLimit = planKey === 'free' ? 5 : planKey === 'pro' ? 100 : 999999;
+      const tokensUsed = data?.tokens_used || 0;
       
-      return (data?.tokens_used || 0) < maxLimit;
+      // تعريف سقف الاستهلاك (يمكنك لاحقاً سحب هذه القيم من جدول plans في الداتابيز مباشرة)
+      const limits = { free: 5, pro: 1000, enterprise: 999999 };
+      const maxLimit = limits[currentPlan.toLowerCase().trim()] || 5;
+      
+      return tokensUsed < maxLimit;
     } catch (error) {
       console.error('❌ [usageService checkEligibility Exception]:', error.message);
-      return false;
+      return false; // إجراء أمني: في حال الفشل التام نمنع التوليد للحماية
     }
   }
 };
