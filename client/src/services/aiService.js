@@ -27,7 +27,7 @@ export const aiService = {
    */
   async analyzeScriptMetrics(scriptText) {
     try {
-      const response = await axiosInstance.post('/api/ai/analyze-metrics', {
+      const response = await axiosInstance.post('/api/analyze-metrics', {
         script: scriptText
       });
       return response.data;
