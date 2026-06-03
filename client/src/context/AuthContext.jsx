@@ -9,10 +9,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   const fetchProfile = async (userId, email, metadata) => {
-    // 1. منع استدعاء القاعدة إذا كان لدينا بروفايل بالفعل في الـ State (لحل مشكلة الـ Loop)
-    if (profile && profile.id === userId) return profile;
-
-    console.log("🔍 [Auth] جارٍ جلب بروفايل للمستخدم:", userId);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -20,11 +16,8 @@ export const AuthProvider = ({ children }) => {
         .eq('id', userId)
         .maybeSingle()
 
-      console.log("📊 [Auth] نتيجة البحث من سوبابيس:", data);
-
       if (data) return data
 
-           // إنشاء بروفايل جديد إذا لم يوجد
       const newProfile = {
         id: userId,
         full_name: metadata?.full_name || metadata?.name || email?.split('@')[0] || 'مستخدم جديد',
@@ -34,45 +27,48 @@ export const AuthProvider = ({ children }) => {
         tokens: 5000
       }
 
-      const { error: insertError } = await supabase.from('profiles').insert([newProfile])
-      if (insertError) {
-        console.error('❌ [Auth] خطأ في إنشاء البروفايل:', insertError.message);
-        return null;
-      }
-      
+      await supabase.from('profiles').insert([newProfile])
       return newProfile
     } catch (err) {
-      console.error('❌ [Auth] خطأ عام:', err.message)
+      console.error('❌ Profile Error:', err.message)
       return null
     }
   }
 
   useEffect(() => {
-    // جلب الجلسة الأولية
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    let active = true;
+
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       if (session?.user) {
-        setUser(session.user)
-        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-        setProfile(p)
+        setUser(session.user);
+        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata);
+        if (active) setProfile(p);
       }
-      setLoading(false)
-    })
+      
+      if (active) setLoading(false);
+    };
 
-    // الاستماع لأي تغير
+    init();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        setUser(session.user)
-        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-        setProfile(p)
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null)
-        setProfile(null)
+      if (session?.user) {
+        setUser(session.user);
+        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata);
+        if (active) setProfile(p);
+      } else {
+        setUser(null);
+        setProfile(null);
       }
-      setLoading(false)
-    })
+      if (active) setLoading(false);
+    });
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ 
