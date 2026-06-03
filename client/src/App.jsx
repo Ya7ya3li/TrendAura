@@ -18,6 +18,7 @@ import SubscriptionManagement from './pages/SubscriptionManagement'
 import Success from './pages/Success'
 import NotFound from './pages/NotFound'
 import Maintenance from './pages/Maintenance'
+import { ROUTES } from './constants/routes'
 
 export let showToast = () => {}
 
@@ -27,6 +28,7 @@ export default function App() {
   useEffect(() => {
     showToast = (message, type = 'success') => {
       setToast({ show: true, message, type })
+      setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000)
     }
   }, [])
 
@@ -37,6 +39,15 @@ export default function App() {
           <ThemeProvider>
             <AppProvider>
               <AppContent toast={toast} />
+              
+              {/* المكون المفقود (Toast Component) */}
+              {toast.show && (
+                <div className={`fixed bottom-6 left-6 z-[9999] px-6 py-3 rounded-2xl shadow-2xl text-[11px] font-bold text-white animate-fade-in ${
+                  toast.type === 'success' ? 'bg-green-600' : 'bg-rose-600'
+                }`}>
+                  {toast.message}
+                </div>
+              )}
             </AppProvider>
           </ThemeProvider>
         </SubscriptionProvider>
@@ -48,7 +59,6 @@ export default function App() {
 function AppContent({ toast }) {
   const { user, loading } = useContext(AuthContext)
 
-  // تم استبدال الـ  المعلق بنص بسيط جداً لضمان عدم تعليق الموقع
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif' }}>
@@ -61,23 +71,23 @@ function AppContent({ toast }) {
     <div className="min-h-screen bg-slate-50/50 font-sans antialiased relative">
       <Routes>
         <Route element={<LandingLayout />}>
-          <Route path="/" element={<Landing />} />
+          <Route path={ROUTES.LANDING} element={<Landing />} />
         </Route>
         <Route element={<AuthLayout />}>
-          <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
-          <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
+          <Route path={ROUTES.LOGIN} element={!user ? <Login /> : <Navigate to={ROUTES.DASHBOARD} replace />} />
+          <Route path={ROUTES.REGISTER} element={!user ? <Register /> : <Navigate to={ROUTES.DASHBOARD} replace />} />
         </Route>
-        <Route element={user ? <DashboardLayout /> : <Navigate to="/login" replace />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/billing" element={<SubscriptionManagement />} />
+        <Route element={user ? <DashboardLayout /> : <Navigate to={ROUTES.LOGIN} replace />}>
+          <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
+          <Route path={ROUTES.HISTORY} element={<History />} />
+          <Route path={ROUTES.PRICING} element={<Pricing />} />
+          <Route path={ROUTES.SETTINGS} element={<Settings />} />
+          <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionManagement />} />
         </Route>
-        <Route path="/success" element={<Success />} />
-        <Route path="/maintenance" element={<Maintenance />} />
-        <Route path="/404" element={<NotFound />} />
-        <Route path="*" element={<Navigate to="/404" replace />} />
+        <Route path={ROUTES.SUCCESS} element={<Success />} />
+        <Route path={ROUTES.MAINTENANCE} element={<Maintenance />} />
+        <Route path={ROUTES.NOT_FOUND} element={<NotFound />} />
+        <Route path="*" element={<Navigate to={ROUTES.NOT_FOUND} replace />} />
       </Routes>
     </div>
   )
