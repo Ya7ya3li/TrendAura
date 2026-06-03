@@ -39,15 +39,20 @@ export const AuthProvider = ({ children }) => {
     let active = true;
 
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        setUser(session.user);
-        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata);
-        if (active) setProfile(p);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          setUser(session.user);
+          // تنفيذ البروفايل في الخلفية دون حظر الإقلاع
+          fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+            .then(p => { if (active) setProfile(p) });
+        }
+      } catch (e) {
+        console.error("Auth Init Error:", e);
+      } finally {
+        if (active) setLoading(false);
       }
-      
-      if (active) setLoading(false);
     };
 
     init();
@@ -55,13 +60,12 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUser(session.user);
-        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata);
-        if (active) setProfile(p);
+        fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+          .then(p => { if (active) setProfile(p) });
       } else {
         setUser(null);
         setProfile(null);
       }
-      if (active) setLoading(false);
     });
 
     return () => {
