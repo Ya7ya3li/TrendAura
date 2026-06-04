@@ -1,13 +1,16 @@
+// المسار: server/services/openai.js
 import OpenAI from 'openai';
 import { env } from '../config/env.js';
 
 const openai = new OpenAI({
   apiKey: env.openaiApiKey,
+  // 💡 التعديل السحري: توجيه الطلبات إلى خوادم OpenRouter لكي يقبل مفتاحك (sk-or-v1...)
+  baseURL: "https://openrouter.ai/api/v1",
 });
 
 /**
  * TrendAura AI Psychological Script Engineering Service
- * Forces structured JSON format execution directly from OpenAI models.
+ * Forces structured JSON format execution directly from OpenAI models via OpenRouter.
  */
 export const openaiService = {
   generateViralContent: async (userPrompt, option = 'تحفيزي') => {
@@ -29,9 +32,9 @@ export const openaiService = {
         أسلوب المحتوى المطلوب الالتزام به: ${option}.
       `;
 
-      // 🛡️ التعديل: تأمين الموديل بقيمة افتراضية (gpt-3.5-turbo-1106) تدعم صيغة JSON
+      // 🛡️ التعديل: تعديل الموديل الافتراضي ليتوافق مع صيغة OpenRouter (بإضافة اسم الشركة قبل الموديل)
       const response = await openai.chat.completions.create({
-        model: env.openaiModel || 'gpt-3.5-turbo-1106',
+        model: env.openaiModel || 'openai/gpt-3.5-turbo',
         messages: [
           { role: 'system', content: systemContext },
           { role: 'user', content: `فكرة الفيديو: ${userPrompt}` }
@@ -44,7 +47,6 @@ export const openaiService = {
       return JSON.parse(rawJson);
 
     } catch (error) {
-      // 🚨 التعديل الجوهري: إزالة البيانات الوهمية ورمي الخطأ الحقيقي لنصطاده في الكونسول
       console.error('❌ [OpenAI Core Error]:', error.message);
       throw new Error('فشل الاتصال بمحرك الذكاء الاصطناعي: ' + error.message);
     }
