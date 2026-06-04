@@ -4,13 +4,13 @@ import { env } from '../config/env.js';
 
 const openai = new OpenAI({
   apiKey: env.openaiApiKey,
-  // 💡 التعديل السحري: توجيه الطلبات إلى خوادم OpenRouter لكي يقبل مفتاحك (sk-or-v1...)
-  baseURL: "https://openrouter.ai/api/v1",
+  // توجيه الطلبات إلى خوادم OpenRouter
+  baseURL: "[https://openrouter.ai/api/v1](https://openrouter.ai/api/v1)",
 });
 
 /**
  * TrendAura AI Psychological Script Engineering Service
- * Forces structured JSON format execution directly from OpenAI models via OpenRouter.
+ * Modified for maximum compatibility with diverse OpenRouter free models.
  */
 export const openaiService = {
   generateViralContent: async (userPrompt, option = 'تحفيزي') => {
@@ -19,7 +19,8 @@ export const openaiService = {
         أنت خبير سيكولوجية الجماهير وصناعة المحتوى الفيروسي الأكثر انتشاراً على تيك توك وسوشيال ميديا.
         مهمتك هي إعادة صياغة فكرة المستخدم وهندستها نصياً كسكريبت احترافي يمنع التمرير.
         
-        يجب أن تعيد الخرج بدقة مطلقة ككائن JSON فقط وبالمفاتيح التالية حصرياً وبدون أي نصوص مقدمة أو خاتمة خارج الـ JSON:
+        مهم جداً: يجب أن تعيد الخرج بدقة مطلقة ككائن JSON فقط وبالمفاتيح التالية حصرياً.
+        ممنوع منعاً باتاً إضافة أي نصوص أو شروحات قبل أو بعد كود الـ JSON. وممنوع استخدام علامات Markdown مثل \`\`\`json. أعد الكائن مباشرة هكذا:
         {
           "hook": "مقدمة خاطفة وصادمة وجذابة جداً لمنع التمرير في أول 3 ثوانٍ تتناسب مع خيار أسلوب المحتوى",
           "script": "عرض السيناريو والنص الجسدي والقصصي للفيديو بشكل مشوق ومختصر ومريح للقراءة",
@@ -32,18 +33,25 @@ export const openaiService = {
         أسلوب المحتوى المطلوب الالتزام به: ${option}.
       `;
 
-      // 🛡️ التعديل: تعديل الموديل الافتراضي ليتوافق مع صيغة OpenRouter (بإضافة اسم الشركة قبل الموديل)
       const response = await openai.chat.completions.create({
-        model: env.openaiModel || 'openai/gpt-3.5-turbo',
+        model: env.openaiModel || 'google/gemini-2.0-flash-exp:free',
         messages: [
           { role: 'system', content: systemContext },
           { role: 'user', content: `فكرة الفيديو: ${userPrompt}` }
         ],
-        response_format: { type: 'json_object' },
+        // 🗑️ تم إزالة response_format لمنع خطأ 400 مع موديلات جوجل و ميتا
         temperature: 0.75,
       });
 
-      const rawJson = response.choices[0].message.content;
+      let rawJson = response.choices[0].message.content.trim();
+      
+      // 🧹 دالة تنظيف سريعة: في حال قام الموديل بإضافة علامات الماركداون بالخطأ نقوم بإزالتها
+      if (rawJson.startsWith('```json')) {
+        rawJson = rawJson.replace(/^```json\n/, '').replace(/\n```$/, '');
+      } else if (rawJson.startsWith('```')) {
+        rawJson = rawJson.replace(/^```\n/, '').replace(/\n```$/, '');
+      }
+
       return JSON.parse(rawJson);
 
     } catch (error) {
