@@ -5,22 +5,23 @@ import { showToast } from '../App'
 
 export const SubscriptionContext = createContext(null)
 
-/**
- * TrendAura Subscription & Tokenomics Control Center (Enterprise Certified)
- */
 export const SubscriptionProvider = ({ children }) => {
   const { profile, setProfile } = useContext(AuthContext)
   const [plan, setPlan] = useState('free')
   const [status, setStatus] = useState('inactive')
 
   useEffect(() => {
-    if (profile) {
+    // 🛡️ معالجة الثغرة: إذا تم تسجيل الخروج أو لم يتم العثور على بروفايل، يتم تصفير العدادات فوراً
+    if (profile && profile.id) {
       const activePlan = (profile.plan || 'free').toLowerCase().trim()
       const activeStatus = (profile.subscription_status || 'inactive').toLowerCase().trim()
       
       setPlan(activePlan)
       setStatus(activeStatus)
       console.log(`📊 [Architect Subscription Synced]: Tier [${activePlan}] | Status [${activeStatus}]`)
+    } else {
+      setPlan('free')
+      setStatus('inactive')
     }
   }, [profile])
 
@@ -42,16 +43,23 @@ export const SubscriptionProvider = ({ children }) => {
       
       const { error } = await supabase
         .from('profiles')
-        .update({ tokens: updatedTokens, last_login_date: new Date().toISOString().split('T')[0] })
+        .update({ 
+          tokens: updatedTokens, 
+          last_login_date: new Date().toISOString().split('T')[0] 
+        })
         .eq('id', profile.id)
 
       if (error) throw error
       
       setProfile(prev => ({ ...prev, tokens: updatedTokens }))
-      showToast('تم شحن حسابك بمكافأة تسجيل الدخول اليومي (+2 توكنز)! ⚡', 'success')
+      if (typeof showToast === 'function') {
+        showToast('تم شحن حسابك بمكافأة تسجيل الدخول اليومي (+2 توكنز)! ⚡', 'success')
+      }
     } catch (err) {
       console.error('❌ [Daily Claim Error]:', err.message)
-      showToast('عذراً، فشل تحديث رصيد المكافأة ', 'error')
+      if (typeof showToast === 'function') {
+        showToast('عذراً، فشل تحديث رصيد المكافأة', 'error')
+      }
     }
   }
 
@@ -70,10 +78,14 @@ export const SubscriptionProvider = ({ children }) => {
       if (error) throw error
       
       setProfile(prev => ({ ...prev, tokens: updatedTokens }))
-      showToast(`تمت عملية السداد بنجاح، وشحن +${bundleAmount} توكنز لحسابك الحقيقي! 💳✨`, 'success')
+      if (typeof showToast === 'function') {
+        showToast(`تمت عملية السداد بنجاح، وشحن +${bundleAmount} توكنز لحسابك الحقيقي! 💳✨`, 'success')
+      }
     } catch (err) {
       console.error('❌ [Top-up Purchase Failure]:', err.message)
-      showToast('حدث خطأ أثناء مزامنة الرصيد المالي المحدث', 'error')
+      if (typeof showToast === 'function') {
+        showToast('حدث خطأ أثناء مزامنة الرصيد المالي المحدث', 'error')
+      }
     }
   }
 
