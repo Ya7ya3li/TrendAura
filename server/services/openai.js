@@ -2,42 +2,30 @@
 import OpenAI from 'openai';
 import { env } from '../config/env.js';
 
-// التحقق من وجود المفتاح قبل البدء
-if (!env.openaiApiKey) {
-  console.error("❌ [CRITICAL]: OpenAI API Key is missing!");
-}
-
 const openai = new OpenAI({
-  apiKey: env.openaiApiKey || 'sk-none', // قيمة احتياطية لمنع الانهيار
+  apiKey: env.openaiApiKey,
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: {
-    "HTTP-Referer": "https://trendaura.app", // استبدلها برابط موقعك الفعلي إن وجد
+    "HTTP-Referer": "https://trendaura.app", 
     "X-Title": "TrendAura"
   }
 });
 
-/**
- * TrendAura AI Psychological Script Engineering Service
- */
 export const openaiService = {
   generateViralContent: async (userPrompt, option = 'تحفيزي') => {
     try {
+      // 1. تحديد الحقول المسموح بها فقط لتفادي خطأ الفرونت إند
+      const ALLOWED_KEYS = ["hook", "script", "cta", "hashtags", "aiScore", "retentionRate"];
+
       const systemContext = `
-        أنت خبير سيكولوجية الجماهير وصناعة المحتوى الفيروسي.
-        مهمتك هي إعادة صياغة فكرة المستخدم كسكريبت احترافي.
-        أعد الخرج كـ JSON فقط (بدون أي ماركداون):
-        {
-          "hook": "مقدمة خاطفة",
-          "script": "السيناريو",
-          "cta": "نداء تفاعلي",
-          "hashtags": ["ترند", "محتوى"],
-          "aiScore": 90,
-          "retentionRate": 85
-        }
+        أنت خبير سيكولوجية الجماهير. مهمتك: إعادة صياغة الفكرة في JSON.
+        يجب أن يحتوي الـ JSON على هذه المفاتيح الستة فقط (ممنوع إضافة أي حقول أخرى):
+        ${JSON.stringify(ALLOWED_KEYS)}
+        أعد الخرج كـ JSON نقي فقط. أسلوب المحتوى: ${option}.
       `;
 
       const response = await openai.chat.completions.create({
-        model: env.openaiModel || 'google/gemini-2.0-flash-exp:free',
+        model: env.openaiModel || 'openai/gpt-oss-120b:free',
         messages: [
           { role: 'system', content: systemContext },
           { role: 'user', content: `فكرة الفيديو: ${userPrompt}` }
@@ -47,16 +35,27 @@ export const openaiService = {
 
       let rawJson = response.choices[0].message.content.trim();
       
-      // تنظيف المخرجات من أي شوائب ماركداون
-      if (rawJson.startsWith('```')) {
-        rawJson = rawJson.replace(/^```json\n?/, '').replace(/\n?```$/, '').replace(/^```\n?/, '');
+      // تنظيف من الماركداون
+      if (rawJson.includes('```')) {
+        rawJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim();
       }
 
-      return JSON.parse(rawJson);
+      // 2. التحويل والتنظيف (Sanitization)
+      const parsed = JSON.parse(rawJson);
+      const sanitized = {};
+      
+      // فقط الحقول الموجودة في ALLOWED_KEYS ستصل للفرونت إند
+      ALLOWED_KEYS.forEach(key => {
+        if (parsed[key] !== undefined) {
+          sanitized[key] = parsed[key];
+        }
+      });
+
+      return sanitized;
 
     } catch (error) {
       console.error('❌ [OpenAI Core Error]:', error.message);
-      throw new Error('فشل الاتصال: ' + error.message);
+      throw new Error('فشل الاتصال بمحرك الذكاء الاصطناعي: ' + error.message);
     }
   }
 };
