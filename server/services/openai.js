@@ -14,7 +14,6 @@ const openai = new OpenAI({
 export const openaiService = {
   generateViralContent: async (userPrompt, option = 'تحفيزي') => {
     try {
-      // 1. تحديد الحقول المسموح بها فقط لتفادي خطأ الفرونت إند
       const ALLOWED_KEYS = ["hook", "script", "cta", "hashtags", "aiScore", "retentionRate"];
 
       const systemContext = `
@@ -35,19 +34,24 @@ export const openaiService = {
 
       let rawJson = response.choices[0].message.content.trim();
       
-      // تنظيف من الماركداون
       if (rawJson.includes('```')) {
         rawJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim();
       }
 
-      // 2. التحويل والتنظيف (Sanitization)
       const parsed = JSON.parse(rawJson);
       const sanitized = {};
       
-      // فقط الحقول الموجودة في ALLOWED_KEYS ستصل للفرونت إند
+      // التنظيف مع حماية خاصة للهاشتاقات
       ALLOWED_KEYS.forEach(key => {
         if (parsed[key] !== undefined) {
-          sanitized[key] = parsed[key];
+          if (key === 'hashtags') {
+            // 🛡️ السطر السحري: نضمن دائماً أنها Array
+            sanitized[key] = Array.isArray(parsed[key]) 
+              ? parsed[key] 
+              : (typeof parsed[key] === 'string' ? parsed[key].split(',').map(s => s.trim()) : ['ترند']);
+          } else {
+            sanitized[key] = parsed[key];
+          }
         }
       });
 
