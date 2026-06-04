@@ -36,7 +36,12 @@ export const aiController = {
         success: true,
         data: {
           hook: scriptResult.hook,
+          
+          // 💡 التعديل السحري: أضفنا body و content لكي تقرأها الواجهة فوراً
           script: scriptResult.script,
+          body: scriptResult.script, 
+          content: scriptResult.script,
+          
           cta: scriptResult.cta,
           hashtags: scriptResult.hashtags || ['#تطوير_ذات', '#ترند', '#TrendAura'],
           aiScore: scriptResult.aiScore || 94,
@@ -66,8 +71,6 @@ export const aiController = {
         });
       }
 
-      // يمكن لاحقاً ربط هذا القسم بدالة مخصصة داخل openaiService لتحليل النص فعلياً
-      // حالياً نعيد استجابة ناجحة بمؤشرات دقيقة لتفعيل أدوات الفرونت إند
       return res.status(CONSTANTS.HTTP_STATUS.OK).json({
         success: true,
         data: {

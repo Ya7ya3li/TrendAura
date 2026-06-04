@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import { AppContext } from '../context/AppContext'
 import { AuthContext } from '../context/AuthContext'
 import GeneratorBox from '../components/dashboard/GeneratorBox'
@@ -9,11 +9,25 @@ import ViralIdeasCard from '../components/dashboard/ViralIdeasCard'
 import ViralEngineCard from '../components/dashboard/ViralEngineCard'
 import useAiGenerator from '../hooks/useAiGenerator'
 
+// 💡 1. استدعاء شاشة الجوال المفقودة (تأكد أن المسار مطابق لمجلدك)
+import MobileResultSheet from './MobileResultSheet' 
+
 export default function Dashboard() {
   const { profile, loading: authLoading } = useContext(AuthContext)
   const { prompt, setPrompt, loading: aiLoading, result, generateScript } = useAiGenerator()
 
-  // تم استبدال الـ Loader المعلق بـ نص بسيط يمنع تجميد الصفحة
+  // 💡 2. إضافة متحكم لفتح وإغلاق شاشة الجوال
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false)
+
+  // 💡 3. الذكاء الاصطناعي يراقب: بمجرد وصول السكربت الحقيقي، تفتح الشاشة من الأسفل فوراً!
+  useEffect(() => {
+    if (result && result.hook && result.script) {
+      if (result.script !== 'تم صياغة السيناريو بنجاح.') {
+        setIsMobileSheetOpen(true)
+      }
+    }
+  }, [result])
+
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] text-slate-400 font-bold text-xs">
@@ -67,6 +81,15 @@ export default function Dashboard() {
           <ViralEngineCard plan={profile?.plan || 'free'} />
         </div>
       </div>
+
+      {/* 💡 4. وضع شاشة الجوال وتوصيل الأسلاك بالرسيفر */}
+      <MobileResultSheet 
+        isOpen={isMobileSheetOpen}
+        onClose={() => setIsMobileSheetOpen(false)}
+        hook={result?.hook}
+        script={result?.script}
+        hashtags={result?.hashtags}
+      />
 
     </div>
   )

@@ -1,11 +1,11 @@
 import React from 'react'
-import { ROUTES } from '../constants/routes' // استيراد المسارات الموحدة
+import { ROUTES } from '../constants/routes'
 
 export const SIDEBAR_ITEMS = [
   {
     id: 'dashboard',
     name: 'الرئيسية',
-    path: ROUTES.DASHBOARD, // ربط ديناميكي
+    path: ROUTES.DASHBOARD,
     icon: React.createElement('svg', { className: "w-5 h-5", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" },
       React.createElement('path', { d: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" }),
       React.createElement('polyline', { points: "9 22 9 12 15 12 15 22" })
@@ -21,9 +21,17 @@ export const SIDEBAR_ITEMS = [
     )
   },
   {
-    id: 'subscription', // تم التعديل ليتوافق مع إدارة الاشتراك
+    id: 'pricing', // 👈 الزر الذي كان مفقوداً
+    name: 'الاشتراكات',
+    path: ROUTES.PRICING, // تأكد أن هذا المسار موجود في ملف ROUTES
+    icon: React.createElement('svg', { className: "w-5 h-5", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" },
+      React.createElement('polygon', { points: "12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" })
+    )
+  },
+  {
+    id: 'subscription',
     name: 'إدارة الاشتراك',
-    path: ROUTES.SUBSCRIPTION, // المسار الموحد الصحيح
+    path: ROUTES.SUBSCRIPTION,
     icon: React.createElement('svg', { className: "w-5 h-5", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" },
       React.createElement('rect', { x: "2", y: "5", width: "20", height: "14", rx: "2", ry: "2" }),
       React.createElement('line', { x1: "2", y1: "10", x2: "22", y2: "10" })

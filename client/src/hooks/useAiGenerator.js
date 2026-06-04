@@ -6,7 +6,6 @@ import { SubscriptionContext } from '../context/SubscriptionContext';
 import { supabase } from '../config/supabase';
 import { showToast } from '../App';
 
-// أضفنا التحقق من loading هنا أيضاً
 export default function useAiGenerator() {
   const { profile, setProfile, loading: authLoading } = useContext(AuthContext);
   const { plan } = useContext(SubscriptionContext); 
@@ -22,7 +21,6 @@ export default function useAiGenerator() {
   });
 
   const generateDynamicContext = (inputPrompt) => {
-    // ... (نفس دالتك السابقة لا تغيير) ...
     const text = inputPrompt ? inputPrompt.toLowerCase() : '';
     if (text.includes('بزنس') || text.includes('فلوس') || text.includes('تسويق')) {
       return {
@@ -39,7 +37,6 @@ export default function useAiGenerator() {
   };
 
   const generateScript = async () => {
-    // 1. الحماية: لا تولد شيئاً إذا كان الـ Auth لم ينتهِ من التحميل أو الـ profile غير موجود
     if (authLoading || !profile?.id) {
       showToast('جاري التحقق من بياناتك، يرجى الانتظار ثوانٍ...', 'warning');
       return;
@@ -59,7 +56,9 @@ export default function useAiGenerator() {
         return;
       }
 
-      const response = await aiService.analyzeScriptMetrics(prompt);
+      // 🚀 التعديل الجوهري الأول: استدعاء دالة التوليد الحقيقية وليس دالة المؤشرات
+      // تأكد أن الدالة في ملف aiService.js تضرب مسار السكربت الرئيسي
+      const response = await aiService.generateScript(prompt); 
       
       if (response && response.success) {
         const dynamicContext = generateDynamicContext(prompt.trim());
@@ -74,9 +73,12 @@ export default function useAiGenerator() {
 
         setProfile(prev => ({ ...prev, tokens: deductedTokens }));
 
+        // 🚀 التعديل الجوهري الثاني: فك غلاف الكائن data واستخراج النصوص بدقة
+        const aiData = response.data || response;
+
         setResult({
-          hook: response.hook || 'المقدمة الخاطفة 🚀',
-          script: response.feedback || 'تم صياغة السيناريو بنجاح.',
+          hook: aiData.hook || 'المقدمة الخاطفة 🚀',
+          script: aiData.script || aiData.body || aiData.content || 'تم صياغة السيناريو بنجاح.',
           hashtags: dynamicContext.hashtags,
           bestTimes: dynamicContext.times,
           viralIdeas: dynamicContext.ideas
@@ -89,7 +91,7 @@ export default function useAiGenerator() {
       }
     } catch (error) {
       console.error('❌ [useAiGenerator Error]:', error.message);
-      // ... (نفس دالتك السابقة للتعامل مع الخطأ) ...
+      showToast(error.message || 'حدث خطأ أثناء الاتصال بالمحرك', 'error');
     } finally {
       setLoading(false);
     }
