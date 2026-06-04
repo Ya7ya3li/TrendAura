@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AuthProvider, { AuthContext } from './context/AuthContext'
 import { SubscriptionProvider } from './context/SubscriptionContext'
 import { ThemeProvider } from './context/ThemeContext'
-import { AppProvider } from './context/AppProvider' // تم مطابقتها مع ملف AppContext الهيكلي
+import { AppProvider } from './context/AppContext' // تم مطابقتها مع ملف AppContext الهيكلي
 import DashboardLayout from './layouts/DashboardLayout'
 import AuthLayout from './layouts/AuthLayout'
 import LandingLayout from './layouts/LandingLayout'
