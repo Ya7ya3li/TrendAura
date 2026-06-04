@@ -29,29 +29,24 @@ export const openaiService = {
         أسلوب المحتوى المطلوب الالتزام به: ${option}.
       `;
 
+      // 🛡️ التعديل: تأمين الموديل بقيمة افتراضية (gpt-3.5-turbo-1106) تدعم صيغة JSON
       const response = await openai.chat.completions.create({
-        model: env.openaiModel,
+        model: env.openaiModel || 'gpt-3.5-turbo-1106',
         messages: [
           { role: 'system', content: systemContext },
           { role: 'user', content: `فكرة الفيديو: ${userPrompt}` }
         ],
-        response_format: { type: 'json_object' }, // قفل الخرج على هيئة JSON ناصع
+        response_format: { type: 'json_object' },
         temperature: 0.75,
       });
 
       const rawJson = response.choices[0].message.content;
       return JSON.parse(rawJson);
+
     } catch (error) {
-      console.error('❌ [openaiService Critical Failure]:', error.message);
-      // معالجة تراجعية مرنة لحماية الواجهة من الانهيار عند حدوث طارئ بالشبكة
-      return {
-        hook: 'سر خطير يخفيه عنك 99% من المبدعين المحترفين اليوم!',
-        script: `بناءً على فكرتك الحالية: (${userPrompt})، الخوارزميات تتطلب منك تقديم قيمة حقيقية وسريعة دون مقدمات طويلة لتأمين انتباه المشاهدين.`,
-        cta: 'تابع حسابنا الآن لتصلك التحديثات البرمجية أولاً بأول.',
-        hashtags: ['#تطوير_ذات', '#صناعة_محتوى', '#TrendAura'],
-        aiScore: 85,
-        retentionRate: 79
-      };
+      // 🚨 التعديل الجوهري: إزالة البيانات الوهمية ورمي الخطأ الحقيقي لنصطاده في الكونسول
+      console.error('❌ [OpenAI Core Error]:', error.message);
+      throw new Error('فشل الاتصال بمحرك الذكاء الاصطناعي: ' + error.message);
     }
   }
 };
