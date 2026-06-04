@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AuthProvider, { AuthContext } from './context/AuthContext'
 import { SubscriptionProvider } from './context/SubscriptionContext'
 import { ThemeProvider } from './context/ThemeContext'
-import { AppProvider } from './context/AppContext'
+import { AppProvider } from './context/AppProvider' // تم مطابقتها مع ملف AppContext الهيكلي
 import DashboardLayout from './layouts/DashboardLayout'
 import AuthLayout from './layouts/AuthLayout'
 import LandingLayout from './layouts/LandingLayout'
@@ -40,10 +40,10 @@ export default function App() {
             <AppProvider>
               <AppContent toast={toast} />
               
-              {/* المكون المفقود (Toast Component) */}
+              {/* نظام إشعارات المظهر العائم المستقر زجاجياً */}
               {toast.show && (
-                <div className={`fixed bottom-6 left-6 z-[9999] px-6 py-3 rounded-2xl shadow-2xl text-[11px] font-bold text-white animate-fade-in ${
-                  toast.type === 'success' ? 'bg-green-600' : 'bg-rose-600'
+                <div className={`fixed bottom-6 left-6 z-[9999] px-6 py-3 rounded-2xl shadow-2xl text-xs font-bold text-white backdrop-blur-md border animate-fade-in ${
+                  toast.type === 'success' ? 'bg-green-600/90 border-green-500/30' : 'bg-rose-600/90 border-rose-500/30'
                 }`}>
                   {toast.message}
                 </div>
@@ -56,27 +56,35 @@ export default function App() {
   )
 }
 
-function AppContent({ toast }) {
+function AppContent() {
   const { user, loading } = useContext(AuthContext)
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif' }}>
-        جاري تهيئة البيانات...
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center dir-rtl">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-400 text-xs font-bold tracking-wide animate-pulse">جاري تهيئة خوادم تريند اورا...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 font-sans antialiased relative">
+    <div className="min-h-screen bg-slate-900 font-sans antialiased relative selection:bg-blue-500/20 selection:text-blue-400">
       <Routes>
+        {/* قطاع المسارات العامة التسويقية */}
         <Route element={<LandingLayout />}>
           <Route path={ROUTES.LANDING} element={<Landing />} />
         </Route>
+
+        {/* قطاع حماية المصادقة العكسية (يُمنع المسجل من الدخول هنا) */}
         <Route element={<AuthLayout />}>
           <Route path={ROUTES.LOGIN} element={!user ? <Login /> : <Navigate to={ROUTES.DASHBOARD} replace />} />
           <Route path={ROUTES.REGISTER} element={!user ? <Register /> : <Navigate to={ROUTES.DASHBOARD} replace />} />
         </Route>
+
+        {/* قطاع لوحة التحكم المحمي بالكامل (توجيه صارم للداخل والخارج) */}
         <Route element={user ? <DashboardLayout /> : <Navigate to={ROUTES.LOGIN} replace />}>
           <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
           <Route path={ROUTES.HISTORY} element={<History />} />
@@ -84,6 +92,8 @@ function AppContent({ toast }) {
           <Route path={ROUTES.SETTINGS} element={<Settings />} />
           <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionManagement />} />
         </Route>
+
+        {/* مسارات الأنظمة المستقلة */}
         <Route path={ROUTES.SUCCESS} element={<Success />} />
         <Route path={ROUTES.MAINTENANCE} element={<Maintenance />} />
         <Route path={ROUTES.NOT_FOUND} element={<NotFound />} />

@@ -1,57 +1,51 @@
 import React, { useContext } from 'react'
 import { Outlet, Navigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
-import { AppContext } from '../context/AppContext'
-import { ThemeContext } from '../context/ThemeContext'
 import Sidebar from '../components/sidebar/Sidebar'
+import Navbar from '../components/navbar/Navbar'
 import BottomNavigation from '../components/mobile/BottomNavigation'
 
-/**
- * TrendAura Dashboard Layout - V2 Enterprise Edition
- * هيكل تنظيمي فائق السرعة، يضمن استمرار التنقل دون أي تعليق
- */
 export default function DashboardLayout() {
   const { user, loading } = useContext(AuthContext)
-  const { globalLoading } = useContext(AppContext)
-  const { theme } = useContext(ThemeContext)
 
-  // حارس البوابة (Route Guard) - سريع وغير حاصر للمستخدم
+  // 🛡️ صمام الأمان النهائي لمنع تسلل غير المصرح لهم أثناء إعادة تدوير الكود
   if (!loading && !user) {
     return <Navigate to="/login" replace />
   }
 
   return (
-    <div className={`min-h-screen flex flex-col md:flex-row dir-rtl text-right font-sans relative antialiased transition-colors duration-500 ${
-      theme === 'dark' ? 'bg-[#05020c] text-slate-100' : 'bg-slate-50/80 text-slate-900'
-    }`}>
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row antialiased relative overflow-hidden">
       
-      {/* القائمة الجانبية */}
-      <Sidebar />
+      {/* 🔮 توهج الخلفية النيوني المستقر لتأكيد الهوية التصميمية الفاخرة لـ TrendAura */}
+      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[160px] pointer-events-none select-none z-0" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none select-none z-0" />
 
-      {/* منطقة المحتوى */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen md:pl-64 relative">
+      {/* 🗂️ الشريط الجانبي المكتبي (Desktop Sidebar) - يختفي تلقائياً على شاشات الجوال */}
+      <aside className="hidden md:block w-64 flex-shrink-0 border-e border-slate-800/60 bg-slate-900/40 backdrop-blur-xl relative z-20">
+        <Sidebar />
+      </aside>
+
+      {/* 🖥️ منطقة المحتوى الرئيسية والمستقرة هيدروليكياً */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative z-10">
         
-        {/* مؤشر تحميل نيوني (Ultra-thin loading bar) */}
-        {(globalLoading || loading) && (
-          <div className="absolute top-0 left-0 right-0 h-[2px] z-50 overflow-hidden">
-            <div className={`h-full w-full animate-pulse ${
-              theme === 'dark' ? 'bg-gradient-to-r from-cyan-500 to-purple-600' : 'bg-gradient-to-r from-blue-600 to-pink-500'
-            }`} />
+        {/* الهيدر العلوي الذكي (Navbar) - متوافق مع الكمبيوتر والموبايل */}
+        <header className="w-full h-16 border-b border-slate-800/50 bg-slate-900/20 backdrop-blur-md flex items-center px-4 md:px-8 z-20">
+          <Navbar />
+        </header>
+
+        {/* حاوية الصفحات الداخلية القابلة للتمرير بسلاسة ناعمة */}
+        <main className="flex-1 overflow-y-auto px-4 py-6 md:p-8 pb-24 md:pb-8 scrollbar-thin scrollbar-thumb-slate-800 dir-rtl text-right">
+          <div className="max-w-6xl mx-auto w-full animate-fade-in">
+            <Outlet />
           </div>
-        )}
-
-        {/* المحتوى الرئيسي - تم استخدام flex-grow لضمان توازن المساحة */}
-        <main className="flex-grow p-4 md:p-8 pb-28 md:pb-8 relative z-10 transition-opacity duration-300">
-          <Outlet />
         </main>
-        
-        {/* شريط التنقل السفلي للجوال */}
-        <nav className={`md:hidden fixed bottom-0 inset-x-0 z-40 backdrop-blur-2xl border-t transition-all duration-300 ${
-          theme === 'dark' ? 'bg-[#0d071d]/90 border-[#1f1438]' : 'bg-white/90 border-slate-200'
-        }`}>
-          <BottomNavigation />
-        </nav>
       </div>
+
+      {/* 📱 شريط التنقل السفلي الاحترافي للجوال - يظهر فقط في الشاشات الصغيرة */}
+      <nav className="block md:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-900/80 backdrop-blur-xl border-t border-slate-800/80 z-30">
+        <BottomNavigation />
+      </nav>
+
     </div>
   )
 }

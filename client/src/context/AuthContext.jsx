@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from 'react'
+import React, { createContext, useEffect, useState } from 'react'
 import { supabase } from '../config/supabase'
 
 export const AuthContext = createContext(null)
@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
 
       if (data) return data
 
+      // هندسة بروفايل جديد متكامل البيانات في حال عدم العثور عليه
       const newProfile = {
         id: userId,
         full_name: metadata?.full_name || metadata?.name || email?.split('@')[0] || 'مستخدم جديد',
@@ -27,57 +28,64 @@ export const AuthProvider = ({ children }) => {
         tokens: 5000
       }
 
-      await supabase.from('profiles').insert([newProfile])
-      return newProfile
+      const { data: insertedData, error: insertError } = await supabase
+        .from('profiles')
+        .insert([newProfile])
+        .select()
+        .single()
+
+      return insertError ? newProfile : insertedData
     } catch (err) {
-      console.error('❌ Profile Error:', err.message)
+      console.error('❌ [Profile Synchronization Failure]:', err.message)
       return null
     }
   }
 
   useEffect(() => {
-    let active = true;
+    let active = true
 
-    const init = async () => {
+    const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession()
         
-        if (session?.user) {
-          setUser(session.user);
-          // تنفيذ البروفايل في الخلفية دون حظر الإقلاع
-          fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-            .then(p => { if (active) setProfile(p) });
+        if (session?.user && active) {
+          setUser(session.user)
+          const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+          if (active && p) setProfile(p)
         }
       } catch (e) {
-        console.error("Auth Init Error:", e);
+        console.error("❌ [Auth Initialization Fatal Error]:", e)
       } finally {
-        if (active) setLoading(false);
+        if (active) setLoading(false)
       }
-    };
+    }
 
-    init();
+    initializeAuth()
 
+    // الاستماع الفوري للتغيرات الجارية على مستوى الحساب والجلسات الحية
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        setUser(session.user);
-        fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-          .then(p => { if (active) setProfile(p) });
+        if (active) setUser(session.user)
+        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+        if (active && p) setProfile(p)
       } else {
-        setUser(null);
-        setProfile(null);
+        if (active) {
+          setUser(null)
+          setProfile(null)
+        }
       }
-    });
+    })
 
     return () => {
-      active = false;
-      subscription.unsubscribe();
-    };
-  }, []);
+      active = false
+      subscription.unsubscribe()
+    }
+  }, [])
 
   return (
     <AuthContext.Provider value={{ 
       user, 
-      profile: profile || { id: null, full_name: 'جاري التحميل...', tokens: 0, plan: 'free' }, 
+      profile: profile || { id: null, full_name: 'جاري جلب البيانات...', tokens: 0, plan: 'free' }, 
       setProfile, 
       loading 
     }}>
