@@ -1,3 +1,4 @@
+// مسار الملف: client/src/hooks/useAiGenerator.js
 import { useState, useContext } from 'react';
 import { aiService } from '../services/aiService';
 import { usageService } from '../services/usageService';
@@ -15,30 +16,14 @@ export default function useAiGenerator() {
   const [result, setResult] = useState({ 
     hook: '', 
     script: '', 
-    hashtags: ['#fyp', '#viral', '#explore'],
-    bestTimes: [{ hour: 'الساعة 6:00 مساءً', power: 5 }],
-    viralIdeas: ['اكتب فكرتك الملوكية أولاً']
+    hashtags: [],
+    bestTimes: [],
+    viralIdeas: []
   });
-
-  const generateDynamicContext = (inputPrompt) => {
-    const text = inputPrompt ? inputPrompt.toLowerCase() : '';
-    if (text.includes('بزنس') || text.includes('فلوس') || text.includes('تسويق')) {
-      return {
-        hashtags: ['#بزنس', '#تجارة_إلكترونية', '#استثمار'],
-        times: [{ hour: 'الساعة 09:00 صباحاً', power: 5 }, { hour: 'الساعة 08:00 مساءً', power: 5 }],
-        ideas: ['3 أسرار يخفيها عنك أثرياء التجارة الإلكترونية', 'كيف تقنع أي عميل بالشراء منك']
-      };
-    }
-    return {
-      hashtags: ['#fyp', '#viral', '#صناعة_محتوى'],
-      times: [{ hour: 'الساعة 06:30 مساءً', power: 5 }, { hour: 'الساعة 09:15 مساءً', power: 5 }],
-      ideas: ['كيف تجعل المشاهد يعيد الفيديو 3 مرات', 'الخطة الذهبية للانتشار السريع']
-    };
-  };
 
   const generateScript = async () => {
     if (authLoading || !profile?.id) {
-      showToast('جاري التحقق من بياناتك، يرجى الانتظار ثوانٍ...', 'warning');
+      showToast('جاري التحقق من بياناتك...', 'warning');
       return;
     }
 
@@ -51,37 +36,35 @@ export default function useAiGenerator() {
     try {
       const isEligible = await usageService.checkEligibility(profile.id, plan);
       if (!isEligible) {
-        showToast('لقد استهلكت كامل حصتك، يرجى الترقية للمتابعة ⚠️', 'error');
+        showToast('لقد استهلكت كامل حصتك، يرجى الترقية ⚠️', 'error');
         setLoading(false);
         return;
       }
 
-      // 🚀 التعديل الجوهري الأول: استدعاء دالة التوليد الحقيقية وليس دالة المؤشرات
-      // تأكد أن الدالة في ملف aiService.js تضرب مسار السكربت الرئيسي
+      // 🚀 استدعاء مسار التوليد الصحيح
       const response = await aiService.generateScript(prompt); 
       
+      // 🚨 كاميرا المراقبة: ستطبع الرد الحقيقي في الكونسول
+      console.log('🕵️‍♂️ [AI RAW RESPONSE]:', response);
+
       if (response && response.success) {
-        const dynamicContext = generateDynamicContext(prompt.trim());
-        const deductedTokens = Math.max(0, (profile.tokens || 0) - 10);
+        const aiData = response.data || response;
         
-        const { error: dbError } = await supabase
-          .from('profiles')
-          .update({ tokens: deductedTokens })
-          .eq('id', profile.id);
+        // 🚨 كاميرا مراقبة ثانية للبيانات المفككة
+        console.log('📦 [PARSED DATA]:', aiData);
 
-        if (dbError) throw dbError;
-
+        // خصم الرصيد
+        const deductedTokens = Math.max(0, (profile.tokens || 0) - 10);
+        await supabase.from('profiles').update({ tokens: deductedTokens }).eq('id', profile.id);
         setProfile(prev => ({ ...prev, tokens: deductedTokens }));
 
-        // 🚀 التعديل الجوهري الثاني: فك غلاف الكائن data واستخراج النصوص بدقة
-        const aiData = response.data || response;
-
+        // 🛡️ اصطياد كل الاحتمالات (سواء أرسلها بالانجليزي أو ترجمها للعربي)
         setResult({
-          hook: aiData.hook || 'المقدمة الخاطفة 🚀',
-          script: aiData.script || aiData.body || aiData.content || 'تم صياغة السيناريو بنجاح.',
-          hashtags: dynamicContext.hashtags,
-          bestTimes: dynamicContext.times,
-          viralIdeas: dynamicContext.ideas
+          hook: aiData.hook || aiData.المقدمة || aiData.مقدمة || 'المقدمة الخاطفة 🚀',
+          script: aiData.script || aiData.body || aiData.content || aiData.السيناريو || aiData.النص || 'تم صياغة السيناريو بنجاح.',
+          hashtags: aiData.hashtags || ['#fyp', '#viral', '#صناعة_محتوى'],
+          bestTimes: [{ hour: 'الساعة 06:30 مساءً', power: 5 }],
+          viralIdeas: ['كيف تجعل المشاهد يعيد الفيديو 3 مرات']
         });
         
         showToast('تم التوليد بنجاح ملوكي! ✨', 'success');
@@ -91,7 +74,7 @@ export default function useAiGenerator() {
       }
     } catch (error) {
       console.error('❌ [useAiGenerator Error]:', error.message);
-      showToast(error.message || 'حدث خطأ أثناء الاتصال بالمحرك', 'error');
+      showToast('حدث خطأ أثناء الاتصال بالمحرك', 'error');
     } finally {
       setLoading(false);
     }

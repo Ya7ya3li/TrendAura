@@ -9,17 +9,15 @@ import ViralIdeasCard from '../components/dashboard/ViralIdeasCard'
 import ViralEngineCard from '../components/dashboard/ViralEngineCard'
 import useAiGenerator from '../hooks/useAiGenerator'
 
-// 💡 1. استدعاء شاشة الجوال المفقودة (تأكد أن المسار مطابق لمجلدك)
-import MobileResultSheet from './MobileResultSheet' 
+// 💡 هنا كان الخطأ وتم إصلاحه ليتوافق مع مسار مجلداتك الدقيق!
+import MobileResultSheet from '../components/mobile/MobileResultSheet'
 
 export default function Dashboard() {
   const { profile, loading: authLoading } = useContext(AuthContext)
   const { prompt, setPrompt, loading: aiLoading, result, generateScript } = useAiGenerator()
 
-  // 💡 2. إضافة متحكم لفتح وإغلاق شاشة الجوال
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false)
 
-  // 💡 3. الذكاء الاصطناعي يراقب: بمجرد وصول السكربت الحقيقي، تفتح الشاشة من الأسفل فوراً!
   useEffect(() => {
     if (result && result.hook && result.script) {
       if (result.script !== 'تم صياغة السيناريو بنجاح.') {
@@ -82,7 +80,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 💡 4. وضع شاشة الجوال وتوصيل الأسلاك بالرسيفر */}
+      {/* شاشة الجوال */}
       <MobileResultSheet 
         isOpen={isMobileSheetOpen}
         onClose={() => setIsMobileSheetOpen(false)}
