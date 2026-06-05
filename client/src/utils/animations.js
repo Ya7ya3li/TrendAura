@@ -1,31 +1,22 @@
 /**
- * TrendAura Programmatic Smooth-Motion Animation Utilities
+ * TrendAura Dynamic Animation Class Orchestrator
+ * Integrates directly with animations.css to build seamless, performance-optimized stagger effects.
  */
 export const animations = {
   /**
-   * النزول والانتقال البصري السلس إلى عنصر محدد في اللوحة
+   * توليد قيمة تأخير الحركة برمجياً لعناصر القوائم والكروت (Stagger Effect)
    */
-  scrollToElement(elementId) {
-    if (typeof window === 'undefined') return;
-    
-    const element = document.getElementById(elementId);
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
+  getStaggerDelay(index, baseDelay = 100) {
+    return {
+      animationDelay: `${index * baseDelay}ms`,
+      animationFillMode: 'both'
+    };
   },
 
   /**
-   * إحداث اهتزاز ميكروي مؤقت للكروت عند حدوث رفض أو خطأ في الإدخال
+   * دالة دمج كلاسات المؤثرات الحركية والشرطية بنقاء ودون فراغات مشوهة
    */
-  triggerShake(elementRef) {
-    if (elementRef && elementRef.current) {
-      elementRef.current.classList.add('animate-shake');
-      setTimeout(() => {
-        elementRef.current.classList.remove('animate-shake');
-      }, 400);
-    }
+  cls(...classes) {
+    return classes.filter(Boolean).join(' ');
   }
 };

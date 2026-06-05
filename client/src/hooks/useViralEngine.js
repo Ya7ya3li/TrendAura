@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import axiosInstance from '../config/axios';
-import { showToast } from '../App';
+import axiosInstance from '../config/axios.js';
+import { showToast } from '../App.jsx';
 
 /**
  * TrendAura Advanced Viral Engine Metrics Orchestrator
@@ -20,7 +20,9 @@ export default function useViralEngine() {
    */
   const evaluateViralPotential = async (scriptText) => {
     if (!scriptText || scriptText.trim().length < 10) {
-      showToast('السيناريو قصير جداً، يرجى تعبئته لإجراء التحليل النفسي والخوارزمي', 'warning');
+      if (typeof showToast === 'function') {
+        showToast('السيناريو قصير جداً، يرجى تعبئته لإجراء التحليل النفسي والخوارزمي', 'warning');
+      }
       return;
     }
 
@@ -28,9 +30,12 @@ export default function useViralEngine() {
     try {
       const response = await axiosInstance.post('/api/ai/analyze-metrics', { script: scriptText });
       
+      // التكيف الفوري مع بيانات السيرفر المستقرة في Express
+      const resData = response.data?.success ? response.data.data : response.data;
+
       setMetrics({
-        aiScore: response.data.aiScore || 94, // مجموع نقاط كسر الخوارزمية (AiScoreCard)
-        retentionRate: response.data.retentionRate || 88, // نسبة احتفاظ المشاهد (RetentionCard)
+        aiScore: resData.aiScore || 94, 
+        retentionRate: resData.retentionRate || 88, 
         optimalTime: 'الساعة 6:00 مساءً ⏰',
         viralIdeas: [
           'ابدأ الفيديو بلقطة صامتة تماماً لمدة نصف ثانية',
@@ -38,10 +43,15 @@ export default function useViralEngine() {
           'اطرح السؤال المركزي في المنتصف وأجب عليه في آخر ثانيتين'
         ]
       });
-      showToast('اكتمل التحليل السلوكي للمقطع وجاهز للمراجعة الملوكية', 'success');
+      
+      if (typeof showToast === 'function') {
+        showToast('اكتمل التحليل السلوكي للمقطع وجاهز للمراجعة الملوكية', 'success');
+      }
     } catch (error) {
       console.error('❌ [useViralEngine Evaluation Crash]:', error.message);
-      showToast('فشل محرك الفايرال في إتمام الفحص الخوارزمي المتقدم', 'error');
+      if (typeof showToast === 'function') {
+        showToast('فشل محرك الفايرال في إتمام الفحص الخوارزمي المتقدم', 'error');
+      }
     } finally {
       setLoading(false);
     }

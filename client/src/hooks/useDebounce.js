@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 /**
- * TrendAura Signal Debounce Filter
+ * TrendAura  Signal Debounce Filter
  * Restricts frequent state updates during intense text stream interactions.
  */
 export default function useDebounce(value, delay = 500) {

@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { ENV } from './env';
-import { supabase } from './supabase';
+import { ENV } from './env.js'; // مطابقة دقيقة لامتداد الملفات في Vite
+import { supabase } from './supabase.js';
 
 /**
  * TrendAura Axios Network Instance config
@@ -9,14 +9,14 @@ import { supabase } from './supabase';
  */
 const axiosInstance = axios.create({
   baseURL: ENV.API_URL,
-  timeout: 30000, // 30 ثانية كحد أقصى لانتظار عمليات توليد OpenAI المعقدة
+  timeout: 30000, // 30 ثانية كحد أقصى لانتظار عمليات توليد OpenAI/OpenRouter المعقدة
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
 });
 
-// 🔒 محقن الأمان (Request Interceptor) لحقن التوكن حياً قبل خروج الطلب للسيرفر
+// 🔒 محقن الأمان لحقن التوكن حياً قبل خروج الطلب للسيرفر
 axiosInstance.interceptors.request.use(
   async (config) => {
     try {

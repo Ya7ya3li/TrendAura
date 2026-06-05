@@ -23,22 +23,26 @@ export const formatDate = (dateString) => {
 };
 
 /**
- * حساب الوقت المنقضي بشكل نسبي (مثال: منذ 5 دقائق)
+ * حساب الوقت المنقضي بشكل نسبي مريح للمستخدم (مثال: منذ 5 دقائق)
  */
 export const formatRelativeTime = (dateString) => {
   if (!dateString) return '';
   
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now - date) / 1000);
-  
-  if (diffInSeconds < 60) return 'الآن';
-  
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) return `منذ ${diffInMinutes} دقيقة`;
-  
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `منذ ${diffInHours} ساعة`;
-  
-  return formatDate(dateString);
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) return 'الآن';
+    
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `منذ ${diffInMinutes} دقيقة`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `منذ ${diffInHours} ساعة`;
+    
+    return formatDate(dateString);
+  } catch (error) {
+    return dateString;
+  }
 };

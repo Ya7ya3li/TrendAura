@@ -13,7 +13,7 @@
     padding-bottom: 6rem !important;
   }
 
-  /* تأثير تفاعلي مرن بديل للـ Hover لمنع تجمد اللون بلمس الإصبع */
+  /* تأثير تفاعلي مرن بديل للـ Hover لمنع تجمد اللون بلمس الإصبع على الشاشة */
   .active-touch:active {
     transform: scale(0.97);
     opacity: 0.9;

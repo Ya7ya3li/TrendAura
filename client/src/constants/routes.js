@@ -20,12 +20,13 @@ export const ROUTES = Object.freeze({
 
 /**
  * دالة مساعدة (Helper) للتحقق من المسارات المحمية
- * تمنع أي تداخل في منطق الـ Route Guards
+ * تم تحديثها لربط مسار الاشتراكات الداخلي بالملي
  */
 export const isProtectedRoute = (path) => {
   const protectedRoutes = [
     ROUTES.DASHBOARD, 
     ROUTES.HISTORY, 
+    ROUTES.PRICING, // تم إضافته لربط المسار وحمايته هيدروليكياً
     ROUTES.SUBSCRIPTION, 
     ROUTES.SETTINGS
   ];

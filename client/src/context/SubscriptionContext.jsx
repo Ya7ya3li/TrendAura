@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react'
-import { AuthContext } from './AuthContext'
-import { supabase } from '../config/supabase'
-import { showToast } from '../App'
+import { AuthContext } from './AuthContext.jsx'
+import { supabase } from '../config/supabase.js'
+import { showToast } from '../App.jsx'
 
 export const SubscriptionContext = createContext(null)
 
@@ -11,7 +11,7 @@ export const SubscriptionProvider = ({ children }) => {
   const [status, setStatus] = useState('inactive')
 
   useEffect(() => {
-    // 🛡️ معالجة الثغرة: إذا تم تسجيل الخروج أو لم يتم العثور على بروفايل، يتم تصفير العدادات فوراً
+    // 🛡️ صمام الأمان تصفير الولاية فوراً عند خروج العميل لحماية التوكنات
     if (profile && profile.id) {
       const activePlan = (profile.plan || 'free').toLowerCase().trim()
       const activeStatus = (profile.subscription_status || 'inactive').toLowerCase().trim()
@@ -25,7 +25,6 @@ export const SubscriptionProvider = ({ children }) => {
     }
   }, [profile])
 
-  // مصفوفة الصلاحيات الحقيقية للخطط التجارية لمنع التلاعب بالمميزات
   const planFeatures = {
     free: { maxScriptsPerDay: 3, hasViralEngine: false, hasAdvancedHashtags: false },
     pro: { maxScriptsPerDay: 50, hasViralEngine: false, hasAdvancedHashtags: true },
@@ -34,7 +33,6 @@ export const SubscriptionProvider = ({ children }) => {
 
   const isPremiumActive = status === 'active' || status === 'paid' || plan === 'pro' || plan === 'viral_engine'
 
-  // دالة مكافأة تسجيل الدخول اليومي
   const claimDailyReward = async () => {
     if (!profile?.id) return
     try {
@@ -63,7 +61,6 @@ export const SubscriptionProvider = ({ children }) => {
     }
   }
 
-  // دالة الشحن الميكروي الفوري المتوافقة مع Moyasar
   const buyTopUpBundle = async (bundleAmount) => {
     if (!profile?.id) return
     try {

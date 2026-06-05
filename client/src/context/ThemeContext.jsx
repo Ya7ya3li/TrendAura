@@ -11,7 +11,6 @@ export const ThemeProvider = ({ children }) => {
     return localStorage.getItem('trendaura-rounded-style') || 'premium'
   })
 
-  // نظام حقن سمات مظهر الألوان الفاخرة
   useEffect(() => {
     const root = window.document.documentElement
     if (theme === 'dark') {
@@ -26,7 +25,6 @@ export const ThemeProvider = ({ children }) => {
     localStorage.setItem('trendaura-theme', theme)
   }, [theme])
 
-  // نظام تفعيل منحنيات الحواف الهندسية المتطورة (28px مقابل 12px)
   useEffect(() => {
     const root = window.document.documentElement
     if (roundedStyle === 'premium') {

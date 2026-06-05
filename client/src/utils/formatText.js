@@ -12,7 +12,7 @@ export const formatText = {
   },
 
   /**
-   * تقليص النصوص الطويلة مع وضع نقاط الاختصار لحماية كروت العرض
+   * تقليص النصوص الطويلة مع وضع نقاط الاختصار لحماية كروت العرض في الواجهة
    */
   truncate(text, maxLength = 120) {
     if (!text || text.length <= maxLength) return text;
@@ -20,10 +20,11 @@ export const formatText = {
   },
 
   /**
-   * استخراج علامات الهاشتاق المدمجة بداخل النص بشكل منفصل
+   * استخراج علامات الهاشتاق المدمجة بداخل النص بشكل منفصل متكامل
    */
   extractHashtags(text) {
     if (!text) return [];
+    // تعبير نمطي يدعم الرموز العربية والإنجليزية والأرقام لجمع دقيق
     const regex = /#[\u0621-\u064A\w]+/g;
     const matches = text.match(regex);
     return matches ? [...new Set(matches)] : [];

@@ -1,14 +1,13 @@
 import React, { useContext } from 'react'
-import { ThemeContext } from '../../context/ThemeContext' // 🧬 حقن شريان المظهر العالمي
-import CopyButton from '../common/CopyButton'
+import { ThemeContext } from '../../context/ThemeContext.jsx'
+import CopyButton from '../common/CopyButton.jsx'
 
-/**
- * TrendAura Hashtags Discovery Matrix Card - Adaptive Neon Edition
- * Dynamic styling framework reacting to dark and light global color states instantly.
- */
 export default function HashtagsCard({ hashtags = [] }) {
   const { theme } = useContext(ThemeContext)
-  const hashtagsString = hashtags.join(' ')
+  
+  // تأمين مصفوفة الفالباك في حال كان التوليد في أوله ولم يفرز السيرفر الهاشتاقات بعد
+  const displayTags = hashtags && hashtags.length > 0 ? hashtags : ['#fyp', '#viral', '#صناعة_محتوى']
+  const hashtagsString = displayTags.join(' ')
 
   return (
     <div className={`w-full border rounded-[28px] p-5 shadow-xl select-none flex flex-col justify-between animate-fade-in transition-all duration-300 ${
@@ -17,23 +16,21 @@ export default function HashtagsCard({ hashtags = [] }) {
         : 'bg-white border-slate-100 shadow-slate-200/40'
     }`}>
       <div>
-        {/* الترويسة العلوية للهاشتاقات */}
         <div className={`flex items-center gap-2 mb-4 pb-2 border-b transition-colors ${
           theme === 'dark' ? 'border-[#1f1438]/50' : 'border-slate-50'
         }`}>
           <span className={`text-sm font-black ${theme === 'dark' ? 'text-cyan-400' : 'text-blue-600'}`}>#</span>
-          <h3 className={`text-xs font-black ${theme === 'dark' ? 'text-white' : 'text-slate-900'} tracking-tight`}>هاشتاقات ترند</h3>
+          <h3 className={`text-xs font-black ${theme === 'dark' ? 'text-white' : 'text-slate-900'} tracking-tight`}>هاشتاقات ترند مقترحة</h3>
         </div>
 
-        {/* قائمة الأوسمة والهاشتاقات الحية - تتوهج بالسيبرانية التفاعلية */}
-        <div className="flex flex-col gap-1.5 text-[11px] font-black font-sans mb-5">
-          {hashtags.map((tag, idx) => (
+        <div className="flex flex-wrap gap-2 text-[11px] font-black font-sans mb-5">
+          {displayTags.map((tag, idx) => (
             <span 
               key={idx} 
-              className={`transition-colors cursor-pointer block ${
+              className={`transition-colors cursor-pointer px-2.5 py-1 rounded-xl border ${
                 theme === 'dark' 
-                  ? 'text-slate-300 hover:text-cyan-400 drop-shadow-[0_0_2px_rgba(34,211,238,0.2)]' 
-                  : 'text-slate-500 hover:text-blue-600'
+                  ? 'text-slate-300 hover:text-cyan-400 bg-slate-950/40 border-slate-800/80' 
+                  : 'text-slate-500 hover:text-blue-600 bg-slate-50 border-slate-100'
               }`}
             >
               {tag}
@@ -42,7 +39,6 @@ export default function HashtagsCard({ hashtags = [] }) {
         </div>
       </div>
 
-      {/* خط التذييل وزر النسخ الموحد */}
       <div className={`pt-2 border-t transition-colors ${
         theme === 'dark' ? 'border-[#1f1438]/50' : 'border-slate-50'
       }`}>

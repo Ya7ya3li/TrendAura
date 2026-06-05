@@ -23,7 +23,7 @@
   75% { transform: translateX(4px); }
 }
 
-/* كلاسات التنفيذ الحركي الفوري لعناصر الفرونت إند */
+/* كلاسات التنفيذ الحركي الفوري لعناصر المنصة */
 .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .animate-scale-up { animation: scaleUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .animate-slide-right { animation: slideRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }

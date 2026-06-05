@@ -1,11 +1,17 @@
 /**
- * TrendAura Premium Light Theme Tokens
+ * TrendAura Global Design Spectrum & Variable Tokens
  * Centralizes design scales, brand spectrums, and geometric shadow tokens.
+ * Fully supports unified dynamic theme swapping.
  */
+
 :root {
-  /* 🎨 لوحة الألوان الأساسية الفاخرة للمنصة */
+  /* ☀️ الأنماط والدرجات الافتراضية للوضع الفاتح الفاخر */
   --bg-main: #f8fafc;
   --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: rgba(226, 232, 240, 0.8);
+  
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
   --primary-glow: rgba(37, 99, 235, 0.04);
@@ -19,7 +25,7 @@
   --emerald-glow: rgba(16, 185, 129, 0.06);
   --rose: #f43f5e;
 
-  /* 🪙 درجات التباين للخطوط والنصوص الساقطة */
+  /* درجات التباين العامة للخطوط */
   --slate-900: #0f172a;
   --slate-800: #1e293b;
   --slate-700: #334155;
@@ -27,11 +33,32 @@
   --slate-400: #94a3b8;
   --slate-200: #e2e8f0;
   --slate-100: #f1f5f9;
+  --slate-550: #475569;
   --slate-50: #f8fafc;
 
-  /* 📐 الهندسة البصرية والظلال المعتمدة بـ image_43.png */
-  --font-sans: 'Plus Jakarta Sans', 'Cairo', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Cairo', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --shadow-sm: 0 2px 8px rgba(148, 163, 184, 0.04);
   --shadow-md: 0 12px 30px rgba(148, 163, 184, 0.06);
   --shadow-xl: 0 24px 50px rgba(148, 163, 184, 0.1);
+}
+
+/* 🌌 حقن وتبديل متغيرات الوضع الداكن النيوني التفاعلي لحظياً */
+html.dark {
+  --bg-main: #05020c;
+  --bg-card: #0d071d;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: rgba(31, 20, 56, 0.6);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 24px 50px rgba(0, 0, 0, 0.7);
+  
+  --slate-900: #ffffff;
+  --slate-800: #f1f5f9;
+  --slate-700: #e2e8f0;
+  --slate-500: #94a3b8;
+  --slate-400: #64748b;
+  --slate-200: #1f1438;
+  --slate-100: #160f30;
+  --slate-50: #0d071d;
 }

@@ -22,7 +22,7 @@ export const paymentService = {
   },
 
   /**
-   * 🔍 استجواب السيرفر للتحقق من نجاح عملية السداد البنكي
+   *  استجواب السيرفر للتحقق من نجاح عملية السداد البنكي
    */
   async verifyPaymentStatus(paymentId) {
     try {

@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { SubscriptionContext } from '../context/SubscriptionContext';
+import { SubscriptionContext } from '../context/SubscriptionContext.jsx';
 
 /**
  * TrendAura Subscription Gatekeeper Hook

@@ -5,7 +5,9 @@ import { useState, useEffect } from 'react';
  * Captures browser dimension shifts matching exact Tailwind breakpoint configurations.
  */
 export default function useResponsive() {
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  const [isMobile, setIsMobile] = useState(() => 
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

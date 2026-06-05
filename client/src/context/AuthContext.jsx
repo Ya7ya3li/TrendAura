@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react'
-import { supabase } from '../config/supabase'
+import { supabase } from '../config/supabase.js'
 
 export const AuthContext = createContext(null)
 
@@ -50,8 +50,11 @@ export const AuthProvider = ({ children }) => {
         
         if (session?.user && active) {
           setUser(session.user)
-          const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-          if (active && p) setProfile(p)
+          // 🚀 تشغيل الجلب بالخلفية لضمان إقلاع صاروخي فوري دون حجب التحكم
+          fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+            .then(p => {
+              if (active && p) setProfile(p)
+            })
         }
       } catch (e) {
         console.error("❌ [Auth Initialization Fatal Error]:", e)
@@ -62,12 +65,13 @@ export const AuthProvider = ({ children }) => {
 
     initializeAuth()
 
-    // الاستماع الفوري للتغيرات الجارية على مستوى الحساب والجلسات الحية
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         if (active) setUser(session.user)
-        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-        if (active && p) setProfile(p)
+        fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+          .then(p => {
+            if (active && p) setProfile(p)
+          })
       } else {
         if (active) {
           setUser(null)

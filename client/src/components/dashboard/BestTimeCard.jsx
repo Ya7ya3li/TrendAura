@@ -1,22 +1,19 @@
 import React, { useState, useContext } from 'react'
-import { ThemeContext } from '../../context/ThemeContext' // 🧬 ربط شريان المظهر الموحد
+import { ThemeContext } from '../../context/ThemeContext.jsx'
 
-/**
- * TrendAura Predictive Optimal Publishing Hours Card - Premium Modal Edition
- * Integrated with a high-fidelity interactive calendar dashboard layout.
- */
-export default function BestTimeCard() {
+export default function BestTimeCard({ customTimes = [] }) {
   const { theme } = useContext(ThemeContext)
   const [showCalendar, setShowCalendar] = useState(false)
 
-  const times = [
+  // 🏆 تعديل هندسي: الالتزام ببيانات الذكاء الاصطناعي الحركية المستلمة، مع توفير فالباك مستقر
+  const defaultTimes = [
     { hour: 'الساعة 10:00 صباحاً', power: 3 },
     { hour: 'الساعة 1:00 ظهراً', power: 4 },
     { hour: 'الساعة 6:00 مساءً', power: 5 },
     { hour: 'الساعة 9:00 مساءً', power: 4 }
   ]
+  const displayTimes = customTimes && customTimes.length > 0 ? customTimes : defaultTimes
 
-  // مصفوفة التقويم الأسبوعي الفخم لعرضها داخل النافذة المنبثقة
   const weeklyReport = [
     { day: 'السبت', bestHour: '06:00 مساءً', rate: '94%' },
     { day: 'الأحد', bestHour: '09:00 مساءً', rate: '88%' },
@@ -41,19 +38,17 @@ export default function BestTimeCard() {
           <h3 className="text-xs font-black tracking-tight">أوقات النشر المثالية</h3>
         </div>
 
-        {/* صفوف الساعات مع أعمدة قياس التفاعل النيوني المتفاعل */}
         <div className="space-y-3.5 mb-5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-          {times.map((item, idx) => (
+          {displayTimes.map((item, idx) => (
             <div key={idx} className="flex items-center justify-between gap-4">
               <span className="tracking-tight text-slate-700 dark:text-slate-200">{item.hour}</span>
               
-              {/* مؤشرات وخطوط قياس طاقة التفاعل الذكية */}
               <div className="flex items-end gap-0.5 h-3">
                 {[1, 2, 3, 4, 5].map((bar) => (
                   <div
                     key={bar}
                     className={`w-1 rounded-sm transition-all ${
-                      bar <= item.power
+                      bar <= (item.power || 4)
                         ? (theme === 'dark' ? 'bg-cyan-400 drop-shadow-[0_0_4px_rgba(34,211,238,0.6)]' : 'bg-blue-600')
                         : (theme === 'dark' ? 'bg-[#23184a]' : 'bg-slate-100')
                     }`}
@@ -65,7 +60,6 @@ export default function BestTimeCard() {
           ))}
         </div>
 
-        {/* زر فتح التقويم الإستراتيجي المطور بعيداً عن الـ alert */}
         <button
           type="button"
           onClick={() => setShowCalendar(true)}
@@ -79,13 +73,10 @@ export default function BestTimeCard() {
         </button>
       </div>
 
-      {/* 🔮 نافذة الجلاس مورفيزم المنبثقة للتقويم الملوكي العالمي (Premium Calendar Modal) */}
       {showCalendar && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none animate-fade-in">
-          {/* الخلفية الضبابية العميقة لتركيز العين */}
           <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowCalendar(false)} />
           
-          {/* جسم النافذة الهندسي المتناسق */}
           <div className={`relative w-full max-w-md border rounded-3xl p-6 shadow-2xl transition-all animate-scale-up ${
             theme === 'dark' ? 'bg-[#0d071d]/95 border-[#1f1438] text-white' : 'bg-white border-slate-100 text-slate-800'
           }`}>
@@ -105,29 +96,30 @@ export default function BestTimeCard() {
               </button>
             </div>
 
-            {/* جدول المواعيد */}
             <div className="space-y-2.5 text-right dir-rtl">
-              {weeklyReport.map((report, idx) => (
-                <div 
-                  key={idx} 
-                  className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
-                    theme === 'dark' ? 'bg-[#160f30]/40 border-[#1f1438]/60' : 'bg-slate-50 border-slate-100'
-                  }`}
-                >
-                  <span className="text-xs font-black text-slate-800 dark:text-slate-200">{report.day}</span>
-                  <div className="flex items-center gap-4 text-[11px] font-bold">
-                    <span className="text-slate-400">{report.bestHour}</span>
-                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-black ${
-                      theme === 'dark' ? 'bg-cyan-500/10 text-cyan-400' : 'bg-blue-50 text-blue-600'
-                    }`}>{report.rate} كفاءة</span>
+              <div className="max-h-[280px] overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+                {weeklyReport.map((report, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
+                      theme === 'dark' ? 'bg-[#160f30]/40 border-[#1f1438]/60' : 'bg-slate-50 border-slate-100'
+                    }`}
+                  >
+                    <span className="text-xs font-black text-slate-800 dark:text-slate-200">{report.day}</span>
+                    <div className="flex items-center gap-4 text-[11px] font-bold">
+                      <span className="text-slate-400 font-sans">{report.bestHour}</span>
+                      <span className={`px-2 py-0.5 rounded-md text-[9px] font-black ${
+                        theme === 'dark' ? 'bg-cyan-500/10 text-cyan-400' : 'bg-blue-50 text-blue-600'
+                      }`}>{report.rate} كفاءة</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             <button
               onClick={() => setShowCalendar(false)}
-              className="w-full mt-5 py-2.5 bg-slate-900 dark:bg-gradient-to-r dark:from-purple-600 dark:to-indigo-600 text-white font-black text-[11px] rounded-xl transition-all active:scale-95"
+              className="w-full mt-5 py-3 bg-slate-900 dark:bg-gradient-to-r dark:from-blue-600 dark:to-indigo-600 text-white font-black text-[11px] rounded-xl transition-all active:scale-95"
             >
               إغلاق نافذة التحليل ✦
             </button>

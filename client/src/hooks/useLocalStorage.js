@@ -10,7 +10,7 @@ export default function useLocalStorage(key, initialValue) {
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      console.error(`❌ [useLocalStorage Parse Error] on key "${key}":`, error);
+      console.error(`❌ [useLocalStorage Parse  Error] on key "${key}":`, error);
       return initialValue;
     }
   });
@@ -19,7 +19,7 @@ export default function useLocalStorage(key, initialValue) {
     try {
       window.localStorage.setItem(key, JSON.stringify(storedValue));
     } catch (error) {
-      console.error(`❌ [useLocalStorage Write Error] on key "${key}":`, error);
+      console.error(`❌ [useLocalStorage Write  Error] on key "${key}":`, error);
     }
   }, [key, storedValue]);
 

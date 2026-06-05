@@ -8,9 +8,9 @@ export const calculateRetention = (scriptText) => {
   }
 
   const textLength = scriptText.trim().length;
-  let simulatedScore = 65; // الحد الأدنى القياسي للاحتفاظ بوجود سكريبت مكتمل
+  let simulatedScore = 65; 
 
-  // 1. زيادة الـ Score إذا كان النص يحتوى على كلمات خطافية ومحفزة قوية
+  // 1. معايرة الكلمات المفتاحية الخطافة الحركية
   const viralTriggers = ['سر', 'صادم', 'أسرار', 'لا تتوقع', 'تخيل', 'أخيراً', '90%', 'احذر'];
   viralTriggers.forEach((trigger) => {
     if (scriptText.includes(trigger)) {
@@ -18,14 +18,13 @@ export const calculateRetention = (scriptText) => {
     }
   });
 
-  // 2. معايرة الحجم (الإيقاع المثالي لسكريبتات تيك توك بين 150 إلى 600 حرف)
+  // 2. المعايرة الحجمية المثالية لسكريبتات تيك توك التنافسية
   if (textLength >= 150 && textLength <= 500) {
     simulatedScore += 12;
   } else if (textLength > 800) {
-    simulatedScore -= 10; // السكريبتات الطويلة جداً تخفض نسب الاحتفاظ تلقائياً
+    simulatedScore -= 10; 
   }
 
-  // تقييد النقاط في السقف الهندسي المسموح (الحد الأقصى 99%)
   const finalScore = Math.min(Math.max(simulatedScore, 40), 99);
 
   let grade = 'مقبول';

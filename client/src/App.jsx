@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AuthProvider, { AuthContext } from './context/AuthContext'
 import { SubscriptionProvider } from './context/SubscriptionContext'
 import { ThemeProvider } from './context/ThemeContext'
-import { AppProvider } from './context/AppContext' // تم مطابقتها مع ملف AppContext الهيكلي
+import { AppProvider } from './context/AppContext' // مطابقة مليمترية مع هيكل الملفات الثابت
 import DashboardLayout from './layouts/DashboardLayout'
 import AuthLayout from './layouts/AuthLayout'
 import LandingLayout from './layouts/LandingLayout'
@@ -38,7 +38,7 @@ export default function App() {
         <SubscriptionProvider>
           <ThemeProvider>
             <AppProvider>
-              <AppContent toast={toast} />
+              <AppContent />
               
               {/* نظام إشعارات المظهر العائم المستقر زجاجياً */}
               {toast.show && (
@@ -64,7 +64,7 @@ function AppContent() {
       <div className="min-h-screen bg-slate-950 flex items-center justify-center dir-rtl">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-400 text-xs font-bold tracking-wide animate-pulse">جاري تهيئة الخوادم  ...</p>
+          <p className="text-slate-400 text-xs font-bold tracking-wide animate-pulse">جاري تهيئة الخوادم ...</p>
         </div>
       </div>
     )
@@ -73,18 +73,15 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-slate-900 font-sans antialiased relative selection:bg-blue-500/20 selection:text-blue-400">
       <Routes>
-        {/* قطاع المسارات العامة التسويقية */}
         <Route element={<LandingLayout />}>
           <Route path={ROUTES.LANDING} element={<Landing />} />
         </Route>
 
-        {/* قطاع حماية المصادقة العكسية (يُمنع المسجل من الدخول هنا) */}
         <Route element={<AuthLayout />}>
           <Route path={ROUTES.LOGIN} element={!user ? <Login /> : <Navigate to={ROUTES.DASHBOARD} replace />} />
           <Route path={ROUTES.REGISTER} element={!user ? <Register /> : <Navigate to={ROUTES.DASHBOARD} replace />} />
         </Route>
 
-        {/* قطاع لوحة التحكم المحمي بالكامل (توجيه صارم للداخل والخارج) */}
         <Route element={user ? <DashboardLayout /> : <Navigate to={ROUTES.LOGIN} replace />}>
           <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
           <Route path={ROUTES.HISTORY} element={<History />} />
@@ -93,7 +90,6 @@ function AppContent() {
           <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionManagement />} />
         </Route>
 
-        {/* مسارات الأنظمة المستقلة */}
         <Route path={ROUTES.SUCCESS} element={<Success />} />
         <Route path={ROUTES.MAINTENANCE} element={<Maintenance />} />
         <Route path={ROUTES.NOT_FOUND} element={<NotFound />} />

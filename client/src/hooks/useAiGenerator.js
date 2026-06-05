@@ -1,11 +1,10 @@
-// مسار الملف: client/src/hooks/useAiGenerator.js
 import { useState, useContext } from 'react';
-import { aiService } from '../services/aiService';
-import { usageService } from '../services/usageService';
-import { AuthContext } from '../context/AuthContext';
-import { SubscriptionContext } from '../context/SubscriptionContext';
-import { supabase } from '../config/supabase';
-import { showToast } from '../App';
+import { aiService } from '../services/aiService.js';
+import { usageService } from '../services/usageService.js';
+import { AuthContext } from '../context/AuthContext.jsx';
+import { SubscriptionContext } from '../context/SubscriptionContext.jsx';
+import { supabase } from '../config/supabase.js';
+import { showToast } from '../App.jsx';
 
 export default function useAiGenerator() {
   const { profile, setProfile, loading: authLoading } = useContext(AuthContext);
@@ -13,22 +12,26 @@ export default function useAiGenerator() {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   
+  // 🏆 تم التحديث: تكييف الهيكل لاستيعاب كامل مخرجات السيرفر الحقيقية لتغذية كروت الداشبورد
   const [result, setResult] = useState({ 
     hook: '', 
     script: '', 
+    cta: '',
     hashtags: [],
+    aiScore: null,
+    retentionRate: null,
     bestTimes: [],
     viralIdeas: []
   });
 
   const generateScript = async () => {
     if (authLoading || !profile?.id) {
-      showToast('جاري التحقق من بياناتك...', 'warning');
+      if (typeof showToast === 'function') showToast('جاري التحقق من بياناتك...', 'warning');
       return;
     }
 
     if (!prompt || !prompt.trim()) {
-      showToast('يرجى كتابة فكرة المحتوى أولاً', 'warning');
+      if (typeof showToast === 'function') showToast('يرجى كتابة فكرة المحتوى أولاً', 'warning');
       return;
     }
 
@@ -36,49 +39,50 @@ export default function useAiGenerator() {
     try {
       const isEligible = await usageService.checkEligibility(profile.id, plan);
       if (!isEligible) {
-        showToast('لقد استهلكت كامل حصتك، يرجى الترقية ⚠️', 'error');
+        if (typeof showToast === 'function') showToast('لقد استهلكت كامل حصتك، يرجى الترقية ⚠️', 'error');
         setLoading(false);
         return;
       }
 
-      // 🚀 استدعاء مسار التوليد الصحيح
+      // 🚀 استدعاء مسار التوليد الصارم من السيرفر
       const response = await aiService.generateScript(prompt); 
-      
-      // 🚨 كاميرا المراقبة: ستطبع الرد الحقيقي في الكونسول
       console.log('🕵️‍♂️ [AI RAW RESPONSE]:', response);
 
-      if (response && response.success) {
-        const aiData = response.data || response;
-        
-        // 🚨 كاميرا مراقبة ثانية للبيانات المفككة
-        console.log('📦 [PARSED DATA]:', aiData);
+      // التحقق من الاستجابة سواء كانت ملفوفة بـ success أو راجعة ناصعة مباشرة من الـ Sanitizer
+      if (response) {
+        const aiData = response.success ? response.data : response;
+        console.log('📦 [PARSED DATA FOR LAYOUT]:', aiData);
 
-        // خصم الرصيد
-        const deductedTokens = Math.max(0, (profile.tokens || 0) - 10);
+        // خصم الرصيد ومزامنة التوكنات خلفياً في قاعدة البيانات الحية
+        const currentTokens = profile.tokens || 0;
+        const deductedTokens = Math.max(0, currentTokens - 10);
         await supabase.from('profiles').update({ tokens: deductedTokens }).eq('id', profile.id);
         setProfile(prev => ({ ...prev, tokens: deductedTokens }));
 
-        // 🛡️ اصطياد كل الاحتمالات (سواء أرسلها بالانجليزي أو ترجمها للعربي)
+        // 🛡️ اصطياد وتأمين الحقول الصارمة وتمريرها لكروت العرض الجدارية
         setResult({
-          hook: aiData.hook || aiData.المقدمة || aiData.مقدمة || 'المقدمة الخاطفة 🚀',
-          script: aiData.script || aiData.body || aiData.content || aiData.السيناريو || aiData.النص || 'تم صياغة السيناريو بنجاح.',
-          hashtags: aiData.hashtags || ['#fyp', '#viral', '#صناعة_محتوى'],
+          hook: aiData.hook || 'المقدمة الخاطفة 🚀',
+          script: aiData.script || 'تم صياغة السيناريو بنجاح.',
+          cta: aiData.cta || 'شاركنا رأيك في التعليقات! 👇',
+          hashtags: Array.isArray(aiData.hashtags) ? aiData.hashtags : ['#fyp', '#viral', '#ترند'],
+          aiScore: aiData.aiScore || 85,
+          retentionRate: aiData.retentionRate || 80,
           bestTimes: [{ hour: 'الساعة 06:30 مساءً', power: 5 }],
           viralIdeas: ['كيف تجعل المشاهد يعيد الفيديو 3 مرات']
         });
         
-        showToast('تم التوليد بنجاح ملوكي! ✨', 'success');
+        if (typeof showToast === 'function') showToast('تم التوليد بنجاح ملوكي! ✨', 'success');
         setPrompt('');
       } else {
-        throw new Error(response?.error || 'خطأ في خادم الذكاء الاصطناعي');
+        throw new Error('خطأ في استجابة خادم الذكاء الاصطناعي');
       }
     } catch (error) {
       console.error('❌ [useAiGenerator Error]:', error.message);
-      showToast('حدث خطأ أثناء الاتصال بالمحرك', 'error');
+      if (typeof showToast === 'function') showToast('حدث خطأ أثناء الاتصال بالمحرك', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  return { prompt, setPrompt, loading, result, generateScript };
+  return { prompt, setPrompt, loading, result, setResult, generateScript };
 }

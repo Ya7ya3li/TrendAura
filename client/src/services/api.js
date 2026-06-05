@@ -40,7 +40,7 @@ export const api = {
       const response = await axiosInstance.delete(url, config);
       return response.data;
     } catch (error) {
-      console.error(`❌ [API Service DELETE Error] on ${url}:`, error.message);
+      console.error(`❌ [ API Service DELETE Error] on ${url}:`, error.message);
       throw error;
     }
   }

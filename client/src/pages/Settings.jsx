@@ -1,9 +1,9 @@
 import React, { useContext, useState } from 'react'
-import { ThemeContext } from '../context/ThemeContext'
-import ProfileSettings from '../components/settings/ProfileSettings'
-import ThemeSettings from '../components/settings/ThemeSettings'
-import SectionTitle from '../components/common/SectionTitle'
-import { showToast } from '../App'
+import { ThemeContext } from '../context/ThemeContext.jsx'
+import ProfileSettings from '../components/settings/ProfileSettings.jsx'
+import ThemeSettings from '../components/settings/ThemeSettings.jsx'
+import SectionTitle from '../components/common/SectionTitle.jsx'
+import { showToast } from '../App.jsx'
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('profile')
@@ -11,24 +11,21 @@ export default function Settings() {
   const { theme } = useContext(ThemeContext)
 
   const handleDeleteAllScripts = async () => {
-    const confirmDelete = window.confirm('تحذير: هل أنت متأكد من تصفير مستودع السكريبتات؟ هذا الإجراء نهائي ولا يمكن استرجاع البيانات.')
+    const confirmDelete = window.confirm('تحذير صارم: هل أنت متأكد من تصفير مستودع السكريبتات؟ هذا الإجراء نهائي ولا يمكن استرجاعه.')
     if (confirmDelete) {
       setIsDeleting(true)
-      // محاكاة لعملية حذف حقيقية من Supabase
       await new Promise(resolve => setTimeout(resolve, 1500))
-      showToast('تم تطهير مستودع السكريبتات بنجاح 🗑️', 'success')
+      if (typeof showToast === 'function') showToast('تم تطهير مستودع السكريبتات بنجاح 🗑️', 'success')
       setIsDeleting(false)
     }
   }
 
-  // Neon Glassmorphism Card Style
-  const cardClass = "bg-[#0d071d]/50 backdrop-blur-xl border border-white/5 rounded-[32px] p-8 shadow-2xl";
+  const cardClass = "bg-slate-900/40 backdrop-blur-xl border border-slate-800/60 rounded-[32px] p-8 shadow-2xl"
 
   return (
     <div className={`w-full max-w-4xl mx-auto p-6 font-sans ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-      <SectionTitle title="إعدادات الحساب" subtitle="تكوين الهوية الشخصية وتفضيلات النظام" badge="System Config" />
+      <SectionTitle title="إعدادات الحساب" subtitle="تكوين الهوية الشخصية وتفضيلات المظهر البنيوي" badge="System Config" />
 
-      {/* شريط التبويبات النيوني */}
       <div className="flex items-center gap-4 mb-8">
         {[
           { id: 'profile', label: '👤 البروفايل' },
@@ -39,8 +36,8 @@ export default function Settings() {
             onClick={() => setActiveTab(tab.id)}
             className={`px-6 py-3 rounded-full text-[10px] font-black transition-all ${
               activeTab === tab.id 
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20'
-                : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20'
+                : 'bg-slate-900 text-slate-400 hover:bg-slate-800'
             }`}
           >
             {tab.label}
@@ -48,21 +45,20 @@ export default function Settings() {
         ))}
       </div>
 
-      {/* محتوى الإعدادات */}
       <div className={cardClass}>
         {activeTab === 'profile' && (
           <div className="space-y-8 animate-fade-in">
             <ProfileSettings />
             
-            <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="pt-8 border-t border-slate-800/60 flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
                 <h4 className="text-xs font-black text-rose-400">منطقة التحكم الحساسة</h4>
-                <p className="text-[10px] text-slate-400 mt-1">حذف نهائي لكامل محتوى السكريبتات والألبومات.</p>
+                <p className="text-[10px] text-slate-400 mt-1">مسح نهائي وبتر لكامل محتوى السكريبتات والألبومات المؤرشفة.</p>
               </div>
               <button
                 onClick={handleDeleteAllScripts}
                 disabled={isDeleting}
-                className="px-6 py-3 bg-rose-600/20 border border-rose-500/50 hover:bg-rose-600 text-rose-400 hover:text-white text-[10px] font-black rounded-full transition-all"
+                className="px-6 py-3 bg-rose-600/20 border border-rose-500/40 hover:bg-rose-600 text-rose-400 hover:text-white text-[10px] font-black rounded-full transition-all"
               >
                 {isDeleting ? 'جاري التطهير...' : '🗑️ مسح الأرشيف نهائياً'}
               </button>

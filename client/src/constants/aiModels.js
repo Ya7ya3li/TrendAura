@@ -4,9 +4,9 @@
  */
 export const AI_MODELS = {
   PRIMARY_CORE: {
-    id: 'gpt-4o-mini',
+    id: 'openai/gpt-oss-120b:free', // ربط مليمتر مع السيرفر لتوحيد شريان التوليد المستقر
     name: 'TrendAura Turbo Core',
-    provider: 'OpenAI',
+    provider: 'OpenRouter',
     temperature: 0.7,
     maxTokens: {
       free: 400,
@@ -15,9 +15,9 @@ export const AI_MODELS = {
     }
   },
   ANALYTICS_CORE: {
-    id: 'gpt-4o-mini',
+    id: 'openai/gpt-oss-120b:free',
     name: 'TrendAura Analytics Engine',
-    provider: 'OpenAI',
+    provider: 'OpenRouter',
     temperature: 0.3 // درجة منخفضة لضمان دقة واستقرار مصفوفات الأرقام والإحصائيات
   }
 };

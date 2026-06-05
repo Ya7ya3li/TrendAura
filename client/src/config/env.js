@@ -5,7 +5,7 @@
  */
 
 export const ENV = {
-  // 🏆 التعديل الهندسي: شبك التسميتين معاً لضمان لقط الرابط الحي من فيرسيل بكل مرونة
+  // لقط الرابط الحي من فيرسيل أو محلياً بكل مرونة
   API_URL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000',
   SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || 'https://snfajahmoismxqiqjfoq.supabase.co',
   SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_ydbYqH0eMMcBkP59hVcbmg_d298nBFg',

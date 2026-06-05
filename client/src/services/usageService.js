@@ -24,10 +24,7 @@ export const usageService = {
   },
 
   /**
-   * 🛡️ فحص أهلية وصلاحية العميل للتوليد بناءً على سقف الباقة المحددة
-   */
- /**
-   * 🛡️ فحص أهلية وصلاحية العميل للتوليد (نسخة المحترفين)
+   * 🛡️ فحص أهلية وصلاحية العميل للتوليد بناءً على سقف الباقة الحقيقية
    */
   async checkEligibility(userId, currentPlan = 'free') {
     try {
@@ -37,15 +34,14 @@ export const usageService = {
         .eq('id', userId)
         .single();
       
-      // إذا حدث خطأ في الاتصال، لا نمنع المستخدم فوراً، بل نفحص الـ data
       if (error || !data) {
         console.warn('⚠️ [usageService]: تعذر جلب الاستهلاك، استخدام القيمة الافتراضية 0');
       }
       
       const tokensUsed = data?.tokens_used || 0;
       
-      // تعريف سقف الاستهلاك ( يمكنك لاحقاً سحب هذه القيم من جدول plans في الداتابيز مباشرة)
-      const limits = { free: 5, pro: 1000, enterprise: 999999 };
+      // 🏆 تم سحق الثغرة: توحيد المسمى بالملي ليتطابق مع الثوابت الحقيقية للمشروع
+      const limits = { free: 5, pro: 1000, viral_engine: 999999 };
       const maxLimit = limits[currentPlan.toLowerCase().trim()] || 5;
       
       return tokensUsed < maxLimit;

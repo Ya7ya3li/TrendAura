@@ -78,30 +78,17 @@ export const PLANS = [
   }
 ];
 
-// إنشاء خريطة سريعة للبحث (O(1)) لأداء صاروخي
 const PLANS_MAP = new Map(PLANS.map(p => [p.id, p]));
 
-/**
- * دالة استرجاع مستوى الصلاحية (Tier)
- * أسرع طريقة للتحقق من الصلاحيات داخل الكود
- */
 export const getPlanTier = (planId) => {
   const plan = PLANS_MAP.get(planId?.toLowerCase()?.trim());
   return plan ? plan.tier : 1;
 };
 
-/**
- * دالة استرجاع كامل إعدادات الخطة
- * تضمن دائماً إرجاع كائن سليم حتى في حال خطأ البيانات
- */
 export const getPlanConfig = (planId) => {
   return PLANS_MAP.get(planId?.toLowerCase()?.trim()) || PLANS[0];
 };
 
-/**
- * ميزة احترافية جديدة: التحقق من الصلاحية (هل المستخدم يملك الميزة؟)
- * تمنع تكرار الـ if-else في المشروع
- */
 export const hasFeature = (userPlanId, requiredTier) => {
   return getPlanTier(userPlanId) >= requiredTier;
 };

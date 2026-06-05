@@ -5,7 +5,7 @@ import { supabase } from '../config/supabase';
  */
 export const authService = {
   /**
-   * 🔐 تسجيل دخول مستخدم  عبر البريد وكلمة المرور
+   * 🔐 تسجيل دخول مستخدم عبر البريد وكلمة المرور
    */
   async login(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -14,7 +14,7 @@ export const authService = {
   },
 
   /**
-   * 📝 إنشاء حساب لمبدع جديد في منظومة الأمان - تم تصحيح مسمى الحقل ليتوافق مع السيرفر
+   * 📝 إنشاء حساب لمبدع جديد في منظومة الأمان
    */
   async register(email, password, fullName) {
     const { data, error } = await supabase.auth.signUp({
@@ -22,7 +22,7 @@ export const authService = {
       password,
       options: { 
         data: { 
-          full_name: fullName // 👈 التعديل: تم التوحيد إلى full_name ليتطابق مع الـ Trigger وجوجل
+          full_name: fullName 
         } 
       }
     });
@@ -31,7 +31,7 @@ export const authService = {
   },
 
   /**
-   * 🔒 تسجيل الخروج    
+   * 🔒 تسجيل الخروج       
    */
   async logout() {
     const { error } = await supabase.auth.signOut();

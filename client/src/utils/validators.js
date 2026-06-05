@@ -18,7 +18,7 @@ export const validators = {
   },
 
   /**
-   * فحص سقف الفكرة المكتوبة وحصرها بحدود الـ 500 حرف القياسية لـ TrendAura
+   * فحص سقف الفكرة المكتوبة وحصرها بحدود الـ 500 حرف المعتمدة
    */
   validatePrompt(promptText) {
     if (!promptText || promptText.trim().length === 0) {

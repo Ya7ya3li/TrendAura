@@ -4,7 +4,7 @@
 export const APP_CONFIG = {
   BRAND: {
     name: 'TrendAura',
-    tagline: 'منصتك الذكية لتوليد سكريبتات فيروسية تخترق الخوارزميات',
+    tagline: 'منصتك الذكية لتوليد سكربتات فيروسية تخترق الخوارزميات',
     version: '1.0.0',
     copyright: `جميع الحقوق محفوظة لمنصة TrendAura © ${new Date().getFullYear()}`
   },

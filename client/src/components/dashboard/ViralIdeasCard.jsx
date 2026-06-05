@@ -1,29 +1,26 @@
 import React, { useState, useContext } from 'react'
-import { ThemeContext } from '../../context/ThemeContext' // 🧬 ربط شريان المظهر الموحد
+import { ThemeContext } from '../../context/ThemeContext.jsx'
 
-/**
- * TrendAura Viral Ideas Content Suggestion Card - Deep Expansion Edition
- * Re-engineered to clear legacy alerts and inject a premium predictive trend explorer.
- */
-export default function ViralIdeasCard({ onMoreClick }) {
+export default function ViralIdeasCard({ customIdeas = [], onMoreClick }) {
   const { theme } = useContext(ThemeContext)
   const [showTrendsModal, setShowTrendsModal] = useState(false)
 
-  const ideas = [
-    'كيف تبني عادة يومية قوية',
-    'طرق لزيادة التركيز',
-    'سر النجاح اللي ما يخبرونك عنه',
-    'أخطاء تمنعك من التطور',
-    'كيف تستغل وقتك صح'
+  // 🏆 تعديل هندسي: الالتزام بالأفكار الحقيقية المفرزة من محرك التوليد مع توفير فالباك ناصع
+  const defaultIdeas = [
+    'كيف تبني عادة يومية قوية باستخدام الخواص الذكية',
+    'طرق عملية لزيادة التركيز وتجنب التشتت الخوارزمي',
+    'سر النجاح الذي لا يخبرك عنه كبار صناع تيك توك',
+    'أخطاء بصرية مجهرية تمنع مقاطعك من التطور',
+    'كيف تستغل الثواني الثلاث الأولى لصالح المقطع'
   ]
+  const displayIdeas = customIdeas && customIdeas.length > 0 ? customIdeas : defaultIdeas
 
-  // بنك الأفكار التوسيعي المتفجر الذي يعرض عند الضغط على "عرض المزيد"
   const extendedTrends = [
-    { title: 'أسرار صناعة الفيديوهات القصيرة المنتشرة', tag: '🔥 صاعد جداً', volume: '140K مشاهدة/ساعة' },
-    { title: 'كيف تضاعف إنتاجيتك باستخدام أدوات الـ AI', tag: '⚡ تكنولوجيا', volume: '95K مشاهدة/ساعة' },
-    { title: 'أخطاء مالية قاتلة يقع فيها الشباب في العشرينات', tag: '💰 ثقافة مالية', volume: '210K مشاهدة/ساعة' },
-    { title: 'روتين صباحي مدته 10 دقائق يغير يومك بالكامل', tag: '🌱 حياة صحية', volume: '80K مشاهدة/ساعة' },
-    { title: 'لماذا تفشل خططك السنوية دائماً وكيف تحلها؟', tag: '🎯 تطوير ذات', volume: '115K مشاهدة/ساعة' }
+    { title: 'أسرار صناعة الفيديوهات القصيرة المنتشرة واستهداف الـ Hooks الخاطفة', tag: '🔥 صاعد جداً', volume: '140K مشاهدة/ساعة' },
+    { title: 'كيف تضاعف إنتاجيتك في فلترة النصوص باستخدام أدوات الـ AI', tag: '⚡ تكنولوجيا', volume: '95K مشاهدة/ساعة' },
+    { title: 'أخطاء مالية قاتلة يقع فيها الشباب في صناعة المحتوى الإعلاني', tag: '💰 ثقافة ماليّة', volume: '210K مشاهدة/ساعة' },
+    { title: 'روتين بومودورو مدته 10 دقائق يغير جودة منتاجك بالكامل', tag: '🌱 حياة صحية', volume: '80K مشاهدة/ساعة' },
+    { title: 'لماذا تفشل خططك السنوية في الانتشار دائماً وكيف تحلها بالمؤشرات؟', tag: '🎯 تطوير ذات', volume: '115K مشاهدة/ساعة' }
   ]
 
   return (
@@ -38,25 +35,23 @@ export default function ViralIdeasCard({ onMoreClick }) {
             theme === 'dark' ? 'border-[#1f1438]/50' : 'border-slate-50'
           }`}>
             <span className="text-sm text-amber-500">💡</span>
-            <h3 className="text-xs font-black tracking-tight">أفكار ترند</h3>
+            <h3 className="text-xs font-black tracking-tight">أفكار ترند حية</h3>
           </div>
 
-          {/* مصفوفة النصوص المطابقة للهوية البصرية بنقاء */}
           <div className="space-y-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-            {ideas.map((idea, idx) => (
+            {displayIdeas.map((idea, idx) => (
               <div 
                 key={idx} 
-                className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-cyan-400 transition-colors cursor-pointer"
+                className="flex items-start gap-2 hover:text-blue-600 dark:hover:text-cyan-400 transition-colors cursor-pointer"
                 onClick={() => setShowTrendsModal(true)}
               >
-                <span className="text-[9px] text-slate-300 dark:text-purple-500">•</span>
+                <span className="text-[9px] text-slate-300 dark:text-purple-500 mt-0.5">•</span>
                 <p className="truncate text-slate-700 dark:text-slate-200">{idea}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* زر عرض المزيد المطور والمحمي من التنبيهات البدائية القديمة */}
         <button
           type="button"
           onClick={onMoreClick || (() => setShowTrendsModal(true))}
@@ -66,12 +61,11 @@ export default function ViralIdeasCard({ onMoreClick }) {
               : 'border-slate-50 text-slate-400 hover:text-blue-600'
           }`}
         >
-          <span>عرض وتوسيع المزيد</span>
+          <span>عرض وتوسيع ألبوم الأفكار</span>
           <span className="text-xs font-sans">➔</span>
         </button>
       </div>
 
-      {/* 🔮 لوحة استكشاف وتوسيع ألبوم الترندات الساخن المنبثق (Premium Trend Explorer Modal) */}
       {showTrendsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none animate-fade-in">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowTrendsModal(false)} />
@@ -95,8 +89,7 @@ export default function ViralIdeasCard({ onMoreClick }) {
               </button>
             </div>
 
-            {/* ألبوم الأفكار الموسع والمدعم بالمقاييس الرقمية الـ Premium */}
-            <div className="space-y-3 text-right dir-rtl max-h-[350px] overflow-y-auto pr-1">
+            <div className="space-y-3 text-right dir-rtl max-h-[350px] overflow-y-auto pr-1 scrollbar-thin">
               {extendedTrends.map((trend, idx) => (
                 <div 
                   key={idx} 

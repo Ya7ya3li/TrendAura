@@ -13,7 +13,7 @@
 /* هندسة وتأمين كروت العرض الملوكية المضيئة */
 .glow-card-premium {
   background: var(--bg-card);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-md);
   border-radius: 24px;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -22,5 +22,5 @@
 .glow-card-premium:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-xl);
-  border-color: rgba(37, 99, 235, 0.12);
+  border-color: rgba(37, 99, 235, 0.2);
 }

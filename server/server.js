@@ -4,7 +4,7 @@ import { env } from './config/env.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
-// 🧭 استيراد موجهات ومسارات النظام الشاملة
+// 🧭 استيراد موجهات ومسارات النظام الشاملة والمطابقة للهيكل بالملي
 import aiRoutes from './routes/ai.js';
 import authRoutes from './routes/auth.js';
 import paymentRoutes from './routes/payment.js';
@@ -14,11 +14,11 @@ import usageRoutes from './routes/usage.js';
 const app = express();
 
 // 🛡️ إعداد بروتوكولات الميدل وير العالمية لحماية البيانات
-app.use(cors({ origin: '*' })); // السماح بالاتصال من كافة النطاقات المعتمدة لـ TrendAura
-app.use(express.json());       // تفعيل استقبال وتحليل حزم البيانات بصيغة JSON
-app.use(rateLimiter);          // حقن مضاد هجمات إغراق السيرفر
+app.use(cors({ origin: '*' })); 
+app.use(express.json());       
+app.use(rateLimiter);          
 
-// 🌐 ربط وتجميع خطوط الاتصال بالـ API
+// 🌐 ربط وتتويج خطوط الاتصال بالـ API حسب هيكل الـ SaaS المعتمد
 app.use('/api/ai', aiRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/payment', paymentRoutes);
