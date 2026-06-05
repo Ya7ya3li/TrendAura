@@ -3,7 +3,7 @@
  * Strictly maps license competency thresholds and operational metrics.
  */
 export const CONSTANTS = {
-  // 👑 حدود صلاحيات باقات الاشتراكات الرقمية حياً
+  // حدود صلاحيات باقات الاشتراكات الرقمية حياً ومطابقتها للفرونت إند بالملي
   PLAN_LIMITS: {
     free: {
       dailyGenerations: 5,
@@ -18,21 +18,21 @@ export const CONSTANTS = {
       hasRetentionCurve: false
     },
     viral_engine: {
-      dailyGenerations: 999999, // ♾️ لا محدود كلياً لصناع المحتوى المحترفين
+      dailyGenerations: 999999, // لا محدود كلياً لصناع المحتوى المحترفين والنخبة
       features: ['all_access', 'viral_engine_portal', 'hashtags', 'best_times'],
       hasAiScore: true,
       hasRetentionCurve: true
     }
   },
 
-  // 📝 قيود هندسة ومراجعة النصوص والمدخلات
+  // قيود هندسة ومراجعة النصوص والمدخلات الفكرية في الداشبورد
   PROMPT_CONSTRAINTS: {
     maxInputLength: 500,
     minInputLength: 5,
     defaultLanguage: 'ar'
   },
 
-  // 🛡️ رموز واستجابات نظام الحماية والاتصال (HTTP Status Codes)
+  // رموز واستجابات نظام الحماية والاتصال الشبكي
   HTTP_STATUS: {
     OK: 200,
     CREATED: 201,
@@ -44,11 +44,11 @@ export const CONSTANTS = {
     INTERNAL_SERVER_ERROR: 500
   },
 
-  // 🛑 رسائل النظام الموحدة عند حدوث الأخطاء
+  // رسائل النظام الموحدة عند حدوث الاستثناءات الأمنية والفنية
   ERROR_MESSAGES: {
     UNAUTHORIZED: 'جلسة التحقق غير صالحة، يرجى تسجيل الدخول مجدداً.',
-    FORBIDDEN: 'صلاحيات باقتك الحالية لا تسمح بالوصول لهذه الميزة.',
-    LIMIT_EXCEEDED: '⚠️ لقد استهلكت كامل حصتك المتاحة لهذا اليوم، يرجى الترقية لإطلاق القدرات.',
-    SERVER_ERROR: 'حدث خطأ داخلي في خوادم المعالجة، جاري المراجعة من الدعم الفني.'
+    FORBIDDEN: 'صلاحيات باقتك الحالية لا تسمح بالوصول لهذه الميزة الاستراتيجية.',
+    LIMIT_EXCEEDED: 'لقد استهلكت كامل حصتك المتاحة لهذا اليوم، يرجى الترقية لإطلاق القدرات.',
+    SERVER_ERROR: 'حدث خطأ داخلي في خوادم المعالجة، جاري المراجعة التكتيكية من الدعم الفني.'
   }
 };

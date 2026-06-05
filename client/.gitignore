@@ -1,4 +1,4 @@
-# Logs
+# Logs & Telemetry
 logs
 *.log
 npm-debug.log*
@@ -7,10 +7,14 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Production Packages & Bundles
 node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.local
+.env.*.local
 
 # Editor directories and files
 .vscode/*

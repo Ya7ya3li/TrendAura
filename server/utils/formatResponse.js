@@ -11,7 +11,7 @@ export const formatResponse = {
     };
   },
 
-  error: (errorMessage = 'حدث خطأ غير متوقع في خوادم المعالجة', code = 'INTERNAL_ERROR') => {
+  error: (errorMessage = 'حدث خطأ غير متوقع في خوادم المعالجة الملوكية', code = 'INTERNAL_ERROR') => {
     return {
       success: false,
       timestamp: new Date().toISOString(),

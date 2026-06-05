@@ -1,11 +1,9 @@
 import { CONSTANTS } from '../config/constants.js';
 
-// مستودع مؤقت في الذاكرة لتتبع الطلبات لكل IP
 const ipRequestCache = new Map();
 
-// إعدادات الحماية: الحد الأقصى 60 طلباً في الدقيقة لكل جهاز
-const WINDOW_MS = 60 * 1000;
-const MAX_REQUESTS = 60;
+const WINDOW_MS = 60 * 1000; // نافذة دقيقة واحدة لكل عميل
+const MAX_REQUESTS = 60;     // سقف 60 طلباً في الدقيقة
 
 /**
  * TrendAura DDOS Mitigation & Rate Limiting Guard
@@ -23,18 +21,16 @@ export const rateLimiter = (req, res, next) => {
   const timeElapsed = currentTime - clientData.startTime;
 
   if (timeElapsed > WINDOW_MS) {
-    // تصفير العداد وتجديد النافذة الزمنية تلقائياً بعد انتهاء الدقيقة
     ipRequestCache.set(ip, { count: 1, startTime: currentTime });
     return next();
   }
 
   clientData.count += 1;
 
-  // حظر العميل فوراً إذا تجاوز أسقف المرور المسموحة
   if (clientData.count > MAX_REQUESTS) {
     return res.status(CONSTANTS.HTTP_STATUS.TOO_MANY_REQUESTS).json({
       success: false,
-      error: '⚠️ تم رصد حركة مرور غير طبيعية؛ يرجى التوقف عن إغراق السيرفر والمحاولة بعد دقيقة.'
+      error: 'تم رصد حركة مرور كثيفة؛ يرجى التوقف عن إغراق السيرفر والمحاولة بعد دقيقة واحدة.'
     });
   }
 

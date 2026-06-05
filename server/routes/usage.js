@@ -4,7 +4,7 @@ import { authGuard } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// 📊 تتبع حجم استهلاك التوكنز اليومي حياً من قاعدة البيانات
+// 📊 مراقبة وتتبع حجم استهلاك التوكنز والطلبات اليومية حياً للعميل
 router.get('/daily', authGuard, usageController.getDailyUsage);
 
 export default router;

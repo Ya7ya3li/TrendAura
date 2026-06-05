@@ -8,9 +8,9 @@ export const usageController = {
   getDailyUsage: async (req, res) => {
     try {
       const userId = req.user.id;
-      const today = new Date().toISOString().split('T')[0]; // صيغة التاريخ الحالية لليوم
+      const today = new Date().toISOString().split('T')[0]; // لقط التاريخ الحالي بصيغة لقمة الـ ISO
 
-      // جلب عدد السكريبتات المولدة لليوم الحالي من جدول الاستهلاك
+      // جلب عدد السكريبتات المستهلكة لليوم من مستودع الـ user_usage
       const { data, error } = await supabase
         .from('user_usage')
         .select('generation_count')

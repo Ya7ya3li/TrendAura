@@ -3,7 +3,7 @@ import { paymentController } from '../controllers/paymentController.js';
 
 const router = express.Router();
 
-// 💳 استقبال إشعارات السداد الآمنة واللحظية من بوابة ميسر السعودية
-router.post('/webhook', paymentController.handleWebhook);
+// 💳 استقبال إشارات السداد اللحظية والآمنة (Webhooks) من بوابة دفع ميسر السعودية السيادية
+router.post('/webhook', express.json(), paymentController.handleWebhook);
 
 export default router;

@@ -4,7 +4,7 @@ import { authGuard } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// 👤 جلب وتحديث بيانات الهوية الشخصية المسجلة
+// 👤 جلب وتحديث بيانات الهوية الشخصية للمبدع من قاعدة البيانات
 router.get('/profile', authGuard, authController.getProfile);
 router.put('/profile', authGuard, authController.updateProfile);
 

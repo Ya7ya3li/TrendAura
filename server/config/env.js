@@ -16,10 +16,10 @@ const requiredEnvs = [
   'JWT_SECRET'
 ];
 
-// فحص أمني استباقي للمفاتيح الحيوية
+// فحص أمني استباقي للمفاتيح الحيوية لضمان عدم توقف الخدمات
 requiredEnvs.forEach((envName) => {
   if (!process.env[envName]) {
-    console.warn(`⚠️ [ENV WARNING]: المتغير البيئي الحرج "${envName}" مفقود حالياً!`);
+    console.warn(`⚠️ [ENV WARNING]: المتغير البيئي الحرج "${envName}" مفقود حالياً في بيئة الإنتاج!`);
   }
 });
 
@@ -27,7 +27,7 @@ export const env = {
   port: process.env.PORT || 5000,
   nodeEnv: process.env.NODE_ENV || 'development',
   
-  // سوبابيس السيادية لعمليات التحقق العميقة في السيرفر
+  // سوبابيس السيادية لعمليات التحقق العميقة في السيرفر وتخطي الـ RLS
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   
@@ -35,11 +35,11 @@ export const env = {
   openaiApiKey: process.env.OPENAI_API_KEY,
   openaiModel: process.env.OPENAI_MODEL || 'openai/gpt-oss-120b:free', 
   
-  // بوابة الدفع السعودية ميسر
+  // بوابة الدفع السعودية ميسر لبناء أنظمة اشتراكات SaaS مستقرة
   moyasarSecretKey: process.env.MOYASAR_SECRET_KEY,
   moyasarWebhookSecret: process.env.MOYASAR_WEBHOOK_SECRET,
   
-  // الأمان والتشفير للجلسات الداخلية
+  // الأمان والتشفير للجلسات الداخلية وحزم البيانات
   jwtSecret: process.env.JWT_SECRET || 'trendaura-core-tactical-secret-key-2026',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d'
 };

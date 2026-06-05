@@ -5,24 +5,26 @@ export const authGuard = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    // 🛡️ السماح بمرور الطلبات بدون توكن (للتعامل معها في الـ Controller)
+    // السماح بمرور الطلبات بدون توكن للتعامل معها في الـ Controller أو حظرها شرطياً
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       req.user = null;
-      return next();
+      return res.status(CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json({
+        success: false,
+        error: CONSTANTS.ERROR_MESSAGES.UNAUTHORIZED
+      });
     }
 
     const token = authHeader.split(' ')[1];
 
-    // 🚀 الحل القاطع: إرسال التوكن لـ Supabase للتحقق منه مباشرة
-    // هذا يتجاوز مشكلة (ES256) لأن Supabase هو من سيقوم بفك التشفير
-    const supabaseUrl = env.supabaseUrl || process.env.SUPABASE_URL;
-    const supabaseKey = env.supabaseServiceRoleKey || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+    // الحل القاطع: إرسال التوكن لـ Supabase للتحقق منه مباشرة لتخطي معايير تشفير ES256
+    const supabaseUrl = env.supabaseUrl;
+    const supabaseKey = env.supabaseServiceKey; // تم سحق الثغرة ومطابقتها للمتغير الفعلي بالملي
 
     if (!supabaseUrl || !supabaseKey) {
-      console.error('❌ [authGuard Error]: Missing Supabase Credentials in Server');
+      console.error('❌ [authGuard Error]: Missing Supabase Credentials in Server config');
       return res.status(CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
-        error: 'خطأ في إعدادات الخادم الأمنية.'
+        error: 'خطأ في إعدادات الخادم الأمنية الفيدرالية.'
       });
     }
 
@@ -35,16 +37,16 @@ export const authGuard = async (req, res, next) => {
     });
 
     if (!response.ok) {
-      console.error('❌ [Supabase Verification Error]: Token Rejected by Supabase');
+      console.error('❌ [Supabase Verification Error]: Token Rejected by Auth Engine');
       return res.status(CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json({
         success: false,
-        error: 'انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول.'
+        error: 'انتهت صلاحية الجلسة الحية للمتصفح، يرجى إعادة تسجيل الدخول.'
       });
     }
 
-    // 🟢 التوكن سليم! جلب بيانات المستخدم
     const user = await response.json();
 
+    // حقن كائن المستخدم المصادق عليه بداخل الطلب الحالي
     req.user = {
       id: user.id,
       email: user.email,

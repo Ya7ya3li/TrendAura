@@ -4,7 +4,7 @@ import { authGuard } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// 👑 الاستعلام عن صلاحيات وقدرات باقة الاشتراك الحالية
+// 👑 الاستعلام الفوري عن قيود ومميزات باقة الاشتراك النشطة حالياً للمستخدم
 router.get('/details', authGuard, subscriptionController.checkSubscriptionDetails);
 
 export default router;

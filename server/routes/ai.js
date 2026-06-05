@@ -5,8 +5,10 @@ import { validateRequest } from '../middleware/validateRequest.js';
 
 const router = express.Router();
 
-// 🧠 مسار توليد السكريبتات والهندسة النفسية الخاطفة للفيديو
+// 🧠 مسار توليد السكريبتات وهندسة الخطافات النفسية الخاطفة للفيديو
 router.post('/generate', authGuard, validateRequest.generationBody, aiController.generateScript);
-// أضف هذا السطر بعد مسار الـ generate
+
+// 🔬 مسار تحليل مؤشرات الفيروسية وأوقات ونسب احتفاظ الجماهير (Retention Rate)
 router.post('/analyze-metrics', authGuard, aiController.analyzeScriptMetrics);
+
 export default router;

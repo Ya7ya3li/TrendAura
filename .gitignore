@@ -1,15 +1,16 @@
-# 📦 Dependency Directories (حظر كتل الحزم الثقيلة)
+# 📦 Dependency Directories (حظر كتل الحزم الثقيلة لمنع تضخم الرفع)
 node_modules/
 /client/node_modules/
 /server/node_modules/
 
-# 🏗️ Build & Production Outputs (مخرجات البناء والرفع)
+# 🏗️ Build & Production Outputs (مخرجات البناء والرفع السحابي)
 dist/
 /client/dist/
 out/
 build/
+.vercel
 
-# 🔐 Environment Variables & Secrets (المفاتيح السرية الحساسة)
+# 🔐 Environment Variables & Secrets (المفاتيح السرية الحساسة والحصون الأمنية)
 .env
 .env.local
 .env.development.local
@@ -18,7 +19,7 @@ build/
 /client/.env
 /server/.env
 
-# 🪵 Logs and Diagnostics (ملفات التدوين والأخطاء)
+# 🪵 Logs and Diagnostics (ملفات التدوين والأخطاء التقنية)
 logs
 *.log
 npm-debug.log*
@@ -26,7 +27,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# 🖥️ System & IDE Files (ملفات أنظمة التشغيل والمحررات)
+# 🖥️ System & IDE Files (ملفات أنظمة التشغيل والمحررات البرمجية)
 .DS_Store
 Thumbs.db
 .idea/

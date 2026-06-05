@@ -17,15 +17,15 @@ export const subscriptionController = {
 
       if (error) throw error;
 
-      // جلب حدود الباقة الحالية الثابتة من ملف الإعدادات الكلية
-      const currentLimits = CONSTANTS.PLAN_LIMITS[data.plan || 'free'];
+      // جلب حدود وقيود الباقة النشطة من ملف الثوابت الكلية الحامي للنظام الخلفي
+      const currentLimits = CONSTANTS.PLAN_LIMITS[data.plan || 'free'] || CONSTANTS.PLAN_LIMITS['free'];
 
       return res.status(CONSTANTS.HTTP_STATUS.OK).json({
         success: true,
         data: {
-          tier: data.plan,
+          tier: data.plan || 'free',
           status: data.subscription_status || 'active',
-          endsAt: data.current_period_end,
+          endsAt: data.current_period_end || null,
           limits: currentLimits
         }
       });

@@ -15,9 +15,9 @@ export const logger = {
 
   error: (message, errorInstance = null) => {
     const timestamp = new Date().toISOString();
-    console.error(`🚨 [CRITICAL ERROR] [${timestamp}] ${message}`, {
-      errorMessage: errorInstance?.message || 'Unknown Exception',
-      errorStack: errorInstance?.stack || 'No Stack Available'
+    console.error(`🚨 [CRITICAL SYSTEM ERROR] [${timestamp}] ${message}`, {
+      errorMessage: errorInstance?.message || 'Unknown Exception Boundary',
+      errorStack: errorInstance?.stack || 'No Stack Traces Available'
     });
   }
 };

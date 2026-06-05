@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
-    // 🛡️ توجيه وتأمين مسارات الاتصال بالسيرفر محلياً
+    // 🛡️ توجيه وتأمين مسارات الاتصال بالسيرفر محلياً لمنع تداخل طلبات الأمان
     proxy: {
       '/api': {
         target: 'http://localhost:5000',

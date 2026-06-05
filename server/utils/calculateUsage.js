@@ -10,7 +10,7 @@ export const calculateUsage = (generationCount = 0, dailyMaxLimit = 5) => {
     used,
     remaining,
     percentage: Math.round(usagePercentage),
-    isDangerZone: usagePercentage >= 80, // تفعيل حالة الخطر والتحذير عند استهلاك 80% فأكثر
+    isDangerZone: usagePercentage >= 80, // إطلاق تنبيه الخطر المالي عند استهلاك 80% من الحصة المتاحة للحساب
     canGenerate: remaining > 0
   };
 };
