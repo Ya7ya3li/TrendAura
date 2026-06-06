@@ -16,10 +16,14 @@ export const ThemeProvider = ({ children }) => {
     if (theme === 'dark') {
       root.classList.remove('light')
       root.classList.add('dark')
+      root.style.setProperty('--bg-main', '#020617')
+      root.style.setProperty('--text-main', '#f8fafc')
       root.style.colorScheme = 'dark'
     } else {
       root.classList.remove('dark')
       root.classList.add('light')
+      root.style.setProperty('--bg-main', '#f8fafc')
+      root.style.setProperty('--text-main', '#0f172a')
       root.style.colorScheme = 'light'
     }
     localStorage.setItem('trendaura-theme', theme)

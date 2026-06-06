@@ -18,7 +18,6 @@ export const AuthProvider = ({ children }) => {
 
       if (data) return data
 
-      // هندسة بروفايل جديد متكامل البيانات في حال عدم العثور عليه
       const newProfile = {
         id: userId,
         full_name: metadata?.full_name || metadata?.name || email?.split('@')[0] || 'مستخدم جديد',
@@ -36,8 +35,19 @@ export const AuthProvider = ({ children }) => {
 
       return insertError ? newProfile : insertedData
     } catch (err) {
-      console.error('❌ [Profile Synchronization Failure]:', err.message)
+      console.error('❌ [Profile Sync Failure]:', err.message)
       return null
+    }
+  }
+
+  // 🚀 دالة تسجيل الخروج الفورية المحدثة لضمان الاستجابة اللحظية بنسبة 100%
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      setProfile(null)
+    } catch (err) {
+      console.error('❌ [Logout Signout Exception]:', err.message)
     }
   }
 
@@ -50,14 +60,13 @@ export const AuthProvider = ({ children }) => {
         
         if (session?.user && active) {
           setUser(session.user)
-          // 🚀 تشغيل الجلب بالخلفية لضمان إقلاع صاروخي فوري دون حجب التحكم
           fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
             .then(p => {
               if (active && p) setProfile(p)
             })
         }
       } catch (e) {
-        console.error("❌ [Auth Initialization Fatal Error]:", e)
+        console.error("❌ [Auth Init Fatal Error]:", e)
       } finally {
         if (active) setLoading(false)
       }
@@ -89,8 +98,9 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{ 
       user, 
-      profile: profile || { id: null, full_name: 'جاري جلب البيانات...', tokens: 0, plan: 'free' }, 
+      profile, 
       setProfile, 
+      logout, // حقن وإتاحة دالة الخروج السريعة
       loading 
     }}>
       {children}

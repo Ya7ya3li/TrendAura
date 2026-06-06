@@ -5,14 +5,16 @@ import axiosInstance from '../config/axios';
  */
 export const paymentService = {
   /**
-   * 💸 طلب فاتورة ورابط دفع مالي جديد من السيرفر
+   * 💸 طلب فاتورة ورابط دفع مالي جديد مشفر من السيرفر الحي على Railway
    */
-  async createInvoice(amount, planName, userId) {
+  async createInvoice(amount, planId, userId, tokensCount = 50000) {
     try {
+      // إرسال البيانات بشكل متوافق هندسياً بالكامل مع استقبال السيرفر والـ Webhook
       const response = await axiosInstance.post('/api/payment/create-invoice', {
-        amount,
-        planName,
-        userId
+        amount: Number(amount),
+        planName: planId.toLowerCase().trim(),
+        userId: userId,
+        tokensToAdd: Number(tokensCount)
       });
       return response.data;
     } catch (error) {
@@ -22,7 +24,7 @@ export const paymentService = {
   },
 
   /**
-   *  استجواب السيرفر للتحقق من نجاح عملية السداد البنكي
+   * استجواب السيرفر للتحقق من نجاح عملية السداد البنكي
    */
   async verifyPaymentStatus(paymentId) {
     try {

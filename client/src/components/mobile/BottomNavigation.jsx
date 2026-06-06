@@ -1,4 +1,13 @@
 import React from 'react'
+
+/**
+ * TrendAura Mobile Bottom Navigation - Disabled by Architectural Request
+ * Replaced entirely by the global top hamburger menu drawer.
+ */
+export default function BottomNavigation() {
+  return null
+}
+
 import { useNavigate, useLocation } from 'react-router-dom'
 import { SIDEBAR_ITEMS } from '../../constants/sidebarItems.js'
 

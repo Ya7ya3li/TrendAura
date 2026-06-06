@@ -2,18 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-/* تهيئة وتأمين البنية التحتية لعرض نصوص وصفحات المنصة */
+:root {
+  --bg-main: #f8fafc;
+  --text-main: #0f172a;
+}
+
+.dark {
+  --bg-main: #020617;
+  --text-main: #f8fafc;
+}
+
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-main); /* ربط هيدروليكي فائق التجاوب */
-  color: var(--text-main);           /* سحق ثغرة الجمود اللوني للوضع الفاتح */
+  background-color: var(--bg-main) !important;
+  color: var(--text-main) !important;
   overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* 📐 المحرك الهندسي العالمي للتحكم في الحواف والزوايا (Global Radius Engine) */
+/* التبديل الشامل لحاويات خطوط الإنتاج والوضع الفاتح */
+.light .bg-slate-950,
+.light .bg-slate-900,
+.light .bg-slate-900\/40 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
 
-/* 1️⃣ خيار الحواف الدائرية الفخمة النشط (28px) */
+.light .text-white,
+.light .text-slate-200,
+.light .text-slate-300 {
+  color: #0f172a !important;
+}
+
+.light .text-slate-400,
+.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* المحرك الهندسي الفاخر للحواف والمنحنيات */
 .radius-premium .rounded-3xl,
 .radius-premium .rounded-\[32px\],
 .radius-premium .rounded-\[28px\] {
@@ -26,7 +53,6 @@ body {
   border-radius: 14px !important;
 }
 
-/* 2️⃣ خيار الحواف الكلاسيكية الحادة النشط (12px) */
 .radius-classic .rounded-3xl,
 .radius-classic .rounded-\[32px\],
 .radius-classic .rounded-\[28px\],
@@ -35,17 +61,15 @@ body {
   border-radius: 12px !important;
 }
 
-/* 🌌 لمسات النيون السيبرانية الإضافية لدعم حواف اللوحات الفاخرة */
 @keyframes neonPulse {
-  0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 2px #00f2fe); }
-  50% { opacity: 1; filter: drop-shadow(0 0 10px #00f2fe); }
+  0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 2px #3b82f6); }
+  50% { opacity: 1; filter: drop-shadow(0 0 10px #3b82f6); }
 }
 
 .animate-neon-pulse {
   animation: neonPulse 2.5s infinite ease-in-out;
 }
 
-/* فلتر تصفية زجاج الجلاس مورفيزم السيبراني */
 .backdrop-blur-cyber {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
