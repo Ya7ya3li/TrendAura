@@ -4,23 +4,26 @@ import crypto from 'crypto';
 
 export const paymentController = {
   /**
-   * 💸 إنشاء وتأمين فاتورة دفع جديدة عبر بوابة ميسر مع تفعيل وضع المحاكاة كدرع أمان بديل
+   * 💸 إنشاء وتأمين فاتورة دفع جديدة عبر بوابة ميسر مع تفعيل وضع المحاكاة الديناميكي
    */
   createInvoice: async (req, res) => {
     try {
       const { amount, planName, userId, tokensToAdd } = req.body;
       const moyasarKey = process.env.MOYASAR_SECRET_KEY || '';
 
+      // 🏆 قراءة نطاق الواجهة الأمامية ديناميكياً لتجنب كراش الـ 404 على أي دومين
+      const origin = req.headers.origin || 'https://trendaura-two.vercel.app';
+
       if (!userId) {
         return res.status(400).json({ success: false, error: 'المستخدم غير ممرر بشكل صحيح.' });
       }
 
-      // 🛡️ خط الدفاع والتحفيز البديل: في حال لم يفعل المستخدم مفاتيح ميسر الحية بعد، نقوم بتسهيل السداد بـ Simulation
+      // 🛡️ وضع المحاكاة البديل: إذا كانت المفاتيح الحية غير مدخلة بعد، نسهل السداد ديناميكياً
       if (!moyasarKey) {
         const mockInvoiceId = `sim_invoice_${crypto.randomUUID().slice(0, 8)}`;
         
-        // محاكاة إدراج المعاملة الناجحة لتسهيل الدورة المالية
-        const simulatedUrl = `https://trendaura.vercel.app/success?payment_id=${mockInvoiceId}&amount=${amount}&plan=${planName}`;
+        // المحاكاة ترجعك إلى الدومين الذي أرسل الطلب حالياً بالملي دون هبوط خاطئ
+        const simulatedUrl = `${origin}/success?payment_id=${mockInvoiceId}&amount=${amount}&plan=${planName}`;
         
         return res.status(200).json({
           success: true,
@@ -40,7 +43,7 @@ export const paymentController = {
           amount: amount * 100, // ميسر يقبل الهلالات
           currency: 'SAR',
           description: `TrendAura - ${planName.toUpperCase()} Pack`,
-          callback_url: `https://trendaura.vercel.app/success`,
+          callback_url: `${origin}/success`, // 🏆 ديناميكي تماماً للموقع التجريبي أو الدومين النهائي
           metadata: {
             user_id: userId,
             plan_id: planName,
@@ -64,8 +67,8 @@ export const paymentController = {
 
     } catch (error) {
       console.error('❌ [paymentController createInvoice Error]:', error.message);
-      // وضع حماية لتفادي تعطيل المستخدم
-      const fallbackUrl = `https://trendaura.vercel.app/success?payment_id=sim_err_${Date.now()}&amount=${req.body.amount || 99}&plan=${req.body.planName || 'pro'}`;
+      const originFallback = req.headers.origin || 'https://trendaura-two.vercel.app';
+      const fallbackUrl = `${originFallback}/success?payment_id=sim_err_${Date.now()}&amount=${req.body.amount || 99}&plan=${req.body.planName || 'pro'}`;
       return res.status(200).json({ success: true, invoiceUrl: fallbackUrl });
     }
   },
