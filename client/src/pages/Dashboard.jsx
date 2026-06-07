@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react'
+import React, { useContext, useState } from 'react'
 import { AuthContext } from '../context/AuthContext.jsx'
 import GeneratorBox from '../components/dashboard/GeneratorBox.jsx'
 import ScriptCard from '../components/dashboard/ScriptCard.jsx'
@@ -6,14 +6,16 @@ import HashtagsCard from '../components/dashboard/HashtagsCard.jsx'
 import BestTimeCard from '../components/dashboard/BestTimeCard.jsx'
 import ViralIdeasCard from '../components/dashboard/ViralIdeasCard.jsx'
 import ViralEngineCard from '../components/dashboard/ViralEngineCard.jsx'
-import ProtectedFeature from '../components/common/ProtectedFeature.jsx' // 🏆 استيراد جدار حماية المميزات
+import ProtectedFeature from '../components/common/ProtectedFeature.jsx' // 🏆 استدعاء بوابات حماية المميزات
 import useAiGenerator from '../hooks/useAiGenerator.js'
-import useResponsive from '../hooks/useResponsive.js'
 
+/**
+ * TrendAura Core AI Generation Dashboard Page
+ * تم سحق ورقة مخرجات الجوال (MobileResultSheet) ليكون السكربت ظاهراً بالكامل بالصفحة لنسخه وحفظه بنجاح
+ */
 export default function Dashboard() {
   const { profile, loading: authLoading } = useContext(AuthContext)
   const { prompt, setPrompt, loading: aiLoading, result, generateScript } = useAiGenerator()
-  const { isMobile } = useResponsive()
 
   const currentPlan = profile?.plan || 'free'
 
@@ -26,10 +28,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto select-none animate-fade-in dir-rtl text-right font-sans">
+    <div className="w-full max-w-[1400px] mx-auto select-text animate-fade-in dir-rtl text-right font-sans">
       
-      {/* الترويسة العليا للمستخدم */}
-      <div className="w-full flex items-center justify-between mb-8 pb-4 border-b border-slate-800/40">
+      {/* الترويسة العليا والترحيب الفخم بالمشترك */}
+      <div className="w-full flex items-center justify-between mb-8 pb-4 border-b border-slate-900/60">
         <div className="flex flex-col">
           <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
             صناعة المحتوى بالذكاء الاصطناعي <span className="text-blue-500 dark:text-cyan-400">✦</span>
@@ -40,7 +42,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* صندوق المدخلات الفاخر */}
+      {/* صندوق المدخلات الفاخر لكتابة الأفكار وتحديد الباركود */}
       <div className="w-full mb-8">
         <GeneratorBox 
           prompt={prompt} 
@@ -50,7 +52,7 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* 🚀 شبكة توزيع كروت النتائج المحدثة لتعرض كرت السيناريو على الجوال والديسك توب معاً لتمكين النسخ المباشر وسحق الـ Popup كلياً */}
+      {/* 🚀 شبكة توزيع كروت النتائج المحدثة لتعرض كرت السيناريو على الجوال والديسك توب معاً لتمكين النسخ وحفظ النصوص بالملي */}
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
         
         {/* كرت السيناريو والمخرجات يظهر للجميع لدعم التحديد والنسخ بنقرة زر */}
@@ -62,7 +64,7 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* الكروت والتحليلات الجانبية مغلفة ومقيدة بالملي بحصانة الباقات الفاخرة */}
+        {/* الكروت والتحليلات الجانبية مغلفة ومقيدة بالملي بحصانة باقة حساب العميل */}
         <div className="flex flex-col gap-6">
           <ProtectedFeature currentPlan={currentPlan} minRequiredPlan="pro" featureName="الهاشتاقات الفايرال">
             <HashtagsCard hashtags={result?.hashtags} />
