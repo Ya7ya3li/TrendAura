@@ -1,26 +1,32 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getPlanTier } from '../../constants/plans.js'
 import { ROUTES } from '../../constants/routes.js'
 
 export default function ProtectedFeature({ currentPlan = 'free', minRequiredPlan = 'pro', featureName = 'الميزة المتقدمة', children }) {
   const navigate = useNavigate()
   
-  const userPlanClean = (currentPlan || 'free').toLowerCase().trim()
-  const reqPlanClean = (minRequiredPlan || 'pro').toLowerCase().trim()
+  const userPlanClean = String(currentPlan || 'free').toLowerCase().trim()
+  const reqPlanClean = String(minRequiredPlan || 'pro').toLowerCase().trim()
 
-  const userTier = getPlanTier(userPlanClean)
-  const requiredTier = getPlanTier(reqPlanClean)
+  // ميزان قياس رتب الباقات داخلياً لضمان صفر تداخل أو أخطاء
+  const getPlanTierLocal = (plan) => {
+    if (plan === 'viral_engine') return 3
+    if (plan === 'pro') return 2
+    return 1 // free
+  }
 
-  // فتح الميزة فورا إذا كان مستوى باقة العميل أكبر أو يساوي المستوى المطلوب
+  const userTier = getPlanTierLocal(userPlanClean)
+  const requiredTier = getPlanTierLocal(reqPlanClean)
+
+  // فتح الميزة فوراً ومباشرة إذا كانت رتبة باقة العميل تطابق أو تتفوق على المطلوب
   if (userTier >= requiredTier) {
     return <>{children}</>
   }
 
   return (
-    <div className="relative border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-900/10 p-2 min-h-[240px] flex items-center justify-center select-none group transition-all duration-300 shadow-inner">
+    <div className="relative border border-slate-200 dark:border-slate-800 rounded-[28px] overflow-hidden bg-slate-50 dark:bg-slate-900/10 p-2 min-h-[220px] flex items-center justify-center select-none group transition-all duration-300 shadow-inner">
       
-      {/* غطاء ضبابي يعزل محتويات الميزة المتقدمة بالكامل لمنع استهلاكها */}
+      {/* غطاء ضبابي عميق يعزل الأرقام والبيانات الحقيقية في الخلفية */}
       <div className="w-full h-full opacity-5 dark:opacity-10 blur-xl pointer-events-none filter select-none">
         {children}
       </div>

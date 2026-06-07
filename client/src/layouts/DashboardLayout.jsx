@@ -1,29 +1,33 @@
 import React, { useContext } from 'react'
 import { Outlet, Navigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext.jsx'
-import { ROUTES } from '../constants/routes.js' // استيراد موثق للثوابت
+import { ROUTES } from '../constants/routes.js'
 import Sidebar from '../components/sidebar/Sidebar.jsx'
 import Navbar from '../components/navbar/Navbar.jsx'
-import BottomNavigation from '../components/mobile/BottomNavigation.jsx'
+import MobileSidebar from '../components/sidebar/MobileSidebar.jsx' // 🏆 تم استدعاء السايدبار المتحرك للجوال
 
 export default function DashboardLayout() {
   const { user, loading } = useContext(AuthContext)
 
-  // 🛡️ صواريخ طرد المتسللين وغير المصرح لهم فوراً نحو صفحة الدخول الموحدة
+  // 🛡️ توجيه فوري لصفحة الدخول في حال عدم وجود جلسة نشطة
   if (!loading && !user) {
-    return <Navigate to={ROUTES.LOGIN} replace /> // 🏆 سحق الثغرة النصية الصلبة
+    return <Navigate to={ROUTES.LOGIN} replace />
   }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row antialiased relative overflow-hidden">
       
+      {/* هالات النيون الخلفية الجمالية */}
       <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[160px] pointer-events-none select-none z-0" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none select-none z-0" />
 
-      {/* 🗂️ الشريط الجانبي المكتبي المحكم في الجهة اليمنى القياسية (RTL Architecture) */}
+      {/* 🗂️ الشريط الجانبي المكتبي المحكم في الجهة اليمنى القياسية */}
       <aside className="hidden md:block w-64 flex-shrink-0 border-l border-slate-900 bg-slate-950 relative z-20">
         <Sidebar />
       </aside>
+
+      {/* 📱 السايدبار المنزلق الخاص بالجوال - تم حقنه وتفعيله ليعمل عبر الـ AppContext */}
+      <MobileSidebar />
 
       {/* 🖥️ المحور والمنطقة الجدارية المركزية للمحتوى */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative z-10">
@@ -38,11 +42,6 @@ export default function DashboardLayout() {
           </div>
         </main>
       </div>
-
-      {/* 📱 شريط التنقل السفلي الفاخر لشاشات الموبايل */}
-      <nav className="block md:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-950 border-t border-slate-900 z-30">
-        <BottomNavigation />
-      </nav>
 
     </div>
   )

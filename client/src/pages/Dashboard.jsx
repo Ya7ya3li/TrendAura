@@ -6,7 +6,7 @@ import HashtagsCard from '../components/dashboard/HashtagsCard.jsx'
 import BestTimeCard from '../components/dashboard/BestTimeCard.jsx'
 import ViralIdeasCard from '../components/dashboard/ViralIdeasCard.jsx'
 import ViralEngineCard from '../components/dashboard/ViralEngineCard.jsx'
-import MobileResultSheet from '../components/mobile/MobileResultSheet.jsx'
+import ProtectedFeature from '../components/common/ProtectedFeature.jsx' // 🏆 استيراد جدار حماية المميزات
 import useAiGenerator from '../hooks/useAiGenerator.js'
 import useResponsive from '../hooks/useResponsive.js'
 
@@ -14,15 +14,8 @@ export default function Dashboard() {
   const { profile, loading: authLoading } = useContext(AuthContext)
   const { prompt, setPrompt, loading: aiLoading, result, generateScript } = useAiGenerator()
   const { isMobile } = useResponsive()
-  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false)
 
-  useEffect(() => {
-    if (result && result.hook && result.script) {
-      if (result.script !== 'تم صياغة السيناريو بنجاح.' && isMobile) {
-        setIsMobileSheetOpen(true)
-      }
-    }
-  }, [result, isMobile])
+  const currentPlan = profile?.plan || 'free'
 
   if (authLoading) {
     return (
@@ -57,35 +50,40 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* شبكة توزيع كروت النتائج والإحصائيات - لا تعرض الكروت مكررة على الجوال لمنع التشتت */}
+      {/* 🚀 شبكة توزيع كروت النتائج المحدثة لتعرض كرت السيناريو على الجوال والديسك توب معاً لتمكين النسخ المباشر وسحق الـ Popup كلياً */}
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-        <div className={`lg:col-span-1 h-full ${isMobile ? 'hidden' : 'block'}`}>
+        
+        {/* كرت السيناريو والمخرجات يظهر للجميع لدعم التحديد والنسخ بنقرة زر */}
+        <div className="lg:col-span-1 h-full block">
           <ScriptCard 
             hook={result?.hook} 
             script={result?.script} 
-            cta={result?.cta} // ربط حقيقي مباشر مع مخرجات السيرفر
+            cta={result?.cta}
           />
         </div>
 
+        {/* الكروت والتحليلات الجانبية مغلفة ومقيدة بالملي بحصانة الباقات الفاخرة */}
         <div className="flex flex-col gap-6">
-          <HashtagsCard hashtags={result?.hashtags} />
-          <BestTimeCard customTimes={result?.bestTimes} />
+          <ProtectedFeature currentPlan={currentPlan} minRequiredPlan="pro" featureName="الهاشتاقات الفايرال">
+            <HashtagsCard hashtags={result?.hashtags} />
+          </ProtectedFeature>
+
+          <ProtectedFeature currentPlan={currentPlan} minRequiredPlan="pro" featureName="أفضل أوقات النشر">
+            <BestTimeCard customTimes={result?.bestTimes} />
+          </ProtectedFeature>
         </div>
 
         <div className="flex flex-col gap-6">
-          <ViralIdeasCard customIdeas={result?.viralIdeas} />
-          <ViralEngineCard plan={profile?.plan || 'free'} />
+          <ProtectedFeature currentPlan={currentPlan} minRequiredPlan="viral_engine" featureName="أفكار المحتوى الفايرال">
+            <ViralIdeasCard customIdeas={result?.viralIdeas} />
+          </ProtectedFeature>
+          
+          <ProtectedFeature currentPlan={currentPlan} minRequiredPlan="viral_engine" featureName="محرك الفايرال الخارق">
+            <ViralEngineCard plan={currentPlan} />
+          </ProtectedFeature>
         </div>
+
       </div>
-
-      {/* شاشة ورقة النتائج العائمة والخاصة بالجوال فقط لضمان تجربة مستخدم خرافية */}
-      <MobileResultSheet 
-        isOpen={isMobileSheetOpen}
-        onClose={() => setIsMobileSheetOpen(false)}
-        hook={result?.hook}
-        script={result?.script}
-        hashtags={result?.hashtags}
-      />
 
     </div>
   )

@@ -7,7 +7,7 @@ export const PLANS = [
   {
     id: 'free',
     tier: 1,
-    name: 'الباقة المجانية ⚪️',
+    name: 'الباقة المجانية ',
     price: '0',
     currency: 'ريال',
     period: 'شهر',
@@ -27,7 +27,7 @@ export const PLANS = [
   {
     id: 'pro',
     tier: 2,
-    name: 'الأكثر شعبية Pro 🟢',
+    name: 'pro',
     price: '29',
     currency: 'ريال',
     period: 'شهر',
@@ -47,12 +47,12 @@ export const PLANS = [
       'تحسين CTA للنهاية',
       'توليد أفكار يومية ترند'
     ],
-    buttonText: 'ترقية إلى Pro'
+    buttonText: 'أشترك الآن'
   },
   {
     id: 'viral_engine',
     tier: 3,
-    name: 'اختيار صناع المحتوى • Viral Engine 🔴',
+    name: 'Viral Engine ',
     price: '69',
     currency: 'ريال',
     period: 'شهر',
@@ -74,7 +74,7 @@ export const PLANS = [
       'أولوية مطلقة في التوليد',
       'دعم VIP 24/7'
     ],
-    buttonText: 'تفعيل المحرك'
+    buttonText: 'أشترك الآن'
   }
 ];
 

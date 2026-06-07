@@ -26,14 +26,14 @@ export default function PricingCard({ plan, isCurrent, userId }) {
       {isViral && (
         <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-rose-600 to-orange-500 text-white font-black text-[9px] px-4 py-1 rounded-full uppercase tracking-wider shadow-lg shadow-rose-600/30 whitespace-nowrap flex items-center gap-1.5">
           <svg className="w-3 h-3 text-white animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464a1 1 0 10-1.414-1.414l-.707.707a1 1 0 101.414 1.414l.707-.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM12 14a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-          <span>اختيار صناع المحتوى النخبة</span>
+          <span>اختيار صناع المحتوى </span>
         </div>
       )}
 
       {isPro && (
         <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-black text-[9px] px-4 py-1 rounded-full uppercase tracking-wider shadow-lg shadow-blue-600/30 whitespace-nowrap flex items-center gap-1.5">
           <svg className="w-3 h-3 text-white animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-          <span>الأكثر شعبية ونمواً</span>
+          <span>الأكثر شعبية </span>
         </div>
       )}
 

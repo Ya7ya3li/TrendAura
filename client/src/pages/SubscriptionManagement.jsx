@@ -59,7 +59,7 @@ export default function SubscriptionManagement() {
     try {
       await supabase.from('profiles').update({ plan: 'free', subscription_status: 'cancelled' }).eq('id', profile.id)
       setProfile(prev => ({ ...prev, plan: 'free', subscription_status: 'cancelled' }))
-      if (typeof showToast === 'function') showToast('تم إلغاء الاشتراك بنجاح وسرعة', 'success')
+      if (typeof showToast === 'function') showToast('تم إلغاء الاشتراك بنجاح ', 'success')
     } catch (err) {
       if (typeof showToast === 'function') showToast('حدث خطأ أثناء إلغاء الاشتراك', 'error')
     } finally {
@@ -71,7 +71,7 @@ export default function SubscriptionManagement() {
     const link = `https://trendaura.com/register?ref=${profile?.id || 'aura'}`
     navigator.clipboard.writeText(link)
     setCopied(true)
-    if (typeof showToast === 'function') showToast('تم نسخ رابط الإحالة الاستراتيجي بنجاح 🎁', 'success')
+    if (typeof showToast === 'function') showToast('تم نسخ رابط الإحالة  بنجاح 🎁', 'success')
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -79,12 +79,12 @@ export default function SubscriptionManagement() {
 
   return (
     <div className={`w-full max-w-5xl mx-auto p-4 md:p-6 font-sans select-none pb-24 md:pb-6 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-      <SectionTitle title="إدارة الاشتراك والفوترة الفاخرة" subtitle="بوابات الفوترة، حزم شحن التوكنز، ونظام المكافآت العالمي" badge="Enterprise Billing" />
+      <SectionTitle title="إدارة الاشتراك والفوترة " subtitle="بوابات الفوترة، حزم شحن التوكنز، ونظام المكافآت " badge="Enterprise Billing" />
 
       {/* مصفوفة الكروت العلوية المطورة */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         
-        {/* كرت الباقة النشطة الفاخر */}
+        {/* كرت الباقة النشطة*/}
         <div className={`${cardClass} border-l-4 border-l-blue-600 dark:border-l-cyan-500 relative overflow-hidden`}>
           <div className="absolute top-0 left-0 bg-blue-500/10 px-4 py-1 rounded-bl-2xl text-[9px] font-black font-sans text-blue-600 dark:text-cyan-400">STATUS: LIVE</div>
           <p className="text-[10px] font-black text-blue-600 dark:text-cyan-400 uppercase tracking-widest">الباقة والاشتراك الحالي</p>
@@ -94,7 +94,7 @@ export default function SubscriptionManagement() {
           <div className="flex flex-col sm:flex-row gap-3 mt-auto">
             {isFree ? (
               <Button onClick={() => triggerMoyasarCheckout(99, 'pro', 50000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md">
-                اشترك الآن في الباقة الملوكية ✦
+                اشترك الآن✦
               </Button>
             ) : (
               <>
@@ -114,36 +114,36 @@ export default function SubscriptionManagement() {
         {/* كرت محفظة التوكنز وحزم الشحن السريع */}
         <div className={`${cardClass} border-r-4 border-r-indigo-600 dark:border-r-pink-500 flex flex-col justify-between`}>
           <div>
-            <p className="text-[10px] font-black text-indigo-600 dark:text-pink-400 uppercase tracking-widest">محفظة التوكنز الذكية</p>
+            <p className="text-[10px] font-black text-indigo-600 dark:text-pink-400 uppercase tracking-widest">محفظة التوكنز </p>
             <h2 className="text-3xl font-black mt-2 text-slate-900 dark:text-white font-sans">{(profile?.tokens || 0).toLocaleString()} <span className="text-xs text-slate-400">توكن متوفر</span></h2>
             <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">تستهلك المنظومة 10 توكنز فقط لكل سكريبت تيك توك فايرال يتم صياغته.</p>
           </div>
           
           <div className="border-t border-slate-100 dark:border-slate-800/60 pt-4 mt-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black text-slate-800 dark:text-slate-200">💎 حزمة شحن سريعة استثنائية</span>
+              <span className="text-[10px] font-black text-slate-800 dark:text-slate-200"> حزمة شحن سريعة </span>
               <span className="text-[11px] font-sans font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-lg">49 ريال فقط</span>
             </div>
             <Button onClick={() => triggerMoyasarCheckout(49, 'token_booster', 50000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-slate-950 text-white dark:bg-white dark:text-slate-950 hover:opacity-90 transition-all flex items-center justify-center gap-2">
-              شحن 50,000 توكن إضافي فوري ⚡
+              شحن 50,000 توكن إضافي  
             </Button>
           </div>
         </div>
       </div>
 
-      {/* 🎁 نظام الإحالة الاستراتيجي المطور الفاخر */}
+      {/* 🎁 نظام الإحالة*/}
       <div className={`${cardClass} mb-8 border-t-4 border-t-emerald-500`}>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <span className="text-[8px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md font-sans">Viral Network Growth</span>
-            <h3 className="text-sm font-black mt-1 text-slate-900 dark:text-white">برنامج نظام الإحالة الشامل الملوكي</h3>
+            <h3 className="text-sm font-black mt-1 text-slate-900 dark:text-white">برنامج نظام الإحالة</h3>
             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">شارك رابط إحالتك الفريد؛ وعند تسجيل أي مستخدم جديد عن طريقك يحصل الطرفان على <span className="text-emerald-500 font-bold">500 توكن مجاني مجاناً فوراً</span> شحناً للمحفظة!</p>
           </div>
           <button 
             onClick={copyReferralLink}
             className="w-full md:w-auto px-5 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-300 rounded-2xl text-[10px] font-black hover:border-emerald-500 dark:hover:border-emerald-500 transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
           >
-            <span>{copied ? 'تم النسخ!' : 'نسخ رابط الإحالة الخاص بي'}</span>
+            <span>{copied ? 'تم النسخ!' : 'نسخ رابط الإحالة'}</span>
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
             </svg>
@@ -154,7 +154,7 @@ export default function SubscriptionManagement() {
       {/* سجل الفواتير المالي المصقول */}
       <div className={cardClass}>
         <h3 className="text-xs font-black mb-6 text-slate-700 dark:text-slate-300 flex items-center gap-2">
-          <span>سجل الكشوفات والفواتير التاريخية المعزز</span>
+          <span>سجل الكشوفات والفواتير</span>
           <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />
         </h3>
         {loading ? (
