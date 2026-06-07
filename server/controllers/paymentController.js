@@ -2,28 +2,49 @@ import { supabase } from '../services/supabase.js';
 import { CONSTANTS } from '../config/constants.js';
 import crypto from 'crypto';
 
+/**
+ * TrendAura Gateway Webhook & Invoice Generation Controller
+ * تفعيل الرصد الهيدروليكي للمدفوعات وحقن التوكنز في سوبابيس بأمان 100%
+ */
 export const paymentController = {
   /**
-   * 💸 إنشاء وتأمين فاتورة دفع جديدة عبر بوابة ميسر مع تفعيل وضع المحاكاة الديناميكي
+   * 💸 إنشاء وتأمين فاتورة دفع جديدة عبر بوابة ميسر مع تفعيل وضع المحاكاة الديناميكي التلقائي
    */
   createInvoice: async (req, res) => {
     try {
-      const { amount, planName, userId, tokensToAdd } = req.body;
+      const { amount, planName, userId } = req.body;
       const moyasarKey = process.env.MOYASAR_SECRET_KEY || '';
 
-      // 🏆 قراءة نطاق الواجهة الأمامية ديناميكياً لتجنب كراش الـ 404 على أي دومين
+      // 🏆 قراءة نطاق الواجهة الأمامية ديناميكياً لتجنب كراش الـ 404 على أي دومين وموقع تجريبي
       const origin = req.headers.origin || 'https://trendaura-two.vercel.app';
 
       if (!userId) {
         return res.status(400).json({ success: false, error: 'المستخدم غير ممرر بشكل صحيح.' });
       }
 
-      // 🛡️ وضع المحاكاة البديل: إذا كانت المفاتيح الحية غير مدخلة بعد، نسهل السداد ديناميكياً
+      // 🛡️ احتساب التوكنز سحابياً في الباك إند لضمان حماية النظام من القرصنة وتصفير المتغيرات
+      const cleanPlan = String(planName || 'pro').toLowerCase().trim();
+      let calculatedTokens = 50000; // القيمة التلقائية لباقة Pro
+      
+      if (cleanPlan === 'viral_engine' || cleanPlan === 'viral engine') {
+        calculatedTokens = 200000; // رصيد باقة الـ Viral Engine الخارقة
+      } else if (cleanPlan === 'free') {
+        calculatedTokens = 0;
+      }
+
+      // تحويل المبلغ لعدد صحيح دقيق بالهلالات (ميسر يرفض أي أرقام عشرية أو فواصل)
+      const cleanAmountHalalas = Math.round(Number(amount) * 100);
+
+      if (isNaN(cleanAmountHalalas) || cleanAmountHalalas < 100) {
+        return res.status(400).json({ success: false, error: 'مبلغ الفاتورة غير صالح، الحد الأدنى 1 ريال سعودي.' });
+      }
+
+      // 🛡️ وضع المحاكاة السلس للـ Webhook والـ success في حال عدم إدخال مفاتيح ميسر بعد
       if (!moyasarKey) {
         const mockInvoiceId = `sim_invoice_${crypto.randomUUID().slice(0, 8)}`;
         
-        // المحاكاة ترجعك إلى الدومين الذي أرسل الطلب حالياً بالملي دون هبوط خاطئ
-        const simulatedUrl = `${origin}/success?payment_id=${mockInvoiceId}&amount=${amount}&plan=${planName}`;
+        // المحاكاة ترجعك إلى الدومين الذي أرسل الطلب حالياً بالملي لتجنب الـ 404
+        const simulatedUrl = `${origin}/success?payment_id=${mockInvoiceId}&amount=${amount}&plan=${cleanPlan}`;
         
         return res.status(200).json({
           success: true,
@@ -31,6 +52,13 @@ export const paymentController = {
           message: 'تم إطلاق وضع السداد المحاكي بنجاح.'
         });
       }
+
+      // 🏆 صياغة ميتاداتا مشفرة ونصوص صافية (Strings Only) لضمان القبول الفوري بفلتر ميسر
+      const strictMetadata = {
+        user_id: String(userId),
+        plan_id: String(cleanPlan),
+        tokens_to_add: String(calculatedTokens) // تحويل قسري لنص لسحق خطأ الـ API
+      };
 
       // الاتصال الفعلي والمشفر بـ Moyasar API
       const response = await fetch('https://api.moyasar.com/v1/payments', {
@@ -40,15 +68,11 @@ export const paymentController = {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          amount: amount * 100, // ميسر يقبل الهلالات
+          amount: cleanAmountHalalas, 
           currency: 'SAR',
-          description: `TrendAura - ${planName.toUpperCase()} Pack`,
-          callback_url: `${origin}/success`, // 🏆 ديناميكي تماماً للموقع التجريبي أو الدومين النهائي
-          metadata: {
-            user_id: userId,
-            plan_id: planName,
-            tokens_to_add: tokensToAdd
-          },
+          description: `TrendAura - ${cleanPlan.toUpperCase()} Pack Activation`,
+          callback_url: `${origin}/success`, 
+          metadata: strictMetadata, // 🏆 ميتاداتا آمنة ونصوص معقمة 100%
           source: {
             type: 'hosted'
           }
@@ -57,6 +81,8 @@ export const paymentController = {
 
       const paymentData = await response.json();
       if (!response.ok) {
+        // في حال وجود أي خطأ من خوادم ميسر نقوم بطباعته بالكامل لتسهيل الرصد
+        console.error('❌ [Moyasar API Response Error]:', paymentData);
         throw new Error(paymentData.message || 'Moyasar Ingestion Fault');
       }
 
@@ -115,6 +141,7 @@ export const paymentController = {
           return res.status(CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({ success: false, error: 'بيانات ميتاداتا الفاتورة مفقودة.' });
         }
 
+        // جلب رصيد التوكنز التراكمي للعميل
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('tokens')
@@ -128,6 +155,7 @@ export const paymentController = {
 
         const newTokensBalance = (profile.tokens || 0) + tokensToAdd;
 
+        // تحديث حالة الاشتراك والباقة بمدى سريان هيدروليكي فوري
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -140,6 +168,7 @@ export const paymentController = {
 
         if (error) throw error;
 
+        // توثيق الفاتورة بجدول الفواتير في سوبابيس لتقرأها لوحة الفوترة بالفرونت إند بالملي
         await supabase.from('invoices').insert([{
           user_id: userId,
           payment_id: id,
