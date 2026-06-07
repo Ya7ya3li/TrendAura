@@ -13,9 +13,34 @@ import usageRoutes from './routes/usage.js';
 
 const app = express();
 
-// 🛡️ إعداد بروتوكولات الميدل وير العالمية لحماية البيانات
-app.use(cors({ origin: '*' })); 
+// 🛡️ مصفوفة النطاقات المسموح لها باختراق جدار السيرفر (قائمة براند TrendAura الرسمية)
+const allowedOrigins = [
+  'https://trendaura-two.vercel.app',
+  'https://trendaura.vercel.app'
+];
+
+// 1. تفعيل الميدل وير العالمي للـ CORS وتحديد الصلاحيات بالملي
+app.use(cors({
+  origin: function (origin, callback) {
+    // السماح بالطلبات الداخلية (مثل أدوات الفحص) أو النطاقات الرسمية الخاصة بك في فيرسيل
+    if (!origin || allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Blocked by TrendAura CORS Enterprise Security Policy'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: true
+}));
+
+// 🏆 2. سحق مشكلة الـ Preflight كلياً بإنهاء طلبات OPTIONS فوراً في السطر الأول قبل أي ميدل وير آخر
+app.options('*', cors());
+
+// 3. تفعيل قراءة الـ JSON بعد العبور الأمن من جدار CORS
 app.use(express.json());       
+
+// 4. تطبيق الـ rateLimiter هنا لحماية المسارات الفعلية فقط وتجنب حظر طلبات المتصفح الاستكشافية
 app.use(rateLimiter);          
 
 // 🌐 ربط وتتويج خطوط الاتصال بالـ API حسب هيكل الـ SaaS المعتمد
