@@ -22,7 +22,7 @@ export default function PricingCard({ plan, isCurrent, userId }) {
   return (
     <div className={`rounded-[28px] p-6 flex flex-col justify-between border transition-all duration-300 relative select-none text-right dir-rtl ${cardStyle}`}>
       
-      {/* ⚡ اللافتات العلوية المضيئة المدمجة برابط الـ SVG النظيف */}
+      {/* ⚡ اللافتات العلوية المضيئة المدمجة */}
       {isViral && (
         <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-rose-600 to-orange-500 text-white font-black text-[9px] px-4 py-1 rounded-full uppercase tracking-wider shadow-lg shadow-rose-600/30 whitespace-nowrap flex items-center gap-1.5">
           <svg className="w-3 h-3 text-white animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464a1 1 0 10-1.414-1.414l-.707.707a1 1 0 101.414 1.414l.707-.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM12 14a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -38,7 +38,7 @@ export default function PricingCard({ plan, isCurrent, userId }) {
       )}
 
       <div>
-        {/* شارات الحالة الدائرية المضيئة المدمجة */}
+        {/* شارات الحالة الدائرية المضيئة */}
         <div className="flex items-center justify-center gap-2 mb-4 mt-2">
           {isViral && <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.9)] shrink-0" />}
           {isPro && <span className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.9)] shrink-0" />}

@@ -24,11 +24,15 @@ export default function UpgradeButton({ planId, price, userId, isCurrent, custom
       if (typeof showToast === 'function') {
         showToast('جاري الاتصال المباشر بالبوابة المصرفية وتأمين الفاتورة المعتمدة... 💳', 'info')
       }
+      
       const response = await paymentService.createInvoice(price, planId, userId)
       
-      if (response && response.success && response.checkoutUrl) {
-        // التحويل الخارجي لصفحة السداد الآمنة لميسر خروجاً من نظام السيرفر الحقيقي المكتمل
-        window.location.href = response.checkoutUrl
+      // 🏆 تأمين وقراءة الرابط بذكاء هيدروليكي مزدوج (يقرأ invoiceUrl أو checkoutUrl لضمان الاستقرار التام)
+      const targetPaymentUrl = response?.invoiceUrl || response?.checkoutUrl;
+
+      if (response && response.success && targetPaymentUrl) {
+        // التحويل الخارجي الفوري لصفحة السداد الآمنة لميسر
+        window.location.href = targetPaymentUrl
       } else {
         throw new Error(response?.error || 'فشلت عملية إنشاء الجلسة المالية وحظر رابط البوابة')
       }
@@ -71,7 +75,7 @@ export default function UpgradeButton({ planId, price, userId, isCurrent, custom
           <span>الفعّالة</span>
         </span>
       ) : (
-        <span>{customText || 'اشترك آن '}</span>
+        <span>{customText || 'اشترك الآن '}</span>
       )}
     </button>
   )
