@@ -14,36 +14,30 @@ export const paymentController = {
     try {
       const { amount, planName, userId } = req.body;
       const moyasarKey = process.env.MOYASAR_SECRET_KEY || '';
-
-      // 🏆 قراءة نطاق الواجهة الأمامية ديناميكياً لتجنب كراش الـ 404 على أي دومين وموقع تجريبي
       const origin = req.headers.origin || 'https://trendaura-two.vercel.app';
 
       if (!userId) {
         return res.status(400).json({ success: false, error: 'المستخدم غير ممرر بشكل صحيح.' });
       }
 
-      // 🛡️ احتساب التوكنز سحابياً في الباك إند لضمان حماية النظام من القرصنة وتصفير المتغيرات
       const cleanPlan = String(planName || 'pro').toLowerCase().trim();
-      let calculatedTokens = 50000; // القيمة التلقائية لباقة Pro
+      let calculatedTokens = 50000; 
       
       if (cleanPlan === 'viral_engine' || cleanPlan === 'viral engine') {
-        calculatedTokens = 200000; // رصيد باقة الـ Viral Engine الخارقة
+        calculatedTokens = 200000; 
       } else if (cleanPlan === 'free') {
         calculatedTokens = 0;
       }
 
-      // تحويل المبلغ لعدد صحيح دقيق بالهلالات (ميسر يرفض أي أرقام عشرية أو فواصل)
       const cleanAmountHalalas = Math.round(Number(amount) * 100);
 
       if (isNaN(cleanAmountHalalas) || cleanAmountHalalas < 100) {
         return res.status(400).json({ success: false, error: 'مبلغ الفاتورة غير صالح، الحد الأدنى 1 ريال سعودي.' });
       }
 
-      // 🛡️ وضع المحاكاة السلس للـ Webhook والـ success في حال عدم إدخال مفاتيح ميسر بعد
+      // وضع المحاكاة في حال عدم وجود مفتاح
       if (!moyasarKey) {
         const mockInvoiceId = `sim_invoice_${crypto.randomUUID().slice(0, 8)}`;
-        
-        // المحاكاة ترجعك إلى الدومين الذي أرسل الطلب حالياً بالملي لتجنب الـ 404
         const simulatedUrl = `${origin}/success?payment_id=${mockInvoiceId}&amount=${amount}&plan=${cleanPlan}`;
         
         return res.status(200).json({
@@ -53,15 +47,14 @@ export const paymentController = {
         });
       }
 
-      // 🏆 صياغة ميتاداتا مشفرة ونصوص صافية (Strings Only) لضمان القبول الفوري بفلتر ميسر
       const strictMetadata = {
         user_id: String(userId),
         plan_id: String(cleanPlan),
-        tokens_to_add: String(calculatedTokens) // تحويل قسري لنص لسحق خطأ الـ API
+        tokens_to_add: String(calculatedTokens) 
       };
 
-      // الاتصال الفعلي والمشفر بـ Moyasar API
-      const response = await fetch('https://api.moyasar.com/v1/payments', {
+      // 🏆 الاتصال الصحيح بـ Invoices API لفتح صفحة ميسر الرسمية المستضافة
+      const response = await fetch('https://api.moyasar.com/v1/invoices', {
         method: 'POST',
         headers: {
           'Authorization': `Basic ${Buffer.from(moyasarKey + ':').toString('base64')}`,
@@ -72,30 +65,26 @@ export const paymentController = {
           currency: 'SAR',
           description: `TrendAura - ${cleanPlan.toUpperCase()} Pack Activation`,
           callback_url: `${origin}/success`, 
-          metadata: strictMetadata, // 🏆 ميتاداتا آمنة ونصوص معقمة 100%
-          source: {
-            type: 'creditcard'
-          }
+          metadata: strictMetadata
         })
       });
 
       const paymentData = await response.json();
       if (!response.ok) {
-        // في حال وجود أي خطأ من خوادم ميسر نقوم بطباعته بالكامل لتسهيل الرصد
         console.error('❌ [Moyasar API Response Error]:', paymentData);
         throw new Error(paymentData.message || 'Moyasar Ingestion Fault');
       }
 
+      // 🏆 في نظام الفواتير، الرابط يعود في متغير url مباشرة
       return res.status(200).json({
         success: true,
-        invoiceUrl: paymentData.source.transaction_url // توجيه مالي آمن
+        invoiceUrl: paymentData.url 
       });
 
     } catch (error) {
       console.error('❌ [paymentController createInvoice Error]:', error.message);
-      const originFallback = req.headers.origin || 'https://trendaura-two.vercel.app';
-      const fallbackUrl = `${originFallback}/success?payment_id=sim_err_${Date.now()}&amount=${req.body.amount || 99}&plan=${req.body.planName || 'pro'}`;
-      return res.status(200).json({ success: true, invoiceUrl: fallbackUrl });
+      // 🏆 تم إلغاء الخدعة القديمة، الآن السيرفر سيرفض الطلب بـ 400 إذا فشل الدفع فعلياً لتعرف السبب
+      return res.status(400).json({ success: false, error: error.message });
     }
   },
 
