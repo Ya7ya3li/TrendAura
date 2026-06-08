@@ -117,9 +117,11 @@ export const paymentController = {
   /**
    * 🔔 استقبال إشارات السداد (Webhooks) من ميسر وحقن رصيد التوكنز وتفعيل الباقات في سوبابيس
    */
-  handleWebhook: async (req, res) => {
+handleWebhook: async (req, res) => {
     try {
-      const { id, status, amount, metadata } = req.body;
+      // 🏆 قراءة البيانات ملفوفة داخل كائن data القادم من ميسر
+      const paymentData = req.body.data || req.body;
+      const { id, status, amount, metadata } = paymentData;
 
       if (status === 'paid' || status === 'captured') {
         const userId = metadata?.user_id;
@@ -144,7 +146,7 @@ export const paymentController = {
 
         const newTokensBalance = (profile.tokens || 0) + tokensToAdd;
 
-        // تحديث حالة الاشتراك والباقة بمدى سريان هيدروليكي فوري
+        // تحديث حالة الاشتراك والباقة بمدى سريان فوري
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -157,7 +159,7 @@ export const paymentController = {
 
         if (error) throw error;
 
-        // توثيق الفاتورة بجدول الفواتير في سوبابيس لتقرأها لوحة الفوترة بالفرونت إند بالملي
+        // توثيق الفاتورة بجدول الفواتير في سوبابيس
         await supabase.from('invoices').insert([{
           user_id: userId,
           payment_id: id,
@@ -176,4 +178,4 @@ export const paymentController = {
       return res.status(CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, error: error.message });
     }
   }
-};
+}; 
