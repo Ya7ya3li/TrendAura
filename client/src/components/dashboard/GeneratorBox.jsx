@@ -46,7 +46,7 @@ export default function GeneratorBox({ prompt, setPrompt, loading, onGenerate })
           variant="primary"
           className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-xl text-[11px] hover:from-blue-700 shadow-lg shadow-blue-500/20 shrink-0 border-none"
         >
-          توليد السكريبت الفايرال ✦
+          توليد السكريبت  ✦
         </Button>
       </div>
 

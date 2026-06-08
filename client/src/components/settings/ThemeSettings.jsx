@@ -19,7 +19,7 @@ export default function ThemeSettings() {
   return (
     <div className="space-y-6 text-right dir-rtl select-none animate-fade-in font-sans">
       <div>
-        <h3 className="text-xs font-black text-white tracking-tight mb-1">مظهر وهندسة الواجهات الهيدروليكية</h3>
+        <h3 className="text-xs font-black text-white tracking-tight mb-1">مظهر وهندسة الواجهات </h3>
         <p className="text-[10px] font-bold text-slate-500">خصص البيئة البصرية ولوحة الألوان البنيوية بما يتوافق مع راحة عينيك أثناء هندسة السكريبتات.</p>
       </div>
 
@@ -43,7 +43,7 @@ export default function ThemeSettings() {
                 </svg>
                 <div className="flex flex-col text-right">
                   <span className={`text-xs font-black ${theme === 'light' ? 'text-blue-400' : 'text-white'}`}>
-                    فاتح فاخر (Premium Light)
+                      (Premium Light)
                   </span>
                   <span className="text-[9px] font-bold text-slate-500 mt-0.5">مطابق لهوية قنوات الذكاء الاصطناعي القياسية</span>
                 </div>
@@ -53,7 +53,7 @@ export default function ThemeSettings() {
               </span>
             </div>
 
-            {/* 🌙 كارت الثيم الداكن السيبراني */}
+            {/* 🌙 كارت الثيم الداكن  */}
             <div
               onClick={() => setTheme('dark')}
               className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition-all active:scale-[0.99] ${
@@ -68,7 +68,7 @@ export default function ThemeSettings() {
                 </svg>
                 <div className="flex flex-col text-right">
                   <span className={`text-xs font-black ${theme === 'dark' ? 'text-cyan-400' : 'text-white'}`}>
-                    داكن نيون (Premium Cyber Dark)
+                      (Premium Cyber Dark)
                   </span>
                   <span className="text-[9px] font-bold text-slate-500 mt-0.5">ثيم ليلي مخصص لكبار صناع المحتوى والمحترفين</span>
                 </div>
@@ -85,8 +85,8 @@ export default function ThemeSettings() {
           <label className="text-[10px] font-black text-slate-400">حواف وهندسة كتل الحاويات (Rounded Edges)</label>
           <div className="flex flex-wrap gap-3">
             {[
-              { id: 'premium', label: 'كروت منحنية فخمة (28px)', desc: 'ستايل التكافؤ البصري للواجهات المعاصرة العريضة' },
-              { id: 'classic', label: 'حواف حادة كلاسيك (12px)', desc: 'المظهر المعياري الثابت للمتصفحات القديمة' }
+              { id: 'premium', label: 'كروت منحنية(28px)', desc: 'ستايل التكافؤ البصري للواجهات المعاصرة العريضة' },
+              { id: 'classic', label: 'حواف حادة(12px)', desc: 'المظهر المعياري الثابت للمتصفحات القديمة' }
             ].map((opt) => (
               <div
                 key={opt.id}
@@ -113,7 +113,7 @@ export default function ThemeSettings() {
           onClick={handleSaveThemePreferences}
           className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-500/20 border-none outline-none"
         >
-          حفظ وتطبيق التفضيلات البصرية 🎨
+          حفظ وتطبيق التفضيلات  🎨
         </button>
       </div>
     </div>

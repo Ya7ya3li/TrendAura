@@ -3,13 +3,30 @@
 @tailwind utilities;
 
 :root {
+  /* المتغيرات الأساسية للنظام */
   --bg-main: #f8fafc;
+  --bg-card: #ffffff;
   --text-main: #0f172a;
+  --border-color: #e2e8f0;
+  
+  /* ألوان التدرج البريميوم لـ TrendAura */
+  --primary: #2566ef;
+  --purple: #8b5cf6;
+  --pink: #ec4899;
+  
+  /* الظلال */
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
 }
 
 .dark {
   --bg-main: #020617;
+  --bg-card: #0f172a;
   --text-main: #f8fafc;
+  --border-color: #1e293b;
+  
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
 body {
@@ -20,7 +37,7 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* التبديل الشامل لحاويات خطوط الإنتاج والوضع الفاتح */
+/* التبديل الذكي لحاويات خطوط الإنتاج والوضع الفاتح بدون تدمير أزرار النظام */
 .light .bg-slate-950,
 .light .bg-slate-900,
 .light .bg-slate-900\/40 {
@@ -29,14 +46,9 @@ body {
   border-color: #e2e8f0 !important;
 }
 
-.light .text-white,
-.light .text-slate-200,
-.light .text-slate-300 {
-  color: #0f172a !important;
-}
-
-.light .text-slate-400,
-.light .text-slate-500 {
+/* تحسين القراءة في الوضع الفاتح للمكونات النصية المعزولة فقط */
+.light p.text-slate-400,
+.light span.text-slate-500 {
   color: #64748b !important;
 }
 
@@ -62,8 +74,8 @@ body {
 }
 
 @keyframes neonPulse {
-  0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 2px #3b82f6); }
-  50% { opacity: 1; filter: drop-shadow(0 0 10px #3b82f6); }
+  0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 2px var(--primary)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 10px var(--primary)); }
 }
 
 .animate-neon-pulse {

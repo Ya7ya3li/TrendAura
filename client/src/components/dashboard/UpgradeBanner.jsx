@@ -20,7 +20,7 @@ export default function UpgradeBanner() {
         onClick={() => navigate(ROUTES.PRICING)} // الانتقال النظيف فائق السرعة
         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] rounded-xl shadow-lg shadow-blue-500/20 tracking-wide transition-all active:scale-95 shrink-0 border-none"
       >
-        اكتشف باقات النخبة ⚡
+        اكتشف باقات  ⚡
       </button>
     </div>
   )

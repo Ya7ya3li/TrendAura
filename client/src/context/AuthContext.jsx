@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  // 🚀 دالة تسجيل الخروج الفورية المحدثة لضمان الاستجابة اللحظية بنسبة 100%
+  // 🚀 دالة تسجيل الخروج الفورية لضمان الاستجابة اللحظية بنسبة 100%
   const logout = async () => {
     try {
       await supabase.auth.signOut()
@@ -60,14 +60,14 @@ export const AuthProvider = ({ children }) => {
         
         if (session?.user && active) {
           setUser(session.user)
-          fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-            .then(p => {
-              if (active && p) setProfile(p)
-            })
+          // 🏆 التعديل الجوهري: إجبار التطبيق على انتظار جلب بيانات البروفايل والباقة كاملة
+          const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+          if (active && p) setProfile(p)
         }
       } catch (e) {
         console.error("❌ [Auth Init Fatal Error]:", e)
       } finally {
+        // لن يتم تصفير التحميل إلا بعد إتمام جلب بيانات المستخدم تماماً لضمان فتح الخصائص فورا
         if (active) setLoading(false)
       }
     }
@@ -77,10 +77,9 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         if (active) setUser(session.user)
-        fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-          .then(p => {
-            if (active && p) setProfile(p)
-          })
+        // 🏆 ضمان تحديث متزامن وقراءة صحيحة للباقة عند حدوث أي تغيير في الجلسة حياً
+        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+        if (active && p) setProfile(p)
       } else {
         if (active) {
           setUser(null)
@@ -100,7 +99,7 @@ export const AuthProvider = ({ children }) => {
       user, 
       profile, 
       setProfile, 
-      logout, // حقن وإتاحة دالة الخروج السريعة
+      logout, 
       loading 
     }}>
       {children}
