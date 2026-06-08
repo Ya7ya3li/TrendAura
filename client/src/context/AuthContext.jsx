@@ -40,7 +40,6 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  // 🚀 دالة تسجيل الخروج الفورية لضمان الاستجابة اللحظية
   const logout = async () => {
     try {
       await supabase.auth.signOut()
@@ -54,43 +53,39 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let active = true
 
-    // 🏆 1. الفحص الفوري والمباشر للجلسة عند أول مَونت للموقع لكسر تعليق الشاشة
-    const syncAuth = async () => {
+    const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         
         if (session?.user && active) {
           setUser(session.user)
-          const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-          if (active && p) setProfile(p)
-        } else if (active) {
-          setUser(null)
-          setProfile(null)
+          fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+            .then(p => {
+              if (active && p) setProfile(p)
+            })
         }
       } catch (e) {
-        console.error("❌ [Auth Sync Error]:", e)
+        console.error("❌ [Auth Init Fatal Error]:", e)
       } finally {
-        // 🔥 صمام الأمان الخارق: يضمن فك شاشة التحميل فوراً في المَونت المستقر مهما حدث
         if (active) setLoading(false)
       }
     }
 
-    syncAuth()
+    initializeAuth()
 
-    // 📡 2. المراقبة المستمرة لتعقب عمليات تسجيل الدخول والخروج اللاحقة بسلاسة
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!active) return
-
       if (session?.user) {
-        setUser(session.user)
-        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-        if (active && p) setProfile(p)
+        if (active) setUser(session.user)
+        fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+          .then(p => {
+            if (active && p) setProfile(p)
+          })
       } else {
-        setUser(null)
-        setProfile(null)
+        if (active) {
+          setUser(null)
+          setProfile(null)
+        }
       }
-      
-      if (active) setLoading(false)
     })
 
     return () => {
@@ -100,13 +95,7 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      profile, 
-      setProfile, 
-      logout, 
-      loading 
-    }}>
+    <AuthContext.Provider value={{ user, profile, setProfile, logout, loading }}>
       {children}
     </AuthContext.Provider>
   )
