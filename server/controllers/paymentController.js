@@ -74,7 +74,7 @@ export const paymentController = {
           callback_url: `${origin}/success`, 
           metadata: strictMetadata, // 🏆 ميتاداتا آمنة ونصوص معقمة 100%
           source: {
-            type: 'hosted'
+            type: 'creditcard'
           }
         })
       });
