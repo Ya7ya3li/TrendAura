@@ -1,18 +1,18 @@
-import React from 'react'
+import React, { useContext } from 'react' // 1. أضف useContext
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes.js'
+import { AuthContext } from '../../context/AuthContext.jsx' // 2. استورد الـ Context
 
-/**
- * TrendAura SaaS Immersive Protected Feature Portal
- * يفحص رتب الباقات بالملي ويحظر المميزات المتقدمة بلمسة كابوس النيون الضبابي
- */
-export default function ProtectedFeature({ currentPlan = 'free', minRequiredPlan = 'pro', featureName = 'الميزة المتقدمة', children }) {
+export default function ProtectedFeature({ minRequiredPlan = 'pro', featureName = 'الميزة المتقدمة', children }) {
   const navigate = useNavigate()
+  const { profile } = useContext(AuthContext) // 3. اسحب بيانات الـ profile الحقيقية
   
-  const userPlanClean = String(currentPlan || 'free').toLowerCase().trim()
+  // إذا كان البروفايل لسه بيتحمل، اعرض loading بسيط عشان ما يقفل الميزة بالغلط
+  if (!profile) return <div>تحميل...</div>;
+
+  const userPlanClean = String(profile.plan || 'free').toLowerCase().trim()
   const reqPlanClean = String(minRequiredPlan || 'pro').toLowerCase().trim()
 
-  // ميزان قياس رتب الباقات داخلياً لضمان صفر تداخل أو تخطي برمجائي
   const getPlanTierLocal = (plan) => {
     if (plan === 'viral_engine' || plan === 'viral engine') return 3
     if (plan === 'pro') return 2
@@ -22,10 +22,11 @@ export default function ProtectedFeature({ currentPlan = 'free', minRequiredPlan
   const userTier = getPlanTierLocal(userPlanClean)
   const requiredTier = getPlanTierLocal(reqPlanClean)
 
-  // فتح الميزة فوراً للعملاء المصرح لهم
   if (userTier >= requiredTier) {
     return <>{children}</>
   }
+
+  // ... (باقي كود القفل كما هو)
 
   return (
     <div className="relative border border-slate-200 dark:border-slate-800 rounded-[28px] overflow-hidden bg-slate-50 dark:bg-slate-900/10 p-2 min-h-[220px] flex items-center justify-center select-none group transition-all duration-300 shadow-inner">
