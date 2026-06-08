@@ -114,21 +114,44 @@ export const paymentController = {
     }
   },
 
-  /**
+ /**
    * 🔔 استقبال إشارات السداد (Webhooks) من ميسر وحقن رصيد التوكنز وتفعيل الباقات في سوبابيس
    */
-handleWebhook: async (req, res) => {
+  handleWebhook: async (req, res) => {
     try {
       // 🏆 قراءة البيانات ملفوفة داخل كائن data القادم من ميسر
       const paymentData = req.body.data || req.body;
       const { id, status, amount, metadata } = paymentData;
 
       if (status === 'paid' || status === 'captured') {
-        const userId = metadata?.user_id;
-        const targetPlan = metadata?.plan_id || 'pro';
-        const tokensToAdd = Number(metadata?.tokens_to_add) || 50000; 
+        let userId = metadata?.user_id;
+        let targetPlan = metadata?.plan_id || 'pro';
+        let tokensToAdd = Number(metadata?.tokens_to_add) || 50000; 
 
+        // 🧠 جسر الأمان التكتيكي: إذا كانت الإشارة القادمة كائن Payment فسنقوم بجلب الفاتورة الأصلية لسحب الـ Metadata منها
+        if (!userId && paymentData.invoice_id) {
+          try {
+            const moyasarKey = process.env.MOYASAR_SECRET_KEY || '';
+            const invResponse = await fetch(`https://api.moyasar.com/v1/invoices/${paymentData.invoice_id}`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Basic ${Buffer.from(moyasarKey + ':').toString('base64')}`
+              }
+            });
+            if (invResponse.ok) {
+              const invData = await invResponse.json();
+              userId = invData.metadata?.user_id;
+              targetPlan = invData.metadata?.plan_id || 'pro';
+              tokensToAdd = Number(invData.metadata?.tokens_to_add) || 50000;
+            }
+          } catch (fetchInvErr) {
+            console.error('❌ [Webhook Fetch Invoice Error]:', fetchInvErr.message);
+          }
+        }
+
+        // إذا استمر عدم وجود الـ userId بعد الفحص الاحتياطي، نوقف العملية بأمان
         if (!userId) {
+          console.error('❌ [Webhook Execution Aborted]: حقل user_id مفقود تماماً من الفاتورة والعملية البنكية.');
           return res.status(CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({ success: false, error: 'بيانات ميتاداتا الفاتورة مفقودة.' });
         }
 
