@@ -1,14 +1,92 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useContext } from 'react'
+import { AuthContext } from '../context/AuthContext.jsx'
+import { supabase } from '../config/supabase.js'
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef(null)
+  
+  // 🏆 إدارة الحالات السحابية للإشعارات والتحميل
+  const { profile } = useContext(AuthContext)
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: '🔥 أحد سكريبتاتك المحفوظة حقق تقييم 98% في محرك الفايرال الاستراتيجي!', time: 'منذ 10 دقائق', isNew: true },
-    { id: 2, text: '⚡ تم شحن وتصفير عداد الكوتا اليومي لباقتك تلقائياً وبنجاح.', time: 'منذ ساعتين', isNew: true },
-    { id: 3, text: '💳 معاملتك المالية الأخيرة عبر بوابة دفع ميسر تمت بنجاح ملوكي باهر.', time: 'منذ يوم', isNew: false }
-  ])
+  // 📡 دالة تحويل التواريخ بصيغة نيون نسبية خفيفة وسريعة بدلاً من الأرقام الجامدة
+  const formatRelativeTime = (dateString) => {
+    if (!dateString) return 'الآن'
+    const now = new Date()
+    const past = new Date(dateString)
+    const diffMs = now - past
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMins / 60)
+    
+    if (diffMins < 1) return 'الآن ⚡'
+    if (diffMins < 60) return `منذ ${diffMins} دقيقة`
+    if (diffHours < 24) return `منذ ${diffHours} ساعة`
+    return past.toLocaleDateString('ar-SA')
+  }
+
+  // 📡 سحب التحركات الحية من جهازي الفواتير وتاريخ توليد السكريبتات
+  useEffect(() => {
+    const fetchLiveNotifications = async () => {
+      if (!profile?.id) return
+
+      try {
+        // 1. جلب آخر 3 فواتير من كشف حساب المستخدم
+        const { data: invoiceData } = await supabase
+          .from('invoices')
+          .select('*')
+          .eq('user_id', profile.id)
+          .order('created_at', { ascending: false })
+          .limit(3)
+
+        // 2. جلب آخر 3 عمليات صياغة محتوى من جدول التاريخ (history)
+        const { data: historyData } = await supabase
+          .from('history')
+          .select('*')
+          .eq('user_id', profile.id)
+          .order('created_at', { ascending: false })
+          .limit(3)
+
+        // 3. هندسة وتشكيل فواتير ميسر لتصبح تنبيهات تجارية فخمة
+        const formattedInvoices = (invoiceData || []).map(inv => ({
+          id: `inv-${inv.id}`,
+          text: `💳 معاملتك المالية الأخيرة لشحن أو ترقية [${inv.plan_type || 'PRO'}] بمبلغ ${inv.amount} SAR تمت بنجاح ملوكي باهر!`,
+          created_at: inv.created_at,
+          isNew: false
+        }))
+
+        // 4. هندسة عمليات محرك الـ AI لتصبح تنبيهات تكتيكية مشوقة
+        const formattedHistory = (historyData || []).map(hist => ({
+          id: `hist-${hist.id}`,
+          text: `🔥 اخترق محرك الذكاء الاصطناعي الخوارزميات وصاغ لك سكريبت تيك توك بنجاح عن: "${hist.topic || hist.prompt || 'فكرتك المخصصة'}"!`,
+          created_at: hist.created_at,
+          isNew: false
+        }))
+
+        // 5. حقن تنبيه نظامي سيادي ترحيبي ثابت ومصحح إملائياً 💎
+        const systemWelcome = {
+          id: 'sys-welcome',
+          text: `⚡ تم مزامنة حسابك بنجاح. عداد الكوتا والتوكنز لباقتك الحالية [${(profile?.plan || 'FREE').toUpperCase()}] يعمل بأقصى طاقة استيعابية.`,
+          created_at: new Date().toISOString(),
+          isNew: true // يظهر كـ نبضة ضوئية زرقاء دلالة على النشاط المستمر
+        }
+
+        // 6. دمج وترتيب كافة التنبيهات من الأحدث للأقدم تنازلياً
+        const combinedNotifs = [...formattedInvoices, ...formattedHistory]
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+
+        // حصر اللوحة المنسدلة في قراءة أحدث 5 تنبيهات لحماية الموارد
+        setNotifications([systemWelcome, ...combinedNotifs].slice(0, 5))
+      } catch (err) {
+        console.error('❌ [Notification System Failure]:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLiveNotifications()
+  }, [profile])
 
   const hasNew = notifications.some(n => n.isNew)
 
@@ -53,17 +131,23 @@ export default function NotificationBell() {
           </div>
 
           <div className="divide-y divide-slate-100 dark:divide-slate-900 max-h-64 overflow-y-auto scrollbar-none">
-            {notifications.map((item) => (
-              <div 
-                key={item.id} 
-                className={`p-3.5 hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-colors flex flex-col gap-1 cursor-pointer ${
-                  item.isNew ? 'bg-blue-500/5' : 'bg-transparent'
-                }`}
-              >
-                <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 leading-relaxed">{item.text}</p>
-                <span className="text-[9px] font-semibold text-slate-400 dark:text-slate-600 font-sans">{item.time}</span>
-              </div>
-            ))}
+            {loading ? (
+              <p className="text-slate-400 dark:text-slate-600 text-[10px] py-6 text-center animate-pulse">جاري سحب التحركات الحية...</p>
+            ) : notifications.length === 0 ? (
+              <p className="text-slate-400 dark:text-slate-600 text-[10px] py-6 text-center">لا توجد تنبيهات مسجلة لحسابك حالياً.</p>
+            ) : (
+              notifications.map((item) => (
+                <div 
+                  key={item.id} 
+                  className={`p-3.5 hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-colors flex flex-col gap-1 cursor-pointer ${
+                    item.isNew ? 'bg-blue-500/5 dark:bg-cyan-500/5' : 'bg-transparent'
+                  }`}
+                >
+                  <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 leading-relaxed">{item.text}</p>
+                  <span className="text-[9px] font-semibold text-slate-400 dark:text-slate-600 font-sans">{formatRelativeTime(item.created_at)}</span>
+                </div>
+              ))
+            )}
           </div>
 
           <div className="p-2 border-t border-slate-100 dark:border-slate-900 text-center">
