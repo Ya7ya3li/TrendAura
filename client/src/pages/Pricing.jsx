@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext.jsx'
 import { ThemeContext } from '../context/ThemeContext.jsx'
@@ -7,12 +7,102 @@ import { ROUTES } from '../constants/routes.js'
 import PricingCard from '../components/pricing/PricingCard.jsx'
 import SectionTitle from '../components/common/SectionTitle.jsx'
 
+// 🏆 حقن الاستيرادات الخارجية لإدارة الدفع والتحقق السحابي
+import { paymentService } from '../services/paymentService.js'
+import { showToast } from '../App.jsx'
+import { supabase } from '../config/supabase.js'
+
 export default function Pricing() {
   const navigate = useNavigate()
   const { profile } = useContext(AuthContext)
   const { theme } = useContext(ThemeContext)
   
+  // 💸 إدارة حالة التحميل لكل باقة بشكل منفصل
+  const [loadingPlan, setLoadingPlan] = useState(null)
+  
   const currentPlanId = profile?.plan?.toLowerCase()?.trim() || 'free'
+
+  // 🚀 دالة الدفع المركزية مع ميزة الـ Polling والـ Logging الذكي
+  const handleSubscribe = async (plan) => {
+    if (!profile?.id) {
+      if (typeof showToast === 'function') showToast('يرجى تسجيل الدخول أولاً 🔐', 'error')
+      return
+    }
+
+    if (currentPlanId === plan.id.toLowerCase().trim()) {
+      if (typeof showToast === 'function') showToast('أنت مشترك بالفعل في هذه الباقة', 'info')
+      return
+    }
+
+    // 🛡️ تأمين النافذة الفورية لكسر حاجب النوافذ (Popup Blocker)
+    const paymentWindow = window.open('about:blank', 'moyasar_payment', 'width=600,height=750,scrollbars=yes,resizable=yes')
+    if (paymentWindow) {
+      paymentWindow.document.write('<h3 style="text-align:center;font-family:sans-serif;color:#64748b;margin-top:40%;">جاري تأمين اتصالك ببوابة ميسر...</h3>')
+    }
+
+    setLoadingPlan(plan.id)
+    try {
+      const response = await paymentService.createInvoice(
+        plan.price,
+        plan.id,
+        profile.id,
+        plan.tokensReward
+      )
+
+      if (response && response.invoiceUrl && paymentWindow) {
+        // توجيه النافذة للبنك
+        paymentWindow.location.href = response.invoiceUrl
+        
+        // 📡 رصد الـ Webhook عبر قاعدة البيانات كل 2 ثانية
+        const pollInterval = setInterval(async () => {
+          try {
+            const { data: updatedProfile } = await supabase
+              .from('profiles')
+              .select('plan')
+              .eq('id', profile.id)
+              .single()
+
+            const serverPlan = (updatedProfile?.plan || 'free').toLowerCase().trim()
+            const expectedPlan = plan.id.toLowerCase().trim()
+
+            // 🔍 طباعة الـ Logging التكتيكي الذي طلبته لمتابعة الرصد حياً
+            console.log('🔍 Server Plan:', serverPlan, 'Expected:', expectedPlan)
+
+            if (serverPlan === expectedPlan) {
+              clearInterval(pollInterval)
+              paymentWindow.close() // إغلاق نافذة البنك تلقائياً
+              
+              if (typeof showToast === 'function') {
+                showToast(`تم تفعيل اشتراكك في باقة ${plan.name} بنجاح 🎉🚀`, 'success')
+              }
+              setTimeout(() => navigate(ROUTES.DASHBOARD || '/dashboard'), 1500)
+            }
+          } catch (dbErr) {
+            console.error('Polling DB Error:', dbErr)
+          }
+
+          // صمام أمان: لو العميل قفل النافذة بنفسه نقتل المؤقت
+          if (paymentWindow.closed) {
+            clearInterval(pollInterval)
+          }
+        }, 2000)
+
+        // إنهاء الفحص تلقائياً بعد 5 دقائق حمايةً للموارد
+        setTimeout(() => clearInterval(pollInterval), 300000)
+
+      } else {
+        throw new Error('لم نتمكن من جلب رابط الفاتورة من السيرفر.')
+      }
+    } catch (err) {
+      console.error('Checkout Error:', err.message)
+      if (paymentWindow) paymentWindow.close()
+      if (typeof showToast === 'function') {
+        showToast(err.message || 'فشل الاتصال ببوابة الدفع', 'error')
+      }
+    } finally {
+      setLoadingPlan(null)
+    }
+  }
 
   return (
     <div className={`w-full max-w-6xl mx-auto select-none dir-rtl text-right animate-fade-in pb-12 transition-colors duration-300 ${
@@ -46,13 +136,16 @@ export default function Pricing() {
         />
       </div>
 
+      {/* 🏆 تمرير الدوال الجديدة والـ Loading لـ PricingCard */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch px-4">
         {PLANS.map((plan) => (
           <PricingCard
             key={plan.id}
             plan={plan}
-            isCurrent={currentPlanId === plan.id}
+            isCurrent={currentPlanId === plan.id.toLowerCase().trim()}
             userId={profile?.id}
+            onSubscribe={handleSubscribe}
+            isLoading={loadingPlan === plan.id}
           />
         ))}
       </div>
