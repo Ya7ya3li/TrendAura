@@ -14,7 +14,8 @@ import { supabase } from '../config/supabase.js'
 
 export default function Pricing() {
   const navigate = useNavigate()
-  const { profile } = useContext(AuthContext)
+  // 🏆 التعديل الأول: جلب دالة setProfile من الـ Context لتحديث حالة الموقع حياً
+  const { profile, setProfile } = useContext(AuthContext)
   const { theme } = useContext(ThemeContext)
   
   // 💸 إدارة حالة التحميل لكل باقة بشكل منفصل
@@ -56,9 +57,10 @@ export default function Pricing() {
         // 📡 رصد الـ Webhook عبر قاعدة البيانات كل 2 ثانية
         const pollInterval = setInterval(async () => {
           try {
+            // 🏆 التعديل الثاني: استعلام سوبابيس صار يجلب كامل البيانات (*) وليس الـ plan فقط
             const { data: updatedProfile } = await supabase
               .from('profiles')
-              .select('plan')
+              .select('*')
               .eq('id', profile.id)
               .single()
 
@@ -70,6 +72,12 @@ export default function Pricing() {
 
             if (serverPlan === expectedPlan) {
               clearInterval(pollInterval)
+              
+              // 🏆 التعديل الثالث: حقن البيانات الجديدة فوراً في ذاكرة التطبيق لتظهر الباقة والتوكنز حياً بدون ريفريش
+              if (updatedProfile) {
+                setProfile(updatedProfile)
+              }
+
               paymentWindow.close() // إغلاق نافذة البنك تلقائياً
               
               if (typeof showToast === 'function') {
