@@ -26,16 +26,24 @@ export default function SubscriptionManagement() {
   const proPlanInfo = PLANS.find(p => p.id === 'pro') || { price: 29, tokensReward: 50000 }
   const viralPlanInfo = PLANS.find(p => p.id === 'viral_engine') || { price: 69, tokensReward: 200000 }
 
-  useEffect(() => {
-    const loadBilling = async () => {
+  // 🏆 جعل دالة جلب الفواتير مركزية ليمكن استدعاؤها لحظياً فور نجاح الدفع
+  const loadBilling = async () => {
+    if (!profile?.id) return
+    try {
       const { data } = await supabase
         .from('invoices')
         .select('*')
-        .eq('user_id', profile?.id)
+        .eq('user_id', profile.id)
         .order('created_at', { ascending: false })
       setInvoices(data || [])
-      loading && setLoading(false)
+    } catch (err) {
+      console.error('Invoice fetch error:', err)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     if (profile?.id) loadBilling()
   }, [profile])
 
@@ -71,7 +79,11 @@ export default function SubscriptionManagement() {
 
             if (conditionMet) {
               clearInterval(pollInterval)
-              if (updatedProfile) setProfile(updatedProfile) // تحديث الـ Context فوراً
+              if (updatedProfile) setProfile(updatedProfile) // تحديث الـ Context فوراً local State
+              
+              // 🏆 الضربة القاضية: إعادة سحب سجل الكشوفات فوراً لكي تظهر الفاتورة بالجدول بدون ريفريش
+              await loadBilling() 
+
               paymentWindow.close() // إغلاق البوب أب تلقائياً
               
               if (typeof showToast === 'function') {
@@ -118,8 +130,10 @@ export default function SubscriptionManagement() {
 
       if (error) throw error
 
-      // تحديث الـ Context محلياً في نفس الثانية لتقفل المميزات فوراً
+      // تحديث الـ Context محلياً وإعادة سحب الكشوفات
       setProfile(prev => ({ ...prev, plan: 'free', subscription_status: 'cancelled' }))
+      await loadBilling()
+
       if (typeof showToast === 'function') showToast('تم إلغاء الاشتراك بنجاح وعودتك للباقة الحرة 💳', 'success')
     } catch (err) {
       if (typeof showToast === 'function') showToast(err.message || 'حدث خطأ أثناء إلغاء الاشتراك', 'error')
@@ -204,7 +218,7 @@ export default function SubscriptionManagement() {
           >
             <span>{copied ? 'تم النسخ!' : 'نسخ رابط الإحالة'}</span>
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 00-2 2v12a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
             </svg>
           </button>
         </div>

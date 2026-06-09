@@ -25,6 +25,8 @@ export const paymentController = {
       
       if (cleanPlan === 'viral_engine' || cleanPlan === 'viral engine') {
         calculatedTokens = 200000; 
+      } else if (cleanPlan === 'token_booster') {
+        calculatedTokens = 50000;
       } else if (cleanPlan === 'free') {
         calculatedTokens = 0;
       }
@@ -75,7 +77,6 @@ export const paymentController = {
         throw new Error(paymentData.message || 'Moyasar Ingestion Fault');
       }
 
-      // 🏆 في نظام الفواتير، الرابط يعود في متغير url مباشرة
       return res.status(200).json({
         success: true,
         invoiceUrl: paymentData.url 
@@ -83,7 +84,6 @@ export const paymentController = {
 
     } catch (error) {
       console.error('❌ [paymentController createInvoice Error]:', error.message);
-      // 🏆 تم إلغاء الخدعة القديمة، الآن السيرفر سيرفض الطلب بـ 400 إذا فشل الدفع فعلياً لتعرف السبب
       return res.status(400).json({ success: false, error: error.message });
     }
   },
@@ -114,12 +114,11 @@ export const paymentController = {
     }
   },
 
- /**
+  /**
    * 🔔 استقبال إشارات السداد (Webhooks) من ميسر وحقن رصيد التوكنز وتفعيل الباقات في سوبابيس
    */
   handleWebhook: async (req, res) => {
     try {
-      // 🏆 قراءة البيانات ملفوفة داخل كائن data القادم من ميسر
       const paymentData = req.body.data || req.body;
       const { id, status, amount, metadata } = paymentData;
 
@@ -128,7 +127,6 @@ export const paymentController = {
         let targetPlan = metadata?.plan_id || 'pro';
         let tokensToAdd = Number(metadata?.tokens_to_add) || 50000; 
 
-        // 🧠 جسر الأمان التكتيكي: إذا كانت الإشارة القادمة كائن Payment فسنقوم بجلب الفاتورة الأصلية لسحب الـ Metadata منها
         if (!userId && paymentData.invoice_id) {
           try {
             const moyasarKey = process.env.MOYASAR_SECRET_KEY || '';
@@ -149,9 +147,8 @@ export const paymentController = {
           }
         }
 
-        // إذا استمر عدم وجود الـ userId بعد الفحص الاحتياطي، نوقف العملية بأمان
         if (!userId) {
-          console.error('❌ [Webhook Execution Aborted]: حقل user_id مفقود تماماً من الفاتورة والعملية البنكية.');
+          console.error('❌ [Webhook Execution Aborted]: حقل user_id مفقود تماماً.');
           return res.status(CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({ success: false, error: 'بيانات ميتاداتا الفاتورة مفقودة.' });
         }
 
@@ -169,29 +166,35 @@ export const paymentController = {
 
         const newTokensBalance = (profile.tokens || 0) + tokensToAdd;
 
-        // تحديث حالة الاشتراك والباقة بمدى سريان فوري
+        // 🏆 بناء كائن التحديث بذكاء: لو كان شحن توكنز فقط، لا نلمس الباقة الحالية للمستخدم
+        const profileUpdates = {
+          tokens: newTokensBalance,
+          updated_at: new Date().toISOString()
+        };
+
+        if (targetPlan.toLowerCase().trim() !== 'token_booster') {
+          profileUpdates.plan = targetPlan.toLowerCase().trim();
+          profileUpdates.subscription_status = 'active';
+        }
+
+        // تحديث حالة الحساب في سوبابيس
         const { error } = await supabase
           .from('profiles')
-          .update({
-            plan: targetPlan.toLowerCase().trim(),
-            tokens: newTokensBalance,
-            subscription_status: 'active',
-            updated_at: new Date().toISOString()
-          })
+          .update(profileUpdates)
           .eq('id', userId);
 
         if (error) throw error;
 
-        // توثيق الفاتورة بجدول الفواتير في سوبابيس
+        // 🏆 توثيق الفاتورة بجدول الفواتير في سوبابيس لجميع العمليات (شحن أو باقات)
         await supabase.from('invoices').insert([{
           user_id: userId,
           payment_id: id,
           amount: (amount / 100).toFixed(2),
-          plan: targetPlan,
+          plan: targetPlan.toUpperCase().trim(), // تظهر بشكل ممتاز مثل PRO أو TOKEN_BOOSTER
           created_at: new Date().toISOString()
         }]);
 
-        console.log(`💰 [Payment Verified Successfully]: تم ترقية المشترك ${userId} إلى باقة [${targetPlan}] وشحن +${tokensToAdd} توكنز.`);
+        console.log(`💰 [Payment Verified Successfully]: تم تحديث بيانات المشترك ${userId} بنجاح وحقن الفاتورة.`);
         return res.status(CONSTANTS.HTTP_STATUS.OK).json({ success: true, message: 'تمت معالجة المدفوعات بنجاح.' });
       }
 
@@ -201,4 +204,4 @@ export const paymentController = {
       return res.status(CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, error: error.message });
     }
   }
-}; 
+};
