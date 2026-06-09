@@ -11,7 +11,7 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // 📡 دالة تحويل التواريخ بصيغة نيون نسبية خفيفة وسريعة بدلاً من الأرقام الجامدة
+  // 📡 دالة تحويل التواريخ بصيغة نيون نسبية خفيفة وسريعة
   const formatRelativeTime = (dateString) => {
     if (!dateString) return 'الآن'
     const now = new Date()
@@ -26,57 +26,80 @@ export default function NotificationBell() {
     return past.toLocaleDateString('ar-SA')
   }
 
-  // 📡 سحب التحركات الحية من جهازي الفواتير وتاريخ توليد السكريبتات
+  // 📡 سحب التحركات الحية وتطبيق النصوص المخصصة بالظبط
   useEffect(() => {
     const fetchLiveNotifications = async () => {
       if (!profile?.id) return
 
       try {
-        // 1. جلب آخر 3 فواتير من كشف حساب المستخدم
+        // 1. جلب آخر الفواتير من كشف حساب المستخدم
         const { data: invoiceData } = await supabase
           .from('invoices')
           .select('*')
           .eq('user_id', profile.id)
           .order('created_at', { ascending: false })
-          .limit(3)
+          .limit(2)
 
-        // 2. جلب آخر 3 عمليات صياغة محتوى من جدول التاريخ (history)
+        // 2. جلب آخر عمليات صياغة محتوى من جدول التاريخ
         const { data: historyData } = await supabase
           .from('history')
           .select('*')
           .eq('user_id', profile.id)
           .order('created_at', { ascending: false })
-          .limit(3)
+          .limit(2)
 
-        // 3. هندسة وتشكيل فواتير ميسر لتصبح تنبيهات تجارية فخمة
-        const formattedInvoices = (invoiceData || []).map(inv => ({
-          id: `inv-${inv.id}`,
-          text: `💳 معاملتك المالية الأخيرة لشحن أو ترقية [${inv.plan_type || 'PRO'}] بمبلغ ${inv.amount} SAR تمت بنجاح ملوكي باهر!`,
-          created_at: inv.created_at,
-          isNew: false
-        }))
+        // 3. صياغة التنبيهات المالية (باقات أو شحن توكنز) بالنص المطلوب بالظبط 💳
+        const formattedInvoices = (invoiceData || []).map(inv => {
+          const isToken = inv.plan_type?.toUpperCase() === 'TOKEN_BOOSTER'
+          return {
+            id: `inv-${inv.id}`,
+            text: isToken 
+              ? `💰 تم شحن محفظتك بـ 50,000 توكن إضافي بنجاح`
+              : `👑 تم تفعيل اشتراكك في (${inv.plan_type || 'PRO'}) بنجاح`,
+            created_at: inv.created_at,
+            isNew: false
+          }
+        })
 
-        // 4. هندسة عمليات محرك الـ AI لتصبح تنبيهات تكتيكية مشوقة
+        // 4. صياغة تنبيهات السكريبتات بالنص المطلوب بالظبط 🔥
         const formattedHistory = (historyData || []).map(hist => ({
           id: `hist-${hist.id}`,
-          text: `🔥 اخترق محرك الذكاء الاصطناعي الخوارزميات وصاغ لك سكريبت تيك توك بنجاح عن: "${hist.topic || hist.prompt || 'فكرتك المخصصة'}"!`,
+          text: `🔥 تم صياغة سكريبت بنجاح حول: ${hist.topic || hist.prompt || 'فكرتك المخصصة'}`,
           created_at: hist.created_at,
           isNew: false
         }))
 
-        // 5. حقن تنبيه نظامي سيادي ترحيبي ثابت ومصحح إملائياً 💎
-        const systemWelcome = {
-          id: 'sys-welcome',
-          text: `⚡ تم مزامنة حسابك بنجاح. عداد الكوتا والتوكنز لباقتك الحالية [${(profile?.plan || 'FREE').toUpperCase()}] يعمل بأقصى طاقة استيعابية.`,
+        // 5. إشعارات تغيير الاسم والصورة الشخصية (تظهر ديناميكياً عند التحديث) ✨
+        const profileLogs = []
+        if (profile.updated_at) {
+          profileLogs.push({
+            id: `name-${profile.id}`,
+            text: `✨ تم تغيير اسمك بنجاح`,
+            created_at: profile.updated_at,
+            isNew: false
+          })
+          profileLogs.push({
+            id: `avatar-${profile.id}`,
+            text: `📸 تم تغيير صورتك الشخصية بنجاح`,
+            created_at: profile.updated_at,
+            isNew: false
+          })
+        }
+
+        // 6. تنبيه تسجيل الدخول الترحيبي في القمة ⚡
+        const loginWelcome = {
+          id: 'sys-login',
+          text: `⚡ تم تسجيل الدخول بنجاح اهلا بك`,
           created_at: new Date().toISOString(),
           isNew: true
         }
 
-        // 6. دمج وترتيب كافة التنبيهات من الأحدث للأقدم تنازلياً
-        const combinedNotifs = [...formattedInvoices, ...formattedHistory]
+        // دمج وترتيب كافة التنبيهات الحية من الأحدث للأقدم تنازلياً
+        const combinedNotifs = [...formattedInvoices, ...formattedHistory, ...profileLogs]
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 
-        setNotifications([systemWelcome, ...combinedNotifs].slice(0, 5))
+        // حصر التنبيهات في أحدث 5 صفوف ليكون خفيف ونظيف
+        setNotifications([loginWelcome, ...combinedNotifs].slice(0, 5))
       } catch (err) {
         console.error('❌ [Notification System Failure]:', err)
       } finally {
