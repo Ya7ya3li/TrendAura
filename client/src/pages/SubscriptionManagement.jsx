@@ -8,7 +8,6 @@ import SectionTitle from '../components/common/SectionTitle.jsx'
 import Button from '../components/common/Button.jsx'
 import { showToast } from '../App.jsx'
 
-// 🏆 التأكيد على التصدير الافتراضي الصارم لإنهاء خطأ فيرسيل
 export default function SubscriptionManagement() {
   const { profile, setProfile } = useContext(AuthContext)
   const { theme } = useContext(ThemeContext)
@@ -23,6 +22,10 @@ export default function SubscriptionManagement() {
   const isFree = activePlanId === 'free'
   const isViralEngine = activePlanId === 'viral_engine'
 
+  // 🏆 جلب بيانات الباقات ديناميكياً من ملف الثوابت لمنع تضارب الأسعار ومضاعفتها
+  const proPlanInfo = PLANS.find(p => p.id === 'pro') || { price: 29, tokensReward: 50000 }
+  const viralPlanInfo = PLANS.find(p => p.id === 'viral_engine') || { price: 69, tokensReward: 200000 }
+
   useEffect(() => {
     const loadBilling = async () => {
       const { data } = await supabase
@@ -31,44 +34,91 @@ export default function SubscriptionManagement() {
         .eq('user_id', profile?.id)
         .order('created_at', { ascending: false })
       setInvoices(data || [])
-      setLoading(false)
+      loading && setLoading(false)
     }
     if (profile?.id) loadBilling()
   }, [profile])
 
+  // 🚀 تفعيل آلية الـ Popup والـ Polling الذكية لمنع الضرب المزدوج وتحديث الذاكرة لحظياً
   const triggerMoyasarCheckout = async (amount, planId, tokensCount) => {
+    const paymentWindow = window.open('about:blank', 'moyasar_payment', 'width=600,height=750,scrollbars=yes,resizable=yes')
+    if (paymentWindow) {
+      paymentWindow.document.write('<h3 style="text-align:center;font-family:sans-serif;color:#64748b;margin-top:40%;">جاري تأمين اتصالك ببوابة ميسر...</h3>')
+    }
+
     setPaymentLoading(true)
     try {
       const res = await paymentService.createInvoice(amount, planId, profile.id, tokensCount)
-      if (res && res.invoiceUrl) {
-        window.location.href = res.invoiceUrl
+      if (res && res.invoiceUrl && paymentWindow) {
+        paymentWindow.location.href = res.invoiceUrl
+
+        // 📡 إطلاق رصد سوبابيس كل 2 ثانية
+        const pollInterval = setInterval(async () => {
+          try {
+            const { data: updatedProfile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', profile.id)
+              .single()
+
+            const serverPlan = (updatedProfile?.plan || 'free').toLowerCase().trim()
+            const isTokenBooster = planId === 'token_booster'
+
+            // شرط تحقق العملية: إما زيادة التوكنز في حال الشحن السريع أو مطابقة اسم الباقة
+            const conditionMet = isTokenBooster 
+              ? (updatedProfile?.tokens > profile?.tokens)
+              : (serverPlan === planId.toLowerCase().trim())
+
+            if (conditionMet) {
+              clearInterval(pollInterval)
+              if (updatedProfile) setProfile(updatedProfile) // تحديث الـ Context فوراً
+              paymentWindow.close() // إغلاق البوب أب تلقائياً
+              
+              if (typeof showToast === 'function') {
+                showToast(isTokenBooster ? 'تم شحن محفظة التوكنز بنجاح! 🚀' : 'تمت ترقية باقتك بنجاح حياً! 🔥', 'success')
+              }
+            }
+          } catch (dbErr) {
+            console.error('Polling Error:', dbErr)
+          }
+
+          if (paymentWindow.closed) clearInterval(pollInterval)
+        }, 2000)
+
+        setTimeout(() => clearInterval(pollInterval), 300000)
       } else {
-        throw new Error("رابط الدفع مفقود من الخادم")
+        if (paymentWindow) paymentWindow.close()
+        throw new Error("رابط الدفع مفقود")
       }
     } catch (err) {
+      if (paymentWindow) paymentWindow.close()
       if (typeof showToast === 'function') {
-        showToast('فشل تأمين رابط دفع ميسر، يرجى إعادة المحاولة لاحقاً', 'error')
+        showToast('فشل تأمين رابط دفع ميسر، يرجى إعادة المحاولة', 'error')
       }
     } finally {
       setPaymentLoading(false)
     }
   }
 
-  // 🔒 دالة الإلغاء الآمنة المستدعية للباك إند لمنع ثغرات التلاعب
+  // 🔒 دالة الإلغاء الآمنة والمباشرة عبر سوبابيس لإنهاء عطل زر الإلغاء القديم
   const handleCancelSubscription = async () => {
     const confirmCancel = window.confirm('هل أنت متأكد من إلغاء اشتراكك الحالي؟ ستفقد جميع ميزات النخبة فوراً وتعود للباقة المجانية.')
     if (!confirmCancel) return
 
     setPaymentLoading(true)
     try {
-      const response = await fetch('/api/subscription/cancel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      const result = await response.json()
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          plan: 'free', 
+          subscription_status: 'cancelled',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', profile?.id)
 
-      if (!response.ok) throw new Error(result.error || 'فشل الإلغاء')
+      if (error) throw error
 
+      // تحديث الـ Context محلياً في نفس الثانية لتقفل المميزات فوراً
       setProfile(prev => ({ ...prev, plan: 'free', subscription_status: 'cancelled' }))
       if (typeof showToast === 'function') showToast('تم إلغاء الاشتراك بنجاح وعودتك للباقة الحرة 💳', 'success')
     } catch (err) {
@@ -102,16 +152,16 @@ export default function SubscriptionManagement() {
           
           <div className="flex flex-col sm:flex-row gap-3 mt-auto">
             {isFree ? (
-              <Button onClick={() => triggerMoyasarCheckout(99, 'pro', 50000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md">
-                اشترك الآن✦
+              <Button onClick={() => triggerMoyasarCheckout(proPlanInfo.price, 'pro', proPlanInfo.tokensReward || 50000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md">
+                اشترك الآن في Pro VIP ✦
               </Button>
             ) : (
               <>
-                <Button onClick={handleCancelSubscription} loading={paymentLoading} variant="secondary" className="w-full text-[10px] bg-transparent border-slate-200 dark:border-slate-800 text-rose-500 font-bold">
+                <Button onClick={handleCancelSubscription} loading={paymentLoading} variant="secondary" className="w-full text-[10px] bg-transparent border-slate-200 dark:border-slate-800 text-rose-500 font-bold hover:bg-rose-500/5">
                   إلغاء الاشتراك الحالي
                 </Button>
                 {!isViralEngine && (
-                  <Button onClick={() => triggerMoyasarCheckout(199, 'viral_engine', 150000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md">
+                  <Button onClick={() => triggerMoyasarCheckout(viralPlanInfo.price, 'viral_engine', viralPlanInfo.tokensReward || 200000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md">
                     ترقية إلى VIRAL ENGINE 🔥
                   </Button>
                 )}
