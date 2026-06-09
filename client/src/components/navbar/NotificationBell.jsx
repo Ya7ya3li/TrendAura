@@ -69,14 +69,13 @@ export default function NotificationBell() {
           id: 'sys-welcome',
           text: `⚡ تم مزامنة حسابك بنجاح. عداد الكوتا والتوكنز لباقتك الحالية [${(profile?.plan || 'FREE').toUpperCase()}] يعمل بأقصى طاقة استيعابية.`,
           created_at: new Date().toISOString(),
-          isNew: true // يظهر كـ نبضة ضوئية زرقاء دلالة على النشاط المستمر
+          isNew: true
         }
 
         // 6. دمج وترتيب كافة التنبيهات من الأحدث للأقدم تنازلياً
         const combinedNotifs = [...formattedInvoices, ...formattedHistory]
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 
-        // حصر اللوحة المنسدلة في قراءة أحدث 5 تنبيهات لحماية الموارد
         setNotifications([systemWelcome, ...combinedNotifs].slice(0, 5))
       } catch (err) {
         console.error('❌ [Notification System Failure]:', err)
