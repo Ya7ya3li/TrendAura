@@ -185,12 +185,12 @@ export const paymentController = {
 
         if (error) throw error;
 
-        // 🏆 التعديل الحاسم: تفكيك وقراءة الـ error لمنع الفشل الصامت للفواتير
+        // 🏆 التعديل الحاسم والنهائي: تغيير الحقل من plan إلى plan_type ليتطابق مع سوبابيس بالملي وينتهي الخطأ
         const { error: invoiceError } = await supabase.from('invoices').insert([{
           user_id: userId,
           payment_id: id,
           amount: (amount / 100).toFixed(2),
-          plan: targetPlan.toUpperCase().trim(), 
+          plan_type: targetPlan.toUpperCase().trim(), // 🚀 تم الإصلاح هنا
           created_at: new Date().toISOString()
         }]);
 
