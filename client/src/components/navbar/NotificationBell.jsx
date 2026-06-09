@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react'
-import { AuthContext } from '../context/AuthContext.jsx'
-import { supabase } from '../config/supabase.js'
+import { AuthContext } from '../../context/AuthContext.jsx'
+import { supabase } from '../../config/supabase.js'
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
