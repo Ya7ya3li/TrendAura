@@ -166,7 +166,7 @@ export const paymentController = {
 
         const newTokensBalance = (profile.tokens || 0) + tokensToAdd;
 
-        // 🏆 بناء كائن التحديث بذكاء: لو كان شحن توكنز فقط، لا نلمس الباقة الحالية للمستخدم
+        // بناء كائن التحديث بذكاء: لو كان شحن توكنز فقط، لا نلمس الباقة الحالية للمستخدم
         const profileUpdates = {
           tokens: newTokensBalance,
           updated_at: new Date().toISOString()
@@ -185,14 +185,20 @@ export const paymentController = {
 
         if (error) throw error;
 
-        // 🏆 توثيق الفاتورة بجدول الفواتير في سوبابيس لجميع العمليات (شحن أو باقات)
-        await supabase.from('invoices').insert([{
+        // 🏆 التعديل الحاسم: تفكيك وقراءة الـ error لمنع الفشل الصامت للفواتير
+        const { error: invoiceError } = await supabase.from('invoices').insert([{
           user_id: userId,
           payment_id: id,
           amount: (amount / 100).toFixed(2),
-          plan: targetPlan.toUpperCase().trim(), // تظهر بشكل ممتاز مثل PRO أو TOKEN_BOOSTER
+          plan: targetPlan.toUpperCase().trim(), 
           created_at: new Date().toISOString()
         }]);
+
+        // 🛡️ صمام أمان: إذا فشل الحقن، السيرفر يرمي استثناء ويطبع السبب فوراً في ريلوي
+        if (invoiceError) {
+          console.error('❌ [Supabase Invoice Insert Fault]:', invoiceError.message);
+          throw new Error(`Supabase Invoice Failed: ${invoiceError.message}`);
+        }
 
         console.log(`💰 [Payment Verified Successfully]: تم تحديث بيانات المشترك ${userId} بنجاح وحقن الفاتورة.`);
         return res.status(CONSTANTS.HTTP_STATUS.OK).json({ success: true, message: 'تمت معالجة المدفوعات بنجاح.' });
