@@ -6,21 +6,9 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef(null)
   
-  // 🏆 جلب بيانات الحساب حية من الـ Context
   const { profile } = useContext(AuthContext)
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
-
-  // ⏱️ تثبيت وقت دخول الجلسة الحالي لإشعار تسجيل الدخول الثابت
-  const [sessionTime] = useState(() => new Date().toISOString())
-  
-  // 👤 مرجع لمراقبة التغيرات اللحظية للاسم والصورة الشخصية
-  const prevProfileRef = useRef({ name: profile?.full_name, avatar: profile?.avatar_url })
-
-  // 💾 جلب المعرفات المقروءة مسبقاً من الذاكرة المحلية
-  const [readIds, setReadIds] = useState(() => {
-    return JSON.parse(localStorage.getItem('trendaura_read_notifs') || '[]')
-  })
 
   // 📡 دالة تحويل التواريخ بصيغة نسبية خفيفة وسريعة
   const formatRelativeTime = (dateString) => {
@@ -37,10 +25,9 @@ export default function NotificationBell() {
     return past.toLocaleDateString('ar-SA')
   }
 
-  // 🎨 دالة رندرة أيقونات SVG النظيفة والنقية بالكامل بدون استخدام الإيموجي
+  // 🎨 دالة رندرة أيقونات SVG النظيفة والنقية بالكامل
   const renderNotificationIcon = (type) => {
     const baseClass = "w-4 h-4 shrink-0"
-    
     switch (type) {
       case 'token':
         return (
@@ -51,7 +38,7 @@ export default function NotificationBell() {
       case 'plan':
         return (
           <svg className={`${baseClass} text-amber-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
           </svg>
         )
       case 'script':
@@ -82,163 +69,69 @@ export default function NotificationBell() {
     }
   }
 
-  // 📡 1. سحب البيانات الأولية وربط قنوات البث الفوري المباشر (Realtime)
+  // 📡 جلب البيانات الأولية + الاستماع اللحظي للجدول المركزي الجديد
   useEffect(() => {
     if (!profile?.id) return
 
     let realtimeChannel = null
 
-    const fetchLiveNotifications = async () => {
+    const fetchNotifications = async () => {
       try {
-        const { data: invoiceData } = await supabase
-          .from('invoices')
+        const { data } = await supabase
+          .from('notifications')
           .select('*')
           .eq('user_id', profile.id)
           .order('created_at', { ascending: false })
-          .limit(2)
+          .limit(5)
 
-        const { data: historyData } = await supabase
-          .from('history')
-          .select('*')
-          .eq('user_id', profile.id)
-          .order('created_at', { ascending: false })
-          .limit(2)
+        setNotifications(data || [])
 
-        const formattedInvoices = (invoiceData || []).map(inv => {
-          const id = `inv-${inv.id}`
-          const isToken = inv.plan_type?.toUpperCase() === 'TOKEN_BOOSTER'
-          return {
-            id,
-            text: isToken 
-              ? `تم شحن محفظتك بـ 50,000 توكن إضافي بنجاح`
-              : `تم تفعيل اشتراكك في (${inv.plan_type || 'PRO'}) بنجاح`,
-            created_at: inv.created_at,
-            type: isToken ? 'token' : 'plan',
-            isNew: !readIds.includes(id)
-          }
-        })
-
-        const formattedHistory = (historyData || []).map(hist => {
-          const id = `hist-${hist.id}`
-          return {
-            id,
-            text: `تم صياغة سكريبت بنجاح حول: ${hist.topic || hist.prompt || 'فكرتك المخصصة'}`,
-            created_at: hist.created_at,
-            type: 'script',
-            isNew: !readIds.includes(id)
-          }
-        })
-
-        const loginWelcomeId = `sys-login-${sessionTime.slice(0, 16)}`
-        const loginWelcome = {
-          id: loginWelcomeId,
-          text: `تم تسجيل الدخول بنجاح اهلا بك`,
-          created_at: sessionTime,
-          type: 'login',
-          isNew: !readIds.includes(loginWelcomeId)
-        }
-
-        const combinedNotifs = [...formattedInvoices, ...formattedHistory]
-          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-
-        setNotifications([loginWelcome, ...combinedNotifs].slice(0, 5))
-
-        // 🏆 السر هنا: توليد اسم فريد تماماً لكل اشتراك لمنع قراءة الكاش المتسبب في كراش الموقع
-        const uniqueChannelName = `live-actions-${profile.id}-${Math.random().toString(36).slice(2, 9)}`
-
+        // 🚀 الربط اللحظي العالمي: استماع لجدول الإشعارات المركزي فقط
+        const channelId = `live-notifs-${profile.id}-${Math.random().toString(36).slice(2, 7)}`
         realtimeChannel = supabase
-          .channel(uniqueChannelName)
+          .channel(channelId)
           .on(
             'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'history', filter: `user_id=eq.${profile.id}` },
+            { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
             (payload) => {
-              const newScriptNotif = {
-                id: `hist-live-${payload.new.id}`,
-                text: `تم صياغة سكريبت بنجاح حول: ${payload.new.topic || payload.new.prompt || 'فكرتك المخصصة'}`,
-                created_at: payload.new.created_at || new Date().toISOString(),
-                type: 'script',
-                isNew: true
-              }
-              setNotifications(prev => [newScriptNotif, ...prev.filter(n => n.id !== newScriptNotif.id)].slice(0, 5))
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'invoices', filter: `user_id=eq.${profile.id}` },
-            (payload) => {
-              const isToken = payload.new.plan_type?.toUpperCase() === 'TOKEN_BOOSTER'
-              const newInvoiceNotif = {
-                id: `inv-live-${payload.new.id}`,
-                text: isToken 
-                  ? `تم شحن محفظتك بـ 50,000 توكن إضافي بنجاح`
-                  : `تم تفعيل اشتراكك في (${payload.new.plan_type || 'PRO'}) بنجاح`,
-                created_at: payload.new.created_at || new Date().toISOString(),
-                type: isToken ? 'token' : 'plan',
-                isNew: true
-              }
-              setNotifications(prev => [newInvoiceNotif, ...prev.filter(n => n.id !== newInvoiceNotif.id)].slice(0, 5))
+              setNotifications(prev => [payload.new, ...prev].slice(0, 5))
             }
           )
           .subscribe()
 
       } catch (err) {
-        console.error('❌ [Notification System Failure]:', err)
+        console.error('❌ [Notification Fetch/Realtime Error]:', err)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchLiveNotifications()
+    fetchNotifications()
 
     return () => {
-      if (realtimeChannel) {
-        supabase.removeChannel(realtimeChannel)
-      }
+      if (realtimeChannel) supabase.removeChannel(realtimeChannel)
     }
   }, [profile?.id])
 
-  // 📡 2. رصد التغيرات اللحظية للاسم والصورة الشخصية من الـ Context فور حدوثها
-  useEffect(() => {
-    if (!profile) return
+  // فحص لو فيه أي إشعار غير مقروء لولاعة اللمبة النيون
+  const hasNew = notifications.some(n => !n.is_read)
 
-    const profileLogs = []
-    const nowStr = new Date().toISOString()
+  // 🔒 قراءة الإشعارات: تعديل حالتها حياً في قاعدة البيانات للأبد
+  const markAllAsRead = async () => {
+    if (notifications.length === 0 || !hasNew) return
 
-    if (prevProfileRef.current.name && prevProfileRef.current.name !== profile.full_name) {
-      profileLogs.push({
-        id: `live-name-${Date.now()}`,
-        text: `تم تغيير اسمك بنجاح`,
-        created_at: nowStr,
-        type: 'name',
-        isNew: true
-      })
+    // تحديث الحالة في الواجهة فوراً لتجربة سريعة جداً
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+
+    try {
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', profile.id)
+        .eq('is_read', false)
+    } catch (err) {
+      console.error('❌ [Failed to update read status in DB]:', err)
     }
-
-    if (prevProfileRef.current.avatar && prevProfileRef.current.avatar !== profile.avatar_url) {
-      profileLogs.push({
-        id: `live-avatar-${Date.now()}`,
-        text: `تم تغيير صورتك الشخصية بنجاح`,
-        created_at: nowStr,
-        type: 'avatar',
-        isNew: true
-      })
-    }
-
-    if (profileLogs.length > 0) {
-      setNotifications(prev => [...profileLogs, ...prev].slice(0, 5))
-    }
-
-    prevProfileRef.current = { name: profile.full_name, avatar: profile.avatar_url }
-  }, [profile])
-
-  const hasNew = notifications.some(n => n.isNew)
-
-  const markAllAsRead = () => {
-    const currentIds = notifications.map(n => n.id)
-    const updatedReadIds = Array.from(new Set([...readIds, ...currentIds]))
-    setReadIds(updatedReadIds)
-    localStorage.setItem('trendaura_read_notifs', JSON.stringify(updatedReadIds))
-    setNotifications(prev => prev.map(n => ({ ...n, isNew: false })))
   }
 
   useEffect(() => {
@@ -254,7 +147,7 @@ export default function NotificationBell() {
   return (
     <div className="relative select-none font-sans" ref={dropdownRef}>
       
-      {/* زر الأيقونة التفاعلي */}
+      {/* زر الجرس التفاعلي */}
       <button
         type="button"
         onClick={() => { setIsOpen(!isOpen); if(!isOpen) markAllAsRead(); }}
@@ -287,7 +180,7 @@ export default function NotificationBell() {
                 <div 
                   key={item.id} 
                   className={`p-3.5 hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-colors flex items-start gap-3 cursor-pointer ${
-                    item.isNew ? 'bg-blue-500/5 dark:bg-cyan-500/5' : 'bg-transparent'
+                    !item.is_read ? 'bg-blue-500/5 dark:bg-cyan-500/5' : 'bg-transparent'
                   }`}
                 >
                   <div className="mt-0.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg shrink-0">
