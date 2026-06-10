@@ -1,7 +1,13 @@
 import { openaiService } from '../services/openai.js';
 import { usageService } from '../services/usageService.js';
 import { CONSTANTS } from '../config/constants.js';
-import { supabase } from '../config/supabase.js'; // 🔥 حقن شريان سوبابيس المباشر في الباك إند
+import { createClient } from '@supabase/supabase-js'; // 🔥 استيراد الموزع الرسمي مباشرة
+import { env } from '../config/env.js'; // 🔥 استدعاء ملف البيئة المضمون والموجود فعلياً في السيرفر
+
+// تأسيس العميل السحابي حياً بداخل الكنترولر بناءً على بيانات رايلواي المضمونة
+const supabaseUrl = env.supabaseUrl || process.env.SUPABASE_URL;
+const supabaseAnonKey = env.supabaseAnonKey || process.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
  * TrendAura AI Core Script Generation Engine Controller
@@ -38,7 +44,7 @@ export const aiController = {
         psychologicalTrigger 
       });
 
-      // 🛡️ صمام الأمان المزدوج: إذا رجعت البيانات كنص String بسبب عطل في الـ Service، نقوم بمعالجتها هنا فوراً
+      // 🛡️ صمام الأمان المزدوج
       let finalData = scriptResult;
       if (typeof scriptResult === 'string') {
         try {
@@ -50,10 +56,9 @@ export const aiController = {
         }
       }
 
-      // 🚀 ⚡ حقن وقذف الإشعار حياً ومباشرة من السيرفر لضمان تشغيل لمبة الجرس النيون فورا
+      // 🚀 ⚡ حقن وقذف الإشعار حياً ومباشرة من السيرفر بدون الاعتماد على تريجرز قاعدة البيانات
       if (userId && finalData) {
         try {
-          // استخلاص عنوان الإشعار من فكرة المستخدم بدقة وديناميكية
           const cleanPrompt = prompt.replace(/[\n\r]/g, ' ').trim();
           const detectedTitle = cleanPrompt.length > 25 ? cleanPrompt.substring(0, 25) + '...' : cleanPrompt;
           
@@ -102,14 +107,12 @@ export const aiController = {
   analyzeScriptMetrics: async (req, res, next) => {
     try {
       const { script } = req.body;
-
       if (!script) {
         return res.status(CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
           success: false,
           error: 'النص مفقود. يرجى تمرير السيناريو لإتمام الفحص السلوكي المتقدم.'
         });
       }
-
       return res.status(CONSTANTS.HTTP_STATUS.OK).json({
         success: true,
         data: {
