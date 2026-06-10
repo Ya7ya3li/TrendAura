@@ -13,7 +13,7 @@ const openai = new OpenAI({
 
 export const openaiService = {
   /**
-   * 🧠 استدعاء النواة العصبية لـ OpenRouter لصياغة وتطهير السكريبت الفايرال بصيغة JSON نقية O(1)
+   * 🧠 استدعاء النواة العصبية لـ OpenRouter لصياغة وتطهير السكريبت الفايرال بصيغة JSON نقية
    */
   generateViralContent: async (userPrompt, options = {}) => {
     try {
@@ -30,16 +30,39 @@ export const openaiService = {
           { role: 'user', content: formattedUserPrompt }
         ],
         temperature: 0.75,
-        response_format: { type: "json_object" } // إجبار المحرك الذكي على القذف بهيكل كائن ناصع
+        response_format: { type: "json_object" } 
       });
 
       let rawJson = response.choices[0].message.content.trim();
       
-      if (rawJson.includes('```')) {
-        rawJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim();
+      // 🚀 1. الخوارزمية الفائقة: استخلاص كتل الـ JSON الصافية من بين الأقواس وسحق نصوص المارك داون الجانبية
+      const jsonMatch = rawJson.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        rawJson = jsonMatch[0];
       }
 
-      const parsed = JSON.parse(rawJson);
+      // 🛡️ 2. صمام الأمان العالمي: ملاحقة وتنظيف الـ Control Characters (الأسطر الجديدة الكارثية) داخل القيم النصية للـ AI
+      let cleanJsonText = "";
+      let inString = false;
+      for (let i = 0; i < rawJson.length; i++) {
+        let char = rawJson[i];
+        
+        // رصد حدود النصوص بداخل علامات الاقتباس مع مراعاة علامات الهروب (Escaped Quotes)
+        if (char === '"' && rawJson[i - 1] !== '\\') {
+          inString = !inString;
+        }
+        
+        // إذا كنا داخل النص ورأينا سطر جديد حقيقي أو علامة تحكم، نحولها فوراً لصيغة آمنة للـ Parse
+        if (inString) {
+          if (char === '\n') { cleanJsonText += '\\n'; continue; }
+          if (char === '\r') { cleanJsonText += '\\r'; continue; }
+          if (char === '\t') { cleanJsonText += '\\t'; continue; }
+        }
+        cleanJsonText += char;
+      }
+
+      // 3. عمل Parse للحزمة النصية المصفاة والمحمية 100%
+      const parsed = JSON.parse(cleanJsonText);
       
       // تصفية وتطهير البيانات الحية لضمان سلامتها قبل المغادرة للـ Controller
       const sanitized = {
