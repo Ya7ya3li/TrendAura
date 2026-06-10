@@ -1,6 +1,7 @@
 import { openaiService } from '../services/openai.js';
 import { usageService } from '../services/usageService.js';
 import { CONSTANTS } from '../config/constants.js';
+import { supabase } from '../config/supabase.js'; // 🔥 حقن شريان سوبابيس المباشر في الباك إند
 
 /**
  * TrendAura AI Core Script Generation Engine Controller
@@ -16,7 +17,7 @@ export const aiController = {
       if (!prompt || prompt.length > CONSTANTS.PROMPT_CONSTRAINTS.maxInputLength) {
         return res.status(CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
           success: false,
-          error: 'النص M المرفق يخالف المعايير القياسية لطول المدخلات في المنصة.'
+          error: 'النص المرفق يخالف المعايير القياسية لطول المدخلات في المنصة.'
         });
       }
 
@@ -46,6 +47,29 @@ export const aiController = {
         } catch (parseErr) {
           console.error('❌ [aiController Defensive Parsing Failed]:', parseErr.message);
           throw new Error('فشل نظام معالجة الحزم النصية الذكية.');
+        }
+      }
+
+      // 🚀 ⚡ حقن وقذف الإشعار حياً ومباشرة من السيرفر لضمان تشغيل لمبة الجرس النيون فورا
+      if (userId && finalData) {
+        try {
+          // استخلاص عنوان الإشعار من فكرة المستخدم بدقة وديناميكية
+          const cleanPrompt = prompt.replace(/[\n\r]/g, ' ').trim();
+          const detectedTitle = cleanPrompt.length > 25 ? cleanPrompt.substring(0, 25) + '...' : cleanPrompt;
+          
+          await supabase
+            .from('notifications')
+            .insert([
+              { 
+                user_id: userId, 
+                text: `تم صياغة سكريبت بنجاح حول: ${detectedTitle}`, 
+                type: 'script', 
+                is_read: false 
+              }
+            ]);
+          console.log('🔔 [Server Live Notification]: تم قذف الإشعار بنجاح ملوكي.');
+        } catch (notifyErr) {
+          console.error('⚠️ [Server Notification Injection Intercepted]:', notifyErr.message);
         }
       }
 
