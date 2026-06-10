@@ -6,19 +6,23 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef(null)
   
+  // 🏆 جلب بيانات الحساب حية من الـ Context
   const { profile } = useContext(AuthContext)
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // ⏱️ تثبيت وقت دخول الجلسة الحالي
+  // ⏱️ تثبيت وقت دخول الجلسة الحالي لإشعار تسجيل الدخول الثابت
   const [sessionTime] = useState(() => new Date().toISOString())
+  
+  // 👤 مرجع لمراقبة التغيرات اللحظية للاسم والصورة الشخصية
+  const prevProfileRef = useRef({ name: profile?.full_name, avatar: profile?.avatar_url })
 
   // 💾 جلب المعرفات المقروءة مسبقاً من الذاكرة المحلية
   const [readIds, setReadIds] = useState(() => {
     return JSON.parse(localStorage.getItem('trendaura_read_notifs') || '[]')
   })
 
-  // 📡 دالة تحويل التواريخ بصيغة نسبية خفيفة
+  // 📡 دالة تحويل التواريخ بصيغة نسبية خفيفة وسريعة
   const formatRelativeTime = (dateString) => {
     if (!dateString) return 'الآن'
     const now = new Date()
@@ -33,43 +37,43 @@ export default function NotificationBell() {
     return past.toLocaleDateString('ar-SA')
   }
 
-  // 🎨 دالة رندرة أيقونات SVG ديناميكياً بحسب نوع الإشعار لمنع استخدام الإيموجي
+  // 🎨 دالة رندرة أيقونات SVG النظيفة والنقية بالكامل بدون استخدام الإيموجي
   const renderNotificationIcon = (type) => {
     const baseClass = "w-4 h-4 shrink-0"
     
     switch (type) {
-      case 'token': // أيقونة شحن المحفظة والعملات (Coins)
+      case 'token':
         return (
           <svg className={`${baseClass} text-emerald-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         )
-      case 'plan': // أيقونة الترقية والباقات السيادية (Crown/Badge)
+      case 'plan':
         return (
           <svg className={`${baseClass} text-amber-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
           </svg>
         )
-      case 'script': // أيقونة توليد محرك الذكاء الاصطناعي (Sparkles/Flame Effect)
+      case 'script':
         return (
           <svg className={`${baseClass} text-purple-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         )
-      case 'name': // أيقونة تعديل الاسم المعرف الشخصي (User Card)
+      case 'name':
         return (
           <svg className={`${baseClass} text-blue-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         )
-      case 'avatar': // أيقونة الصورة الشخصية والعدسة (Camera)
+      case 'avatar':
         return (
           <svg className={`${baseClass} text-pink-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V3z" />
             <circle cx="12" cy="13" r="3" stroke="currentColor" strokeWidth="2.5" />
           </svg>
         )
-      default: // أيقونة تسجيل الدخول والنظام الأساسي (Shield/Check)
+      default:
         return (
           <svg className={`${baseClass} text-blue-600 dark:text-cyan-400`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -78,11 +82,11 @@ export default function NotificationBell() {
     }
   }
 
-  // 📡 سحب العمليات وصياغتها نصوصاً نقية بدون إيموجيز
+  // 📡 1. سحب البيانات الأولية وربط قنوات البث الفوري المباشر (Realtime)
   useEffect(() => {
-    const fetchLiveNotifications = async () => {
-      if (!profile?.id) return
+    if (!profile?.id) return
 
+    const fetchLiveNotifications = async () => {
       try {
         const { data: invoiceData } = await supabase
           .from('invoices')
@@ -98,7 +102,6 @@ export default function NotificationBell() {
           .order('created_at', { ascending: false })
           .limit(2)
 
-        // الفواتير والاشتراكات
         const formattedInvoices = (invoiceData || []).map(inv => {
           const id = `inv-${inv.id}`
           const isToken = inv.plan_type?.toUpperCase() === 'TOKEN_BOOSTER'
@@ -113,7 +116,6 @@ export default function NotificationBell() {
           }
         })
 
-        // السكريبتات
         const formattedHistory = (historyData || []).map(hist => {
           const id = `hist-${hist.id}`
           return {
@@ -125,30 +127,6 @@ export default function NotificationBell() {
           }
         })
 
-        // البروفايل
-        const profileLogs = []
-        if (profile.updated_at) {
-          const nameId = `name-${profile.id}-${profile.updated_at}`
-          const avatarId = `avatar-${profile.id}-${profile.updated_at}`
-
-          profileLogs.push({
-            id: nameId,
-            text: `تم تغيير اسمك بنجاح`,
-            created_at: profile.updated_at,
-            type: 'name',
-            isNew: !readIds.includes(nameId)
-          })
-
-          profileLogs.push({
-            id: avatarId,
-            text: `تم تغيير صورتك الشخصية بنجاح`,
-            created_at: profile.updated_at,
-            type: 'avatar',
-            isNew: !readIds.includes(avatarId)
-          })
-        }
-
-        // تسجيل الدخول
         const loginWelcomeId = `sys-login-${sessionTime.slice(0, 16)}`
         const loginWelcome = {
           id: loginWelcomeId,
@@ -158,19 +136,96 @@ export default function NotificationBell() {
           isNew: !readIds.includes(loginWelcomeId)
         }
 
-        const combinedNotifs = [...formattedInvoices, ...formattedHistory, ...profileLogs]
+        const combinedNotifs = [...formattedInvoices, ...formattedHistory]
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 
         setNotifications([loginWelcome, ...combinedNotifs].slice(0, 5))
       } catch (err) {
-        console.error('❌ [Notification System Failure]:', err)
+        console.error('❌ [Notification Init Error]:', err)
       } finally {
         setLoading(false)
       }
     }
 
     fetchLiveNotifications()
-  }, [profile, readIds])
+
+    // 📡 تفعيل الرصد الهيدروليكي للبث المباشر (Supabase Realtime Channel)
+    const realtimeChannel = supabase
+      .channel(`live-user-actions-${profile.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'history', filter: `user_id=eq.${profile.id}` },
+        (payload) => {
+          const newScriptNotif = {
+            id: `hist-live-${payload.new.id}`,
+            text: `تم صياغة سكريبت بنجاح حول: ${payload.new.topic || payload.new.prompt || 'فكرتك المخصصة'}`,
+            created_at: payload.new.created_at || new Date().toISOString(),
+            type: 'script',
+            isNew: true
+          }
+          setNotifications(prev => [newScriptNotif, ...prev.filter(n => n.id !== newScriptNotif.id)].slice(0, 5))
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'invoices', filter: `user_id=eq.${profile.id}` },
+        (payload) => {
+          const isToken = payload.new.plan_type?.toUpperCase() === 'TOKEN_BOOSTER'
+          const newInvoiceNotif = {
+            id: `inv-live-${payload.new.id}`,
+            text: isToken 
+              ? `تم شحن محفظتك بـ 50,000 توكن إضافي بنجاح`
+              : `تم تفعيل اشتراكك في (${payload.new.plan_type || 'PRO'}) بنجاح`,
+            created_at: payload.new.created_at || new Date().toISOString(),
+            type: isToken ? 'token' : 'plan',
+            isNew: true
+          }
+          setNotifications(prev => [newInvoiceNotif, ...prev.filter(n => n.id !== newInvoiceNotif.id)].slice(0, 5))
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(realtimeChannel)
+    }
+  }, [profile?.id])
+
+  // 📡 2. رصد التغيرات اللحظية للاسم والصورة الشخصية من الـ Context فور حدوثها وتقفيل التكرار
+  useEffect(() => {
+    if (!profile) return
+
+    const profileLogs = []
+    const nowStr = new Date().toISOString()
+
+    // رصد تغيير الاسم
+    if (prevProfileRef.current.name && prevProfileRef.current.name !== profile.full_name) {
+      profileLogs.push({
+        id: `live-name-${Date.now()}`,
+        text: `تم تغيير اسمك بنجاح`,
+        created_at: nowStr,
+        type: 'name',
+        isNew: true
+      })
+    }
+
+    // رصد تغيير الصورة الشخصية
+    if (prevProfileRef.current.avatar && prevProfileRef.current.avatar !== profile.avatar_url) {
+      profileLogs.push({
+        id: `live-avatar-${Date.now()}`,
+        text: `تم تغيير صورتك الشخصية بنجاح`,
+        created_at: nowStr,
+        type: 'avatar',
+        isNew: true
+      })
+    }
+
+    if (profileLogs.length > 0) {
+      setNotifications(prev => [...profileLogs, ...prev].slice(0, 5))
+    }
+
+    // تحديث المرجع لحفظ الحالة الحالية لمنع التكرار عند التحديث
+    prevProfileRef.current = { name: profile.full_name, avatar: profile.avatar_url }
+  }, [profile])
 
   const hasNew = notifications.some(n => n.isNew)
 
@@ -195,7 +250,7 @@ export default function NotificationBell() {
   return (
     <div className="relative select-none font-sans" ref={dropdownRef}>
       
-      {/* زر الأيقونة التفاعلي */}
+      {/* زر الجرس التفاعلي */}
       <button
         type="button"
         onClick={() => { setIsOpen(!isOpen); if(!isOpen) markAllAsRead(); }}
@@ -231,7 +286,6 @@ export default function NotificationBell() {
                     item.isNew ? 'bg-blue-500/5 dark:bg-cyan-500/5' : 'bg-transparent'
                   }`}
                 >
-                  {/* 🏆 حقن أيقونة الـ SVG ديناميكياً هنا بدلاً من الإيموجي الجامد */}
                   <div className="mt-0.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg shrink-0">
                     {renderNotificationIcon(item.type)}
                   </div>
