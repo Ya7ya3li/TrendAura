@@ -86,6 +86,8 @@ export default function NotificationBell() {
   useEffect(() => {
     if (!profile?.id) return
 
+    let realtimeChannel = null
+
     const fetchLiveNotifications = async () => {
       try {
         const { data: invoiceData } = await supabase
@@ -140,8 +142,47 @@ export default function NotificationBell() {
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 
         setNotifications([loginWelcome, ...combinedNotifs].slice(0, 5))
+
+        // 🏆 السر هنا: توليد اسم فريد تماماً لكل اشتراك لمنع قراءة الكاش المتسبب في كراش الموقع
+        const uniqueChannelName = `live-actions-${profile.id}-${Math.random().toString(36).slice(2, 9)}`
+
+        realtimeChannel = supabase
+          .channel(uniqueChannelName)
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'history', filter: `user_id=eq.${profile.id}` },
+            (payload) => {
+              const newScriptNotif = {
+                id: `hist-live-${payload.new.id}`,
+                text: `تم صياغة سكريبت بنجاح حول: ${payload.new.topic || payload.new.prompt || 'فكرتك المخصصة'}`,
+                created_at: payload.new.created_at || new Date().toISOString(),
+                type: 'script',
+                isNew: true
+              }
+              setNotifications(prev => [newScriptNotif, ...prev.filter(n => n.id !== newScriptNotif.id)].slice(0, 5))
+            }
+          )
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'invoices', filter: `user_id=eq.${profile.id}` },
+            (payload) => {
+              const isToken = payload.new.plan_type?.toUpperCase() === 'TOKEN_BOOSTER'
+              const newInvoiceNotif = {
+                id: `inv-live-${payload.new.id}`,
+                text: isToken 
+                  ? `تم شحن محفظتك بـ 50,000 توكن إضافي بنجاح`
+                  : `تم تفعيل اشتراكك في (${payload.new.plan_type || 'PRO'}) بنجاح`,
+                created_at: payload.new.created_at || new Date().toISOString(),
+                type: isToken ? 'token' : 'plan',
+                isNew: true
+              }
+              setNotifications(prev => [newInvoiceNotif, ...prev.filter(n => n.id !== newInvoiceNotif.id)].slice(0, 5))
+            }
+          )
+          .subscribe()
+
       } catch (err) {
-        console.error('❌ [Notification Init Error]:', err)
+        console.error('❌ [Notification System Failure]:', err)
       } finally {
         setLoading(false)
       }
@@ -149,55 +190,20 @@ export default function NotificationBell() {
 
     fetchLiveNotifications()
 
-    // 📡 تفعيل الرصد الهيدروليكي للبث المباشر (Supabase Realtime Channel)
-    const realtimeChannel = supabase
-      .channel(`live-user-actions-${profile.id}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'history', filter: `user_id=eq.${profile.id}` },
-        (payload) => {
-          const newScriptNotif = {
-            id: `hist-live-${payload.new.id}`,
-            text: `تم صياغة سكريبت بنجاح حول: ${payload.new.topic || payload.new.prompt || 'فكرتك المخصصة'}`,
-            created_at: payload.new.created_at || new Date().toISOString(),
-            type: 'script',
-            isNew: true
-          }
-          setNotifications(prev => [newScriptNotif, ...prev.filter(n => n.id !== newScriptNotif.id)].slice(0, 5))
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'invoices', filter: `user_id=eq.${profile.id}` },
-        (payload) => {
-          const isToken = payload.new.plan_type?.toUpperCase() === 'TOKEN_BOOSTER'
-          const newInvoiceNotif = {
-            id: `inv-live-${payload.new.id}`,
-            text: isToken 
-              ? `تم شحن محفظتك بـ 50,000 توكن إضافي بنجاح`
-              : `تم تفعيل اشتراكك في (${payload.new.plan_type || 'PRO'}) بنجاح`,
-            created_at: payload.new.created_at || new Date().toISOString(),
-            type: isToken ? 'token' : 'plan',
-            isNew: true
-          }
-          setNotifications(prev => [newInvoiceNotif, ...prev.filter(n => n.id !== newInvoiceNotif.id)].slice(0, 5))
-        }
-      )
-      .subscribe()
-
     return () => {
-      supabase.removeChannel(realtimeChannel)
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel)
+      }
     }
   }, [profile?.id])
 
-  // 📡 2. رصد التغيرات اللحظية للاسم والصورة الشخصية من الـ Context فور حدوثها وتقفيل التكرار
+  // 📡 2. رصد التغيرات اللحظية للاسم والصورة الشخصية من الـ Context فور حدوثها
   useEffect(() => {
     if (!profile) return
 
     const profileLogs = []
     const nowStr = new Date().toISOString()
 
-    // رصد تغيير الاسم
     if (prevProfileRef.current.name && prevProfileRef.current.name !== profile.full_name) {
       profileLogs.push({
         id: `live-name-${Date.now()}`,
@@ -208,7 +214,6 @@ export default function NotificationBell() {
       })
     }
 
-    // رصد تغيير الصورة الشخصية
     if (prevProfileRef.current.avatar && prevProfileRef.current.avatar !== profile.avatar_url) {
       profileLogs.push({
         id: `live-avatar-${Date.now()}`,
@@ -223,7 +228,6 @@ export default function NotificationBell() {
       setNotifications(prev => [...profileLogs, ...prev].slice(0, 5))
     }
 
-    // تحديث المرجع لحفظ الحالة الحالية لمنع التكرار عند التحديث
     prevProfileRef.current = { name: profile.full_name, avatar: profile.avatar_url }
   }, [profile])
 
@@ -250,7 +254,7 @@ export default function NotificationBell() {
   return (
     <div className="relative select-none font-sans" ref={dropdownRef}>
       
-      {/* زر الجرس التفاعلي */}
+      {/* زر الأيقونة التفاعلي */}
       <button
         type="button"
         onClick={() => { setIsOpen(!isOpen); if(!isOpen) markAllAsRead(); }}
