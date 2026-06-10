@@ -10,6 +10,9 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // ⏱️ تثبيت وقت دخول الجلسة الحالي لإشعار تسجيل الدخول الثابت
+  const [sessionTime] = useState(() => new Date().toISOString())
+
   // 📡 دالة تحويل التواريخ بصيغة نسبية خفيفة وسريعة
   const formatRelativeTime = (dateString) => {
     if (!dateString) return 'الآن'
@@ -25,7 +28,7 @@ export default function NotificationBell() {
     return past.toLocaleDateString('ar-SA')
   }
 
-  // 🎨 دالة رندرة أيقونات SVG النظيفة والنقية بالكامل
+  // 🎨 رندرة أيقونات SVG النقية بالكامل متناسقة مع النصوص بدون إيموجي
   const renderNotificationIcon = (type) => {
     const baseClass = "w-4 h-4 shrink-0"
     switch (type) {
@@ -60,7 +63,7 @@ export default function NotificationBell() {
             <circle cx="12" cy="13" r="3" stroke="currentColor" strokeWidth="2.5" />
           </svg>
         )
-      default:
+      default: // أيقونة تسجيل الدخول (Shield/Check)
         return (
           <svg className={`${baseClass} text-blue-600 dark:text-cyan-400`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -82,11 +85,20 @@ export default function NotificationBell() {
           .select('*')
           .eq('user_id', profile.id)
           .order('created_at', { ascending: false })
-          .limit(5)
+          .limit(4) // نأخذ 4 فقط لنترك مكاناً لإشعار تسجيل الدخول
 
-        setNotifications(data || [])
+        // ⚡ هندسة إشعار تسجيل الدخول الجلسي ليكون ثابتاً ومحمياً بالقمة عند الريفريش
+        const loginWelcome = {
+          id: `sys-login-${sessionTime.slice(0, 16)}`,
+          text: `تم تسجيل الدخول بنجاح اهلا بك`,
+          created_at: sessionTime,
+          type: 'login',
+          is_read: true
+        }
 
-        // 🚀 الربط اللحظي العالمي: استماع لجدول الإشعارات المركزي فقط
+        setNotifications([loginWelcome, ...(data || [])].slice(0, 5))
+
+        // 🚀 الربط اللحظي العالمي المستقر
         const channelId = `live-notifs-${profile.id}-${Math.random().toString(36).slice(2, 7)}`
         realtimeChannel = supabase
           .channel(channelId)
@@ -94,6 +106,7 @@ export default function NotificationBell() {
             'postgres_changes',
             { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
             (payload) => {
+              // الإشعار اللحظي الجديد ينزل فوراً في القمة حياً
               setNotifications(prev => [payload.new, ...prev].slice(0, 5))
             }
           )
@@ -113,16 +126,11 @@ export default function NotificationBell() {
     }
   }, [profile?.id])
 
-  // فحص لو فيه أي إشعار غير مقروء لولاعة اللمبة النيون
   const hasNew = notifications.some(n => !n.is_read)
 
-  // 🔒 قراءة الإشعارات: تعديل حالتها حياً في قاعدة البيانات للأبد
   const markAllAsRead = async () => {
     if (notifications.length === 0 || !hasNew) return
-
-    // تحديث الحالة في الواجهة فوراً لتجربة سريعة جداً
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
-
     try {
       await supabase
         .from('notifications')
@@ -130,7 +138,7 @@ export default function NotificationBell() {
         .eq('user_id', profile.id)
         .eq('is_read', false)
     } catch (err) {
-      console.error('❌ [Failed to update read status in DB]:', err)
+      console.error('❌ [Failed to update read status]:', err)
     }
   }
 
@@ -180,7 +188,7 @@ export default function NotificationBell() {
                 <div 
                   key={item.id} 
                   className={`p-3.5 hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-colors flex items-start gap-3 cursor-pointer ${
-                    !item.is_read ? 'bg-blue-500/5 dark:bg-cyan-500/5' : 'bg-transparent'
+                    !item.is_read && item.type !== 'login' ? 'bg-blue-500/5 dark:bg-cyan-500/5' : 'bg-transparent'
                   }`}
                 >
                   <div className="mt-0.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg shrink-0">
