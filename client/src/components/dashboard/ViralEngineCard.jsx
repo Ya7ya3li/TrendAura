@@ -8,7 +8,7 @@ export default function ViralEngineCard({ plan, scriptText }) {
   // 🚀 الاتصال الحقيقي بالسيرفر وفحص النص حياً
   const handleStartAnalysis = async () => {
     if (!scriptText) {
-      alert("فضلاً اكتب فكرتك أو ولد سكريبت أولاً ليتمكن المحرك من فصحه !")
+      alert("فضلاً اكتب فكرتك أو ولد سكريبت أولاً ليتمكن المحرك من فصحه حقيقياً!")
       return
     }
     
@@ -17,7 +17,8 @@ export default function ViralEngineCard({ plan, scriptText }) {
     setAnalysisData(null)
     
     try {
-      const response = await fetch('http://localhost:5000/api/ai/analyze-script', {
+      // 🏆 تم ضبط المسار ليتطابق بالملي مع راوت الباك إند الموحد
+      const response = await fetch('http://localhost:5000/api/ai/analyze-metrics', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,22 +88,26 @@ export default function ViralEngineCard({ plan, scriptText }) {
           )}
         </button>
 
-        {/* إشعار حالة السكريبت */}
+        {/* 🛡️ إشعار حالة السكريبت (تم سحق الإيموجيز القديمة وحقن الـ SVGs بالملي هنا) */}
         <div className="mt-3 flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-900/30 border border-slate-900 text-[10px] font-bold text-slate-400">
           <span className="flex items-center gap-1.5">
             <span className={`w-2 h-2 rounded-full ${scriptText ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
             حالة السكريبت الجاري:
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1.5 font-black">
             {scriptText ? (
               <>
-                <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                <span>محمل وجاهز للتشريح</span>
+                <svg className="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-emerald-400">محمل وجاهز للتشريح</span>
               </>
             ) : (
               <>
-                <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                <span>فارغ</span>
+                <svg className="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span className="text-rose-400">فارغ</span>
               </>
             )}
           </span>
@@ -185,7 +190,7 @@ export default function ViralEngineCard({ plan, scriptText }) {
             
             <ul className="space-y-3 text-right">
               {analysisData.tips && analysisData.tips.map((tip, index) => (
-                <li key={index} className="text-[10px] font-medium text-slate-300 leading-relaxed relative pr-4 before:content-[''] before:absolute before:right-0 before:top-1.5 before:w-1.5 before:before:h-1.5 before:bg-indigo-500 before:rounded-full">
+                <li key={index} className="text-[10px] font-medium text-slate-300 leading-relaxed relative pr-4 before:content-[''] before:absolute before:right-0 before:top-1.5 before:w-1.5 before:h-1.5 before:bg-indigo-500 before:rounded-full">
                   {tip}
                 </li>
               ))}
