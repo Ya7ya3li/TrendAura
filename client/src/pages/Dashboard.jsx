@@ -18,7 +18,7 @@ export default function Dashboard() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] text-slate-500 font-bold text-xs animate-pulse">
-        جاري تحميل البيانات ...
+        جاري تحميل البيانات الملكية...
       </div>
     )
   }
@@ -37,28 +37,18 @@ export default function Dashboard() {
       </div>
 
       <div className="w-full mb-8">
-        <GeneratorBox 
-          prompt={prompt} 
-          setPrompt={setPrompt} 
-          loading={aiLoading} 
-          onGenerate={generateScript} 
-        />
+        <GeneratorBox prompt={prompt} setPrompt={setPrompt} loading={aiLoading} onGenerate={generateScript} />
       </div>
 
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-1 h-full block">
-          <ScriptCard 
-            hook={result?.hook} 
-            script={result?.script} 
-            cta={result?.cta}
-          />
+          <ScriptCard hook={result?.hook} script={result?.script} cta={result?.cta} />
         </div>
 
         <div className="flex flex-col gap-6">
           <ProtectedFeature minRequiredPlan="pro" featureName="الهاشتاقات الفايرال">
             <HashtagsCard hashtags={result?.hashtags} />
           </ProtectedFeature>
-
           <ProtectedFeature minRequiredPlan="pro" featureName="أفضل أوقات النشر">
             <BestTimeCard customTimes={result?.bestTimes} />
           </ProtectedFeature>
@@ -68,7 +58,6 @@ export default function Dashboard() {
           <ProtectedFeature minRequiredPlan="viral_engine" featureName="أفكار المحتوى الفايرال">
             <ViralIdeasCard customIdeas={result?.viralIdeas} />
           </ProtectedFeature>
-          
           <ProtectedFeature minRequiredPlan="viral_engine" featureName="محرك الفايرال الخارق">
             <ViralEngineCard plan={currentPlan} scriptText={result?.script} />
           </ProtectedFeature>

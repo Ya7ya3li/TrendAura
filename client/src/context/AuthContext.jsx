@@ -45,8 +45,6 @@ export const AuthProvider = ({ children }) => {
       await supabase.auth.signOut()
       setUser(null)
       setProfile(null)
-      
-      // صمام أمان طرد المستخدم فوراً لصفحة اللوجن لمنع كراش كروت الداشبورد عند الخروج
       window.location.href = '/login'
     } catch (err) {
       console.error('❌ [Logout Signout Exception]:', err.message)
@@ -59,7 +57,6 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
-        
         if (session?.user && active) {
           setUser(session.user)
           fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
@@ -104,5 +101,4 @@ export const AuthProvider = ({ children }) => {
   )
 }
 
-// 👑 السطر الملوكي اللي كان ناقص وتسبب في كراش الفيت  الحين رجع مكانه بالملي
 export default AuthProvider
