@@ -11,7 +11,17 @@ import useAiGenerator from '../hooks/useAiGenerator.js'
 
 export default function Dashboard() {
   const { profile, loading: authLoading } = useContext(AuthContext)
-  const { prompt, setPrompt, loading: aiLoading, result, generateScript } = useAiGenerator()
+  
+  // 🚀 التعديل الأول: تفكيك دالة الحفظ وحالة الانتظار الحية من الهوك المركزي
+  const { 
+    prompt, 
+    setPrompt, 
+    loading: aiLoading, 
+    isSaving, 
+    result, 
+    generateScript, 
+    saveScriptToSupabase 
+  } = useAiGenerator()
 
   const currentPlan = profile?.plan || 'free'
 
@@ -42,7 +52,14 @@ export default function Dashboard() {
 
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-1 h-full block">
-          <ScriptCard hook={result?.hook} script={result?.script} cta={result?.cta} />
+          {/* 🚀 التعديل الثاني: حقن وتمرير دالة الحفظ الفعلي وحالة الانتظار لـ ScriptCard */}
+          <ScriptCard 
+            hook={result?.hook} 
+            script={result?.script} 
+            cta={result?.cta} 
+            onSave={saveScriptToSupabase} 
+            isSaving={isSaving} 
+          />
         </div>
 
         <div className="flex flex-col gap-6">

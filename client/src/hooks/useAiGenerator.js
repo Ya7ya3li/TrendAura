@@ -11,8 +11,8 @@ export default function useAiGenerator() {
   const { plan } = useContext(SubscriptionContext); 
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false); // حالة انتظار خاصة بالحفظ
   
-  // 🏆 تم التحديث: تكييف الهيكل لاستيعاب كامل مخرجات السيرفر الحقيقية لتغذية كروت الداشبورد
   const [result, setResult] = useState({ 
     hook: '', 
     script: '', 
@@ -44,22 +44,18 @@ export default function useAiGenerator() {
         return;
       }
 
-      // 🚀 استدعاء مسار التوليد الصارم من السيرفر
       const response = await aiService.generateScript(prompt); 
       console.log('🕵️‍♂️ [AI RAW RESPONSE]:', response);
 
-      // التحقق من الاستجابة سواء كانت ملفوفة بـ success أو راجعة ناصعة مباشرة من الـ Sanitizer
       if (response) {
         const aiData = response.success ? response.data : response;
         console.log('📦 [PARSED DATA FOR LAYOUT]:', aiData);
 
-        // خصم الرصيد ومزامنة التوكنات خلفياً في قاعدة البيانات الحية
         const currentTokens = profile.tokens || 0;
         const deductedTokens = Math.max(0, currentTokens - 10);
         await supabase.from('profiles').update({ tokens: deductedTokens }).eq('id', profile.id);
         setProfile(prev => ({ ...prev, tokens: deductedTokens }));
 
-        // 🛡️ اصطياد وتأمين الحقول الصارمة وتمريرها لكروت العرض الجدارية
         setResult({
           hook: aiData.hook || 'المقدمة الخاطفة 🚀',
           script: aiData.script || 'تم صياغة السيناريو بنجاح.',
@@ -84,5 +80,44 @@ export default function useAiGenerator() {
     }
   };
 
-  return { prompt, setPrompt, loading, result, setResult, generateScript };
+  /**
+   * 📦 دالة الحفظ الحقيقية والسيادية في جدول السكريبتات بـ Supabase
+   */
+  const saveScriptToSupabase = async () => {
+    if (!profile?.id || !result.hook) {
+      if (typeof showToast === 'function') showToast('لا يوجد سكريبت مولد لحفظه حالياً!', 'warning');
+      return false;
+    }
+
+    setIsSaving(true);
+    try {
+      // حقن البيانات كاملة وحية في جدول الباك إند بسوبابيس
+      const { error } = await supabase.from('scripts').insert([
+        {
+          user_id: profile.id,
+          hook: result.hook,
+          script: result.script,
+          cta: result.cta,
+          hashtags: result.hashtags,
+          ai_score: result.aiScore,
+          retention_rate: result.retentionRate
+        }
+      ]);
+
+      if (error) throw error;
+
+      if (typeof showToast === 'function') {
+        showToast('تم ترحيل وحفظ السكريبت في أرشيفك بنجاح! 💾✨', 'success');
+      }
+      return true;
+    } catch (error) {
+      console.error('❌ [Supabase Real Save Fatal Error]:', error.message);
+      if (typeof showToast === 'function') showToast('عذراً، فشل تسجيل الحفظ في قاعدة البيانات ⚠️', 'error');
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return { prompt, setPrompt, loading, isSaving, result, setResult, generateScript, saveScriptToSupabase };
 }

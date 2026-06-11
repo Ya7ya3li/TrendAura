@@ -1,22 +1,13 @@
 import React, { useContext } from 'react'
 import { ThemeContext } from '../../context/ThemeContext.jsx'
-import { showToast } from '../../App.jsx'
 import CopyButton from '../common/CopyButton.jsx'
 
-export default function ScriptCard({ hook, script, cta }) {
+export default function ScriptCard({ hook, script, cta, onSave, isSaving }) {
   const { theme } = useContext(ThemeContext)
   
-  // بناء الهيكل التمريضي الافتراضي الحامي للواجهات من الـ blank
   const displayHook = hook || 'أفكار التوليد تظهر هنا فور ضغط الزر... 🚀'
   const displayScript = script || 'اكتب فكرتك بالأعلى واكبس توليد ليقوم الذكاء الاصطناعي بنسج السيناريو الكامل بالملي.'
   const fullScriptText = hook ? `${hook}\n\n${script}\n\n${cta || ''}` : `${displayHook}\n\n${displayScript}`
-
-  const handleSaveScript = () => {
-    if (!hook) return
-    if (typeof showToast === 'function') {
-      showToast('تم حفظ وتأمين السكريبت في أرشيف السجلات بنجاح ملوكي! 💾✨', 'success')
-    }
-  }
 
   return (
     <div className={`w-full border rounded-[28px] p-5 shadow-xl text-right dir-rtl flex flex-col h-full select-none animate-fade-in transition-all duration-300 ${
@@ -30,7 +21,7 @@ export default function ScriptCard({ hook, script, cta }) {
       }`}>
         <div className="flex items-center gap-2">
           <span className="text-base">📄</span>
-          <h3 className="text-xs font-black tracking-tight">السكريبت المقترح حركياً</h3>
+          <h3 className="text-xs font-black tracking-tight">السكريبت المقترح </h3>
         </div>
         <span className={`text-[9px] font-black border px-2.5 py-0.5 rounded-md flex items-center gap-1 transition-all ${
           hook
@@ -72,15 +63,15 @@ export default function ScriptCard({ hook, script, cta }) {
         <CopyButton text={fullScriptText} label="نسخ السكريبت" />
         <button
           type="button"
-          disabled={!hook}
-          onClick={handleSaveScript}
-          className={`px-3 py-1.5 rounded-xl text-[10px] font-black border transition-all active:scale-95 disabled:opacity-30 ${
+          disabled={!hook || isSaving}
+          onClick={onSave} // 🚀 تفعيل إطلاق دالة الحفظ الحقيقية الممررة
+          className={`px-3 py-1.5 rounded-xl text-[10px] font-black border transition-all active:scale-95 disabled:opacity-50 ${
             theme === 'dark'
               ? 'border-[#1f1438] text-slate-300 hover:bg-white/5'
               : 'border-slate-200/60 text-slate-500 hover:bg-slate-50'
           }`}
         >
-          💾 حفظ السكريبت
+          {isSaving ? '⏳ جاري الحفظ...' : '💾 حفظ السكريبت'}
         </button>
       </div>
 
