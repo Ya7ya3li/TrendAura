@@ -1,36 +1,35 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes.js'
 import { showToast } from '../../App.jsx'
+import useViralEngine from '../../hooks/useViralEngine.js' // 🏆 استدعاء الهوك الحقيقي والمطهر
 
-export default function ViralEngineCard({ plan }) {
-  const navigate = useNavigate() // 🏆 سحق الهارد ريلود
+export default function ViralEngineCard({ plan, scriptText }) {
+  const navigate = useNavigate() 
   const currentPlan = (plan || 'free').toLowerCase().trim()
   const isLocked = currentPlan !== 'viral_engine' && currentPlan !== 'viral engine'
 
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  // 📡 سحب محرك الفحص الحقيقي والربط بالباك إند مباشرة
+  const { loading: isAnalyzing, metrics, evaluateViralPotential } = useViralEngine()
   const [showResultModal, setShowResultModal] = useState(false)
-  const [viralScore, setViralScore] = useState(0)
 
-  const handleViralCheck = () => {
+  const handleViralCheck = async () => {
     if (isLocked) return
-    setIsAnalyzing(true)
     
-    setTimeout(() => {
-      setIsAnalyzing(false)
-      const calculatedScore = Math.floor(Math.random() * 14) + 84
-      setViralScore(calculatedScore)
-      setShowResultModal(true)
-      if (typeof showToast === 'function') {
-        showToast('تم اكتمال التحليل السلوكي وتقدير طاقة الـ Retention بنجاح! 🚀', 'success')
-      }
-    }, 2100)
+    // استدعاء الفحص الحقيقي للسيرفر بنص السيناريو المتوفر حالياً بالصفحة
+    await evaluateViralPotential(scriptText)
   }
+
+  // صمام أمان رصد: أول ما يرجع الـ aiScore الحقيقي من السيرفر بنجاح، افتح المودال فوراً للعميل بأرقامه الحقيقية
+  useEffect(() => {
+    if (metrics.aiScore !== null) {
+      setShowResultModal(true)
+    }
+  }, [metrics.aiScore])
 
   return (
     <>
       <div className="w-full bg-gradient-to-br from-[#090414] via-[#120a2b] to-[#090414] border border-[#23174a] rounded-[28px] p-5 shadow-2xl text-right dir-rtl relative overflow-hidden select-none animate-scale-up transition-all duration-300">
-        
         <div className="absolute -top-5 -left-5 w-32 h-32 bg-rose-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex items-center justify-between mb-3 relative z-10">
@@ -58,7 +57,7 @@ export default function ViralEngineCard({ plan }) {
         <p className="text-[10px] font-bold text-slate-400 leading-normal mb-5 relative z-10 min-h-[32px]">
           {isLocked 
             ? 'يتطلب اشتراك باقة صناع المحتوى لفك قفل أسلوب المشاهير وحقن أوامر الترندات الهجومية.' 
-            : 'المحرك المتقدم جاري ربطه الآن لرفع نسب (Retention) البقاء والاحتفاظ للفيديو وخلق الانتشار.'
+            : 'المحرك المتقدم جاهز الحين لفحص البنية السلوكية لرفع نسب البقاء والاحتفاظ للفيديو وخلق الانتشار الحقيقي.'
           }
         </p>
 
@@ -66,7 +65,7 @@ export default function ViralEngineCard({ plan }) {
           {isLocked ? (
             <button
               type="button"
-              onClick={() => navigate(ROUTES.PRICING)} // قفزة صاروخية بدون هارد ريلود
+              onClick={() => navigate(ROUTES.PRICING)} 
               className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 text-white rounded-xl py-2.5 text-[10px] font-black flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md shadow-purple-950 border-none"
             >
               👑 ترقية الباقة لفك قفل المحرك الكامل
@@ -85,7 +84,7 @@ export default function ViralEngineCard({ plan }) {
               {isAnalyzing ? (
                 <>
                   <span className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  <span>جاري فحص وتدقيق البنية السلوكية للمقطع...</span>
+                  <span>جاري الاتصال بالسيرفر وتحليل السيناريو حياً...</span>
                 </>
               ) : (
                 <span>💥 فحص احتمالية صعود المقطع للتريند المليوني</span>
@@ -93,7 +92,6 @@ export default function ViralEngineCard({ plan }) {
             </button>
           )}
         </div>
-
       </div>
 
       {showResultModal && (
@@ -102,22 +100,23 @@ export default function ViralEngineCard({ plan }) {
           
           <div className="relative w-full max-w-sm bg-gradient-to-b from-[#110a24] to-[#070310] border border-[#23174a] rounded-3xl p-6 shadow-2xl text-white text-center animate-scale-up">
             <span className="text-3xl block mb-2">📊</span>
-            <h4 className="text-sm font-black text-white">تقرير كفاءة الانتشار المتوقع</h4>
-            <p className="text-[10px] text-slate-400 mt-1">بناءً على معايير خوارزمية الـ Retention ومقاييس الاكسبلور الحالية</p>
+            <h4 className="text-sm font-black text-white">تقرير كفاءة الانتشار الحقيقي</h4>
+            <p className="text-[10px] text-slate-400 mt-1">المخرجات الصادرة من معايير خوارزمية الـ Retention ومقاييس الاكسبلور الفعلية</p>
             
+            {/* 🛑 عرض الـ Score الحقيقي القادم من السيرفر غصب عن الزيف */}
             <div className="my-6 w-24 h-24 rounded-full border-4 border-rose-500/20 border-t-rose-500 flex flex-col items-center justify-center mx-auto shadow-lg shadow-rose-500/10 animate-pulse">
-              <span className="text-2xl font-black text-rose-400 font-mono">{viralScore}%</span>
+              <span className="text-2xl font-black text-rose-400 font-mono">{metrics.aiScore}%</span>
               <span className="text-[7px] font-bold text-slate-400">احتمالية التريند</span>
             </div>
 
             <div className="space-y-2 text-right dir-rtl mb-5 text-[10px] font-bold text-slate-300">
               <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
-                <span>🎯 قوة الخطاف البصري (Hook):</span>
-                <span className="text-emerald-400">ممتاز (9/10)</span>
+                <span>⏱️ طاقة احتفاظ الجمهور (Retention):</span>
+                <span className="text-emerald-400 font-mono">{metrics.retentionRate ? `${metrics.retentionRate}%` : 'مكتمل'}</span>
               </div>
               <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
-                <span>⏱️ متوسط زمن بقاء المشاهد:</span>
-                <span className="text-cyan-400">صاعد +12 ثانية</span>
+                <span>⏰ الوقت المقترح للنشر حياً:</span>
+                <span className="text-cyan-400 font-sans">{metrics.optimalTime}</span>
               </div>
             </div>
 

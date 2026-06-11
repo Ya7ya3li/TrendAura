@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext } from 'react'
 import { AuthContext } from '../context/AuthContext.jsx'
 import GeneratorBox from '../components/dashboard/GeneratorBox.jsx'
 import ScriptCard from '../components/dashboard/ScriptCard.jsx'
@@ -6,12 +6,11 @@ import HashtagsCard from '../components/dashboard/HashtagsCard.jsx'
 import BestTimeCard from '../components/dashboard/BestTimeCard.jsx'
 import ViralIdeasCard from '../components/dashboard/ViralIdeasCard.jsx'
 import ViralEngineCard from '../components/dashboard/ViralEngineCard.jsx'
-import ProtectedFeature from '../components/common/ProtectedFeature.jsx' // 🏆 استدعاء بوابات حماية المميزات
+import ProtectedFeature from '../components/common/ProtectedFeature.jsx' 
 import useAiGenerator from '../hooks/useAiGenerator.js'
 
 /**
  * TrendAura Core AI Generation Dashboard Page
- * تم سحق ورقة مخرجات الجوال (MobileResultSheet) ليكون السكربت ظاهراً بالكامل بالصفحة لنسخه وحفظه بنجاح
  */
 export default function Dashboard() {
   const { profile, loading: authLoading } = useContext(AuthContext)
@@ -42,7 +41,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* صندوق المدخلات الفاخر لكتابة الأفكار وتحديد الباركود */}
+      {/* صندوق المدخلات الفاخر لكتابة الأفكار */}
       <div className="w-full mb-8">
         <GeneratorBox 
           prompt={prompt} 
@@ -52,10 +51,10 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* 🚀 شبكة توزيع كروت النتائج المحدثة لتعرض كرت السيناريو على الجوال والديسك توب معاً لتمكين النسخ وحفظ النصوص بالملي */}
+      {/* 🚀 شبكة توزيع كروت النتائج المحدثة حقيقياً */}
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
         
-        {/* كرت السيناريو والمخرجات يظهر للجميع لدعم التحديد والنسخ بنقرة زر */}
+        {/* كرت السيناريو والمخرجات */}
         <div className="lg:col-span-1 h-full block">
           <ScriptCard 
             hook={result?.hook} 
@@ -64,24 +63,25 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* الكروت والتحليلات الجانبية مغلفة ومقيدة بالملي بحصانة باقة حساب العميل */}
+        {/* الكروت والتحليلات الجانبية مقيدة بالملي بحصانة باقة حساب العميل */}
         <div className="flex flex-col gap-6">
-          <ProtectedFeature currentPlan={currentPlan} minRequiredPlan="pro" featureName="الهاشتاقات الفايرال">
+          <ProtectedFeature minRequiredPlan="pro" featureName="الهاشتاقات الفايرال">
             <HashtagsCard hashtags={result?.hashtags} />
           </ProtectedFeature>
 
-          <ProtectedFeature currentPlan={currentPlan} minRequiredPlan="pro" featureName="أفضل أوقات النشر">
+          <ProtectedFeature minRequiredPlan="pro" featureName="أفضل أوقات النشر">
             <BestTimeCard customTimes={result?.bestTimes} />
           </ProtectedFeature>
         </div>
 
         <div className="flex flex-col gap-6">
-          <ProtectedFeature currentPlan={currentPlan} minRequiredPlan="viral_engine" featureName="أفكار المحتوى الفايرال">
+          <ProtectedFeature minRequiredPlan="viral_engine" featureName="أفكار المحتوى الفايرال">
             <ViralIdeasCard customIdeas={result?.viralIdeas} />
           </ProtectedFeature>
           
-          <ProtectedFeature currentPlan={currentPlan} minRequiredPlan="viral_engine" featureName="محرك الفايرال الخارق">
-            <ViralEngineCard plan={currentPlan} />
+          <ProtectedFeature minRequiredPlan="viral_engine" featureName="محرك الفايرال الخارق">
+            {/* 🏆 تمرير نص السكريبت الفعلي هنا ليعالجه كرت الفحص بناءً على طلبك الصارم */}
+            <ViralEngineCard plan={currentPlan} scriptText={result?.script} />
           </ProtectedFeature>
         </div>
 

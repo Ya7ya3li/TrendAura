@@ -1,17 +1,13 @@
 import React, { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes.js'
-import { AuthContext } from '../../context/AuthContext.jsx' // 1. استيراد سياق الهوية
+import { AuthContext } from '../../context/AuthContext.jsx' 
+import { getPlanTier } from '../../constants/plans.js' // 🏆 ربط مباشر بملف الباقات الحقيقي حقتك
 
-/**
- * TrendAura Premium Feature Shielding Wrapper - Elite Edition
- * يحقن قفل نيون ذكي وتغبيش هيدروليكي للميزات المقفلة بناءً على باقة العميل الحية
- */
 export default function ProtectedFeature({ minRequiredPlan = 'pro', featureName = 'الميزة المتقدمة', children }) {
   const navigate = useNavigate()
-  const { profile, loading } = useContext(AuthContext) // 2. جلب بيانات البروفايل وحالة التحميل
+  const { profile, loading } = useContext(AuthContext) 
 
-  // 3. حماية النظام من "سباق البيانات": انتظر حتى ينتهي السيرفر من تأكيد الهوية
   if (loading) {
     return (
       <div className="w-full min-h-[220px] flex items-center justify-center border border-slate-200/40 dark:border-slate-800/40 rounded-[28px] bg-slate-50/5 dark:bg-slate-900/5">
@@ -22,52 +18,35 @@ export default function ProtectedFeature({ minRequiredPlan = 'pro', featureName 
     )
   }
 
-  // تنظيف وقراءة الباقة الحقيقية القادمة من قاعدة البيانات سوبابيس
-  const userPlanClean = String(profile?.plan || 'free').toLowerCase().trim()
-  const reqPlanClean = String(minRequiredPlan || 'pro').toLowerCase().trim()
+  // 🎯 مطابقة رقمية تامة وصارمة ومستوردة من الـ plans.js الأصلي
+  const userTier = getPlanTier(profile?.plan || 'free')
+  const requiredTier = getPlanTier(minRequiredPlan)
 
-  const getPlanTierLocal = (plan) => {
-    if (plan === 'viral_engine' || plan === 'viral engine') return 3
-    if (plan === 'pro') return 2
-    return 1 // free
-  }
-
-  const userTier = getPlanTierLocal(userPlanClean)
-  const requiredTier = getPlanTierLocal(reqPlanClean)
-
-  // 🟢 فتح الميزة فوراً إذا كانت باقة المستخدم أعلى أو تساوي الباقة المطلوبة
+  // فتح الميزة فوراً إذا كانت باقة المستخدم تؤهله بالملي
   if (userTier >= requiredTier) {
     return <>{children}</>
   }
 
-  // 👑 إذا كان حسابه لا يؤهله: احجب الميزة بـ UI فخم يدفع العميل للترقية والاشتراك فوراً
   return (
     <div className="relative border border-slate-200 dark:border-slate-800/80 rounded-[28px] overflow-hidden bg-slate-50/30 dark:bg-slate-950/40 min-h-[230px] flex items-center justify-center select-none group transition-all duration-300 shadow-xl backdrop-blur-[2px]">
-      
-      {/* 4. إضافة pointer-events-none وتغبيش أنيق محكوم للمحتوى الخلفي ليكون مشوقاً للعين */}
       <div className="w-full h-full opacity-10 dark:opacity-20 blur-[6px] pointer-events-none filter select-none transition-all duration-300 group-hover:blur-[8px]">
         {children}
       </div>
       
-      {/* طبقة الحجب النيون والقفل العائم الفاخر */}
       <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10 bg-gradient-to-b from-transparent via-slate-950/20 to-slate-950/80 dark:via-slate-900/10 dark:to-slate-950/90">
-        
-        {/* أيقونة القفل النيون المتحركة عند مرور الماوس */}
         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 text-white flex items-center justify-center shadow-lg shadow-purple-500/20 shrink-0 mb-3 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
           <svg className="w-5 h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
         </div>
 
-        {/* النص التسويقي التكتيكي الموجه للعميل */}
         <h4 className="text-xs font-black text-slate-900 dark:text-white mb-1 tracking-tight">
           فتح ترسانة {featureName} ✦
         </h4>
         <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 max-w-[220px] mb-4 leading-relaxed">
-          هذه الأدوات الحصرية متاحة فقط لمشتركي خطة <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 uppercase font-black">{reqPlanClean}</span> فما فوق.
+          هذه الأدوات الحصرية متاحة فقط لمشتركي خطة <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 uppercase font-black">{minRequiredPlan}</span> فما فوق.
         </p>
         
-        {/* زر الترقية الفوري الذي يطير به لصفحة الأسعار */}
         <button
           type="button"
           onClick={() => navigate(ROUTES.PRICING || '/pricing')}

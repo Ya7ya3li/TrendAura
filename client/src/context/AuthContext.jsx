@@ -59,10 +59,9 @@ export const AuthProvider = ({ children }) => {
         
         if (session?.user && active) {
           setUser(session.user)
-          fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-            .then(p => {
-              if (active && p) setProfile(p)
-            })
+          // 🏆 حقن الـ await لمنع سباق البيانات وجلب الخطة الحقيقية فوراً
+          const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+          if (active && p) setProfile(p)
         }
       } catch (e) {
         console.error("❌ [Auth Init Fatal Error]:", e)
@@ -76,10 +75,9 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         if (active) setUser(session.user)
-        fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-          .then(p => {
-            if (active && p) setProfile(p)
-          })
+        // 🏆 حقن الـ await عند تبدل حالة الجلسة لضمان مزامنة التير الحقيقي
+        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+        if (active && p) setProfile(p)
       } else {
         if (active) {
           setUser(null)
