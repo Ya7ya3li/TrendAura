@@ -1,10 +1,17 @@
 import OpenAI from 'openai';
 
-// 📡 تهيئة حساب OpenAI ليوجه الطلبات حقيقياً ومباشرة إلى سيرفر OpenRouter
+// 📡 تهيئة الحساب الموحد لأوبن راوتر
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1" // 👈 هذا السطر السحري لاستقبال مفتاح sk-or-v1 بنجاح
+  baseURL: "https://openrouter.ai/api/v1"
 });
+
+// 🏆 الدالة المساعدة المطهرة والمحمية من انقسام السطور
+const cleanAndParseJSON = (rawText) => {
+  let cleanText = rawText.trim();
+  cleanText = cleanText.replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/```$/, "").trim();
+  return JSON.parse(cleanText);
+};
 
 /**
  * 🧠 1. دالة توليد السكريبتات الأصلية والمستقرة لـ TrendAura
@@ -20,7 +27,7 @@ export const generateScript = async (req, res) => {
     const systemPrompt = `
       أنت خبير محترف في صناعة المحتوى الفيروسي على تيك توك وإنستغرام ريلز.
       بناءً على فكرة المستخدم التالية: "${userPrompt}"
-      قم بتوليد سكريبت احترافي متكامل وأعد النتيجة حصراً بصيغة JSON Object بالهيكل التالي تماماً بدون أي نصوص خارجية:
+      قم بتوليد سكريبت احترافي متكامل وعليك إعادة النتيجة حصراً بصيغة JSON Object بالهيكل التالي تماماً بدون أي مقدمات أو نصوص خارج الأوبجكت:
       {
         "hook": "خطاف نفسي قوي وخاطف لأول 3 ثوانٍ",
         "script": "نص وفكرة الفيديو الرئيسية المشوقة والمنظمة"،
@@ -31,15 +38,12 @@ export const generateScript = async (req, res) => {
       }
     `;
 
-    // 🚀 الاتصال عبر OpenRouter - تم استخدام الموديل المجاني ديناميكياً من Variables ريلوي
-    // (موديلopenai/gpt-oss-120b:free)
     const response = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "openai/gpt-oss-120b:free", 
-      messages: [{ role: "user", content: systemPrompt }],
-      response_format: { type: "json_object" }, // 💡 قد يسبب خطأ مع بعض الموديلات المجانية، عِلمني إذا كرّش
+      model: process.env.OPENAI_MODEL || "meta-llama/llama-3.1-8b-instruct:free",  
+      messages: [{ role: "user", content: systemPrompt }]
     });
 
-    const result = JSON.parse(response.choices[0].message.content);
+    const result = cleanAndParseJSON(response.choices[0].message.content);
 
     return res.status(200).json({
       success: true,
@@ -48,7 +52,7 @@ export const generateScript = async (req, res) => {
 
   } catch (error) {
     console.error("❌ [Generate Script Failure]:", error.message);
-    return res.status(500).json({ success: false, message: "فشل محرك التوليد في معالجة الفكرة" });
+    return res.status(500).json({ success: false, message: "فشل محرك التوليد أو انتهت مهلة الاستجابة" });
   }
 };
 
@@ -68,8 +72,7 @@ export const analyzeViralScript = async (req, res) => {
       قم بتشريح وتحليل السكريبت العربي التالي بدقة وصرامة شديدة:
       "${scriptText}"
 
-      يجب أن تقوم بتقييم النص حركياً، وإعادة النتيجة فقط وحصراً كـ JSON Object صالح للقراءة.
-      تأكد تماماً من توليد قيم وأرقام ديناميكية متغيرة تعكس جودة النص الفعلي، وفق الهيكل التالي بالملي:
+      يجب أن تقوم بتقييم النص حركياً، وإعادة النتيجة فقط وحصراً كـ JSON Object صالح للقراءة بدون أي نصوص خارج الأوبجكت، وفق الهيكل التالي بالملي:
       {
         "trendProbability": 85, 
         "retentionRate": 75, 
@@ -83,14 +86,12 @@ export const analyzeViralScript = async (req, res) => {
       }
     `;
 
-    // 🚀 الاتصال عبر OpenRouter للفحص الفيروسي الحقيقي والمجاني
     const response = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "openai/gpt-oss-120b:free",
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" }, 
+      model: process.env.OPENAI_MODEL || "meta-llama/llama-3.1-8b-instruct:free",
+      messages: [{ role: "user", content: prompt }]
     });
 
-    const analysisResult = JSON.parse(response.choices[0].message.content);
+    const analysisResult = cleanAndParseJSON(response.choices[0].message.content);
 
     return res.status(200).json({
       success: true,
@@ -99,6 +100,6 @@ export const analyzeViralScript = async (req, res) => {
 
   } catch (error) {
     console.error("❌ [Viral Engine Analysis Failure]:", error.message);
-    return res.status(500).json({ success: false, message: "فشل المحرك في تحليل السكريبت داخلياً" });
+    return res.status(500).json({ success: false, message: "فشل المحرك في تحليل السكريبت أو انتهت مهلة الاستجابة" });
   }
 };
