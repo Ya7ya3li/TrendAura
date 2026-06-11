@@ -3,14 +3,22 @@ import OpenAI from 'openai';
 // 📡 تهيئة الحساب الموحد لأوبن راوتر
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1"
+  baseURL: "[https://openrouter.ai/api/v1](https://openrouter.ai/api/v1)"
 });
 
-// 🏆 الدالة المساعدة المطهرة والمحمية من انقسام السطور
-const cleanAndParseJSON = (rawText) => {
-  let cleanText = rawText.trim();
-  cleanText = cleanText.replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/```$/, "").trim();
-  return JSON.parse(cleanText);
+// 🏆 الشغل النظيف: دالة جبارة تستخرج الـ JSON حركياً مهما كان شكل رد الموديل
+const extractAndParseJSON = (rawText) => {
+  try {
+    // ريجكس ذكي يجلب أول قوس مفتوح { وآخر قوس مغلق } وما بينهما
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("لم يتم العثور على أوبجكت JSON صالح في رد الذكاء الاصطناعي");
+    }
+    return JSON.parse(jsonMatch[0]);
+  } catch (error) {
+    console.error("📌 [JSON Parse Parsing Raw Error]:", rawText);
+    throw new Error(`فشل تشريح نص الـ JSON داخلياً: ${error.message}`);
+  }
 };
 
 /**
@@ -27,23 +35,23 @@ export const generateScript = async (req, res) => {
     const systemPrompt = `
       أنت خبير محترف في صناعة المحتوى الفيروسي على تيك توك وإنستغرام ريلز.
       بناءً على فكرة المستخدم التالية: "${userPrompt}"
-      قم بتوليد سكريبت احترافي متكامل وعليك إعادة النتيجة حصراً بصيغة JSON Object بالهيكل التالي تماماً بدون أي مقدمات أو نصوص خارج الأوبجكت:
+      قم بتوليد سكريبت احترافي متكامل وأعد النتيجة حصراً بصيغة JSON Object بالهيكل التالي تماماً (تأكد من استخدام الفواصل البرمجية المعتمدة):
       {
         "hook": "خطاف نفسي قوي وخاطف لأول 3 ثوانٍ",
-        "script": "نص وفكرة الفيديو الرئيسية المشوقة والمنظمة"،
+        "script": "نص وفكرة الفيديو الرئيسية المشوقة والمنظمة",
         "cta": "دعوة واضحة وذكية للتفاعل في نهاية المقطع",
         "hashtags": ["هاشتاق1", "هاشتاق2", "هاشتاق3"],
         "bestTimes": ["12:00 م", "4:00 م", "9:00 م"],
-        "viralIdeas": ["فكرة فيديو أخرى بديلة"، "زاوية محتوى ثانية مستهدفة"]
+        "viralIdeas": ["فكرة فيديو أخرى بديلة", "زاوية محتوى ثانية مستهدفة"]
       }
     `;
 
     const response = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "meta-llama/llama-3.1-8b-instruct:free",  
+      model: process.env.OPENAI_MODEL || "meta-llama/llama-3.3-70b-instruct:free",  
       messages: [{ role: "user", content: systemPrompt }]
     });
 
-    const result = cleanAndParseJSON(response.choices[0].message.content);
+    const result = extractAndParseJSON(response.choices[0].message.content);
 
     return res.status(200).json({
       success: true,
@@ -52,7 +60,7 @@ export const generateScript = async (req, res) => {
 
   } catch (error) {
     console.error("❌ [Generate Script Failure]:", error.message);
-    return res.status(500).json({ success: false, message: "فشل محرك التوليد أو انتهت مهلة الاستجابة" });
+    return res.status(500).json({ success: false, message: "فشل محرك التوليد في معالجة البيانات، يرجى المحاولة مجدداً" });
   }
 };
 
@@ -72,7 +80,7 @@ export const analyzeViralScript = async (req, res) => {
       قم بتشريح وتحليل السكريبت العربي التالي بدقة وصرامة شديدة:
       "${scriptText}"
 
-      يجب أن تقوم بتقييم النص حركياً، وإعادة النتيجة فقط وحصراً كـ JSON Object صالح للقراءة بدون أي نصوص خارج الأوبجكت، وفق الهيكل التالي بالملي:
+      يجب أن تقوم بتقييم النص حركياً، وإعادة النتيجة فقط وحصراً كـ JSON Object صالح للقراءة وفق الهيكل التالي بالملي:
       {
         "trendProbability": 85, 
         "retentionRate": 75, 
@@ -87,11 +95,11 @@ export const analyzeViralScript = async (req, res) => {
     `;
 
     const response = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "meta-llama/llama-3.1-8b-instruct:free",
+      model: process.env.OPENAI_MODEL || "meta-llama/llama-3.3-70b-instruct:free",
       messages: [{ role: "user", content: prompt }]
     });
 
-    const analysisResult = cleanAndParseJSON(response.choices[0].message.content);
+    const analysisResult = extractAndParseJSON(response.choices[0].message.content);
 
     return res.status(200).json({
       success: true,
@@ -100,6 +108,6 @@ export const analyzeViralScript = async (req, res) => {
 
   } catch (error) {
     console.error("❌ [Viral Engine Analysis Failure]:", error.message);
-    return res.status(500).json({ success: false, message: "فشل المحرك في تحليل السكريبت أو انتهت مهلة الاستجابة" });
+    return res.status(500).json({ success: false, message: "فشل المحرك في تحليل السكريبت داخلياً" });
   }
 };
