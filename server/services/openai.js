@@ -12,11 +12,9 @@ const openai = new OpenAI({
 });
 
 /**
- * 🛡️ دالة مساعدة موحدة ومحمية لفلترة وتنظيف نصوص الـ JSON من الالتواءات النصية قبل الـ Parse
- * مأخوذة بالملي من فلترك الهيدروليكي لمنع تكرار الكود بين التوليد والفحص
+ * 🛡️ دالة مساعدة موحدة لفلترة وتنظيف نصوص الـ JSON من الالتواءات النصية
  */
 const cleanAndParseResponse = (rawJsonText) => {
-  // 🚀 1. عزل كتل الـ JSON الحية بدقة متناهية من بين الأقواس { }
   const jsonMatch = rawJsonText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     throw new Error('النص المعاد من المحرك الذكي لا يحتوي على هيكل مصفوفة JSON صالح.');
@@ -28,14 +26,10 @@ const cleanAndParseResponse = (rawJsonText) => {
   
   for (let i = 0; i < targetJson.length; i++) {
     let char = targetJson[i];
-    
-    // تتبع حالة الدخول والخروج من النصوص بداخل علامات الاقتباس
     if (char === '"' && targetJson[i - 1] !== '\\') {
       inString = !inString;
     }
-    
     if (inString) {
-      // إذا لمحنا سطر جديد حقيقي، نقوم بتحويله فوراً لرمز هروب نصي آمن للـ Parse
       if (char === '\n') { cleanJsonText += '\\n'; continue; }
       if (char === '\r') { cleanJsonText += '\\r'; continue; }
       if (char === '\t') { cleanJsonText += '\\t'; continue; }
@@ -47,7 +41,7 @@ const cleanAndParseResponse = (rawJsonText) => {
 
 export const openaiService = {
   /**
-   * 🧠 1. محرك التوليد الفايرال العالمي لـ TrendAura - ديناميكي بالكامل وبدون أي نصوص ثابتة
+   * 🧠 1. محرك التوليد الفايرال العالمي لـ TrendAura
    */
   generateViralContent: async (userPrompt, options = {}) => {
     try {
@@ -56,13 +50,14 @@ export const openaiService = {
       const systemContext = promptComposer.buildSystemContext(contentStyle);
       const formattedUserPrompt = promptComposer.buildUserPrompt(userPrompt);
 
+      // 🚀 تم استبدال الاحتياطي بـ llama-3.3 مجاني ومستقر للأبد لمنع الـ 404
       const response = await openai.chat.completions.create({
-        model: env.openaiModel || 'openai/gpt-oss-120b:free',
+        model: env.openaiModel || 'meta-llama/llama-3.3-70b-instruct:free',
         messages: [
           { role: 'system', content: systemContext },
           { role: 'user', content: formattedUserPrompt }
         ],
-        temperature: 0.82 // رفع التفاعل لضمان توليد هاشتاقات وأفكار أكثر ابتكاراً وتنوعاً
+        temperature: 0.82 
       });
 
       if (!response || !response.choices || response.choices.length === 0) {
@@ -74,13 +69,12 @@ export const openaiService = {
 
       const parsed = cleanAndParseResponse(rawJson);
       
-      // 4. حقن وتمرير البيانات الحية بنسبة 100% كما صاغها الـ AI بدون أي كلمة افتراضية
       const sanitized = {
         hook: parsed.hook || parsed.المقدمة || throwError('حقل الخطاف (hook) مفقود من مخرجات النموذج الذكي.'),
         script: parsed.script || parsed.السيناريو || parsed.body || throwError('حقل السيناريو (script) مفقود من مخرجات النموذج الذكي.'),
         cta: parsed.cta || parsed.الخاتمة || throwError('حقل خطة العمل (cta) مفقود من مخرجات النموذج الذكي.'),
         hashtags: Array.isArray(parsed.hashtags) && parsed.hashtags.length > 0 ? parsed.hashtags : throwError('حقل الهاشتاقات ديناميكي ومفقود أو فارغ.'),
-        aiScore: Number(parsed.aiScore) || Math.floor(Math.random() * (98 - 91 + 1)) + 91, // توليد رقم تريند ذكي وديناميكي إذا نسيه الموديل
+        aiScore: Number(parsed.aiScore) || Math.floor(Math.random() * (98 - 91 + 1)) + 91, 
         retentionRate: Number(parsed.retentionRate) || Math.floor(Math.random() * (93 - 86 + 1)) + 86
       };
 
@@ -93,8 +87,7 @@ export const openaiService = {
   },
 
   /**
-   * 🔬 2. محرك الفحص والتحليل الفيروسي الحركي (Viral Engine) لـ TrendAura
-   * يرث نفس الفلترة الفائقة الصارمة والتوثيق لحماية أداء المنصة
+   * 🔬 2. محرك الفحص والتحليل الفيروسي الحركي (Viral Engine)
    */
   analyzeViralMetrics: async (scriptText) => {
     try {
@@ -118,13 +111,14 @@ export const openaiService = {
         }
       `;
 
+      // 🚀 تم استبدال الاحتياطي بـ llama-3.3 مجاني ومستقر للأبد لمنع الـ 404
       const response = await openai.chat.completions.create({
-        model: env.openaiModel || 'openai/gpt-oss-120b:free',
+        model: env.openaiModel || 'meta-llama/llama-3.3-70b-instruct:free',
         messages: [
           { role: 'system', content: systemContext },
           { role: 'user', content: `حلل السكريبت التالي بدقة ميكانيكية كاملة واستخرج الأرقام والمؤشرات: "${scriptText}"` }
         ],
-        temperature: 0.45 // خفض التمبورتشر لضمان دقة واستقرار الالتزام بالـ JSON والتحليل الرياضي
+        temperature: 0.45 
       });
 
       if (!response || !response.choices || response.choices.length === 0) {
@@ -136,7 +130,6 @@ export const openaiService = {
 
       const parsed = cleanAndParseResponse(rawJson);
 
-      // الفحص الصارم والحقن الديناميكي لمؤشرات الفحص
       const sanitized = {
         trendProbability: Number(parsed.trendProbability) || Math.floor(Math.random() * (94 - 82 + 1)) + 82,
         retentionRate: Number(parsed.retentionRate) || Math.floor(Math.random() * (89 - 78 + 1)) + 78,
@@ -154,7 +147,6 @@ export const openaiService = {
   }
 };
 
-// دالة مساعدة لرمي خطأ صريح لمنع تمرير نصوص وهمية نهائياً
 function throwError(msg) {
   throw new Error(msg);
 }
