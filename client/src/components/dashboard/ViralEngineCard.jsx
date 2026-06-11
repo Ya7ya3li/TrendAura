@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
+// 🚀 استيراد السيرفس المركزي ليمر عبر الأكسيوس الموحد وتوكن الأمان
+import { aiService } from '../../services/aiService'
 
 export default function ViralEngineCard({ plan, scriptText }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisData, setAnalysisData] = useState(null)
   const [errorMsg, setErrorMsg] = useState('')
 
-  // 🚀 الاتصال الحقيقي بالسيرفر وفحص النص حياً
+  // 🚀 الاتصال الحقيقي بالسيرفر الموحد وفحص النص لايف
   const handleStartAnalysis = async () => {
     if (!scriptText) {
       alert("فضلاً اكتب فكرتك أو ولد سكريبت أولاً ليتمكن المحرك من فصحه حقيقياً!")
@@ -17,24 +19,17 @@ export default function ViralEngineCard({ plan, scriptText }) {
     setAnalysisData(null)
     
     try {
-      // 🏆 تم ضبط المسار ليتطابق بالملي مع راوت الباك إند الموحد
-      const response = await fetch('http://localhost:5000/api/ai/analyze-metrics', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ scriptText: scriptText })
-      })
+      // 🏆 الشغل النظيف: استدعاء السيرفس المركزي الموحد بدلاً من الفيتش المحلي القديم
+      const result = await aiService.analyzeScriptMetrics(scriptText)
 
-      const result = await response.json()
-
-      if (result.success && result.data) {
-        setAnalysisData(result.data) 
+      if (result && result.success) {
+        // الكنترولر يرجع النتيجة مفرودة أو داخل data لضمان أعلى مستويات المرونة
+        setAnalysisData(result.data || result.result || result) 
       } else {
-        setErrorMsg(result.message || 'فشل جلب التحليل من السيرفر.')
+        setErrorMsg(result?.message || 'فشل جلب التحليل من السيرفر.')
       }
     } catch (err) {
-      console.error("❌ [Fetch Analysis Error]:", err)
+      console.error("❌ [aiService Analysis Exception]:", err)
       setErrorMsg('عذراً، تعذر الاتصال بمحرك الفحص الفيروسي حالياً.')
     } finally {
       setIsAnalyzing(false)
@@ -48,7 +43,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
       <div className="text-center mb-6 flex flex-col items-center justify-center">
         <h2 className="text-base font-black text-white flex items-center justify-center gap-2 mb-1">
           <span>أدوات الـ Viral Engine النشطة</span>
-          {/* SVG Rocket */}
           <svg className="w-5 h-5 text-indigo-500 animate-pulse shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.5 8.5c.7-.7 1.5-1 2.5-1 .3 1-.1 1.8-.7 2.5M11.5 12.5l-4-4m1.5 9.5a13.9 13.9 0 005.5-2.5l4-4c1.1-1.1 1.7-2.6 1.5-4.2a4 4 0 00-4.3-4.3c-1.5-.2-3 .4-4.1 1.5l-4 4a13.9 13.9 0 00-2.6 5.5l-.5 2.5 2.5-.5z" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 15l-3 3m0 0a1 1 0 01-1.5-1.5L7.5 14M4.5 19.5h.01" />
@@ -79,7 +73,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
           ) : (
             <>
               <span>فحص السكريبت وتحليل Viral الحقيقي</span>
-              {/* SVG Flame */}
               <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14l-1.121 2.121z" />
@@ -88,7 +81,7 @@ export default function ViralEngineCard({ plan, scriptText }) {
           )}
         </button>
 
-        {/* 🛡️ إشعار حالة السكريبت (تم سحق الإيموجيز القديمة وحقن الـ SVGs بالملي هنا) */}
+        {/* 🛡️ إشعار حالة السكريبت */}
         <div className="mt-3 flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-900/30 border border-slate-900 text-[10px] font-bold text-slate-400">
           <span className="flex items-center gap-1.5">
             <span className={`w-2 h-2 rounded-full ${scriptText ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
@@ -125,7 +118,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
           {/* كارت المؤشرات */}
           <div className="border border-indigo-500/20 rounded-[24px] p-5 bg-slate-900/20 backdrop-blur-sm relative overflow-hidden group hover:border-indigo-500/40 transition-all duration-300">
             <h3 className="text-xs font-black text-white flex items-center gap-2 mb-4 border-b border-slate-900 pb-2">
-              {/* SVG Report Chart */}
               <svg className="w-4 h-4 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2zm0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
@@ -181,7 +173,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
           {/* كارت نصائح الهندسة */}
           <div className="border border-slate-900 rounded-[24px] p-5 bg-slate-900/10 backdrop-blur-sm">
             <h3 className="text-xs font-black text-white flex items-center gap-2 mb-3">
-              {/* SVG Lightbulb */}
               <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
@@ -203,7 +194,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
       {/* حالة الانتظار قبل الضغط */}
       {!analysisData && !isAnalyzing && (
         <div className="w-full py-8 text-center border border-dashed border-slate-900 rounded-2xl bg-slate-950/20 flex flex-col items-center justify-center gap-2">
-          {/* SVG Magic Scanner */}
           <svg className="w-7 h-7 text-slate-700 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
           </svg>
