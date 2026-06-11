@@ -2,6 +2,7 @@ import { openaiService } from '../services/openai.js';
 
 /**
  * 🧠 1. دالة توليد السكريبتات المرتبطة بالمحرك المركزي لـ TrendAura
+ * ترجع كائن شامل ومطهر لضمان قراءة الفرونت إند للبيانات فوراً
  */
 export const generateScript = async (req, res) => {
   try {
@@ -11,13 +12,16 @@ export const generateScript = async (req, res) => {
       return res.status(400).json({ success: false, message: "الرجاء كتابة الفكرة أولاً" });
     }
 
-    // 🚀 استدعاء السيرفس المطور الذي يحتوي على الفلترة الهيدروليكية ووضع الـ Sandbox
     const result = await openaiService.generateViralContent(prompt);
 
+    // 🚀 التكتيك الخارق: إرجاع البيانات في كل الأشكال الممكنة لترضي الفرونت إند كلياً وتمنع الـ undefined
     return res.status(200).json({
       success: true,
-      result: result
+      result: result, // إذا كان يبحث في res.data.result
+      data: result,   // إذا كان يبحث في res.data.data
+      ...result       // إذا كان يبحث في جذر الـ res.data مباشرة (hook, script, cta...)
     });
+
   } catch (error) {
     console.error("❌ [Controller Generate Script Failure]:", error.message);
     return res.status(500).json({ success: false, message: error.message });
@@ -35,13 +39,16 @@ export const analyzeViralScript = async (req, res) => {
       return res.status(400).json({ success: false, message: "السياق فارغ، يرجى تمرير سكريبت حقيقي!" });
     }
 
-    // 🚀 استدعاء محرك الفحص المحمي من الـ Sandbox
     const data = await openaiService.analyzeViralMetrics(scriptText);
 
+    // 🚀 إرجاع تكتيك الحماية الشامل هنا أيضاً لضمان نجاح الفحص الحركي
     return res.status(200).json({
       success: true,
-      data: data
+      result: data,
+      data: data,
+      ...data
     });
+
   } catch (error) {
     console.error("❌ [Controller Viral Engine Failure]:", error.message);
     return res.status(500).json({ success: false, message: error.message });
