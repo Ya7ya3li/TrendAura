@@ -42,13 +42,12 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // 1. تصفير الحساب والبروفايل فوراً في الذاكرة
+      await supabase.auth.signOut()
       setUser(null)
       setProfile(null)
-      await supabase.auth.signOut()
       
-      // 2. 🚀 استبدال حاد للمسار لتنظيف كاش المتصفح العبيط وطرد المستخدم بأمان
-      window.location.replace('/login')
+      // 🚀 صمام الأمان: قذف العميل فوراً لصفحة اللوجن لمنع كراش كروت الداشبورد عند الخروج
+      window.location.href = '/login'
     } catch (err) {
       console.error('❌ [Logout Signout Exception]:', err.message)
     }
@@ -57,40 +56,39 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let active = true
 
-    // 🏆 دالة الإقلاع الفورية والمستقلة لضمان قتل اللودر فوراً
-    const initialize = async () => {
+    const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
+        
         if (session?.user && active) {
           setUser(session.user)
-          const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-          if (active && p) setProfile(p)
+          fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+            .then(p => {
+              if (active && p) setProfile(p)
+            })
         }
       } catch (e) {
-        console.error("❌ [Auth Core Initialization Error]:", e)
+        console.error("❌ [Auth Init Fatal Error]:", e)
       } finally {
-        // 🛡️ صمام الأمان القاطع غصب عن سوبابيس: طفي اللودر فوراً وافتح الشاشة
         if (active) setLoading(false)
       }
     }
 
-    initialize()
+    initializeAuth()
 
-    // 📡 دالة الاستماع للمتغيرات اللاحقة بدون حظر خط الزمن
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!active) return
-
       if (session?.user) {
-        setUser(session.user)
-        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-        if (active && p) setProfile(p)
+        if (active) setUser(session.user)
+        fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+          .then(p => {
+            if (active && p) setProfile(p)
+          })
       } else {
-        setUser(null)
-        setProfile(null)
+        if (active) {
+          setUser(null)
+          setProfile(null)
+        }
       }
-      
-      // تأكيد أمني إضافي لفك حظر الشاشة
-      setLoading(false)
     })
 
     return () => {
@@ -105,5 +103,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   )
 }
-
-export default AuthProvider
