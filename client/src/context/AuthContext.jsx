@@ -1,65 +1,102 @@
-useEffect(() => {
-  let active = true
+import React, { createContext, useEffect, useState } from 'react'
+import { supabase } from '../config/supabase.js'
 
-  const initializeAuth = async () => {
-    console.log("🚀 [AURA DIAGNOSTIC]: انطلاق عملية تهيئة الحساب والتحقق...")
-    
-    // ⏱️ صمام أمان زمني قاطع: لو علقت أي دالة في السيستم لأكثر من 4 ثوانٍ، فك التحميل فوراً واكشف الجاني
-    const timeoutId = setTimeout(() => {
-      if (active) {
-        console.warn("⚠️ [AURA TIMEOUT]: التحقق أخذ وقت طويل! تم فك حظر الشاشة إجبارياً عبر صمام الأمان.");
-        setLoading(false);
-      }
-    }, 4000);
+// 🏆 تأكد من وجود كلمة export هنا بالظبط عشان الفيت ما يشتكي
+export const AuthContext = createContext(null)
 
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null)
+  const [profile, setProfile] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  const fetchProfile = async (userId, email, metadata) => {
     try {
-      console.log("🔍 [AURA STEP 1]: جاري طلب الجلسة (Session) من سوبابيس...")
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError) {
-        console.error("❌ [AURA ERROR - Session]:", sessionError.message)
-      }
-      console.log("📦 [AURA STEP 2]: تم استقبال الجلسة بنجاح. حالة المستخدم:", session ? "مسجل دخول" : "زائر / لا يوجد جلسة")
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle()
 
-      if (session?.user && active) {
-        setUser(session.user)
-        console.log("📡 [AURA STEP 3]: جاري استدعاء fetchProfile للـ UID الجاري:", session.user.id)
+      if (data) return data
+
+      const newProfile = {
+        id: userId,
+        full_name: metadata?.full_name || metadata?.name || email?.split('@')[0] || 'مستخدم جديد',
+        email: email,
+        avatar_url: metadata?.avatar_url || metadata?.picture || null,
+        plan: 'free',
+        tokens: 5000
+      }
+
+      const { data: insertedData, error: insertError } = await supabase
+        .from('profiles')
+        .insert([newProfile])
+        .select()
+        .single()
+
+      return insertError ? newProfile : insertedData
+    } catch (err) {
+      console.error('❌ [Profile Sync Failure]:', err.message)
+      return null
+    }
+  }
+
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      setProfile(null)
+    } catch (err) {
+      console.error('❌ [Logout Signout Exception]:', err.message)
+    }
+  }
+
+  useEffect(() => {
+    let active = true
+
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
         
-        // هنا نقطة الفحص الحسم: انتظر السيرفر
+        if (session?.user && active) {
+          setUser(session.user)
+          // 🛡️ صمام الأمان الصارم بالـ await لمنع سباق البيانات نهائياً
+          const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+          if (active && p) setProfile(p)
+        }
+      } catch (e) {
+        console.error("❌ [Auth Init Fatal Error]:", e)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    initializeAuth()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        if (active) setUser(session.user)
         const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-        console.log("📥 [AURA STEP 4]: اكتمل استدعاء البيانات من الجدول. النتيجة:", p ? "نجاح وجلب البروفايل" : "فشل / رجع Null")
-        
         if (active && p) setProfile(p)
+      } else {
+        if (active) {
+          setUser(null)
+          setProfile(null)
+        }
       }
-    } catch (e) {
-      console.error("❌ [AURA FATAL CRASH]: حدث كراش غير متوقع في خط التحقق:", e)
-    } finally {
-      clearTimeout(timeoutId); // إلغاء المؤقت فوراً لأن العملية نجحت ومرت بسلام
-      if (active) {
-        console.log("🏁 [AURA STEP 5]: انتهت تهيئة الأوث بنجاح. تحويل loading إلى false.")
-        setLoading(false)
-      }
+    })
+
+    return () => {
+      active = false
+      subscription.unsubscribe()
     }
-  }
+  }, [])
 
-  initializeAuth()
+  return (
+    <AuthContext.Provider value={{ user, profile, setProfile, logout, loading }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
 
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log("🔄 [AURA AUTH CHANGE]: تغيرت حالة الجلسة إلى:", event)
-    if (session?.user) {
-      if (active) setUser(session.user)
-      const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
-      if (active && p) setProfile(p)
-    } else {
-      if (active) {
-        setUser(null)
-        setProfile(null)
-      }
-    }
-  })
-
-  return () => {
-    active = false
-    subscription.unsubscribe()
-  }
-}, [])
+export default AuthProvider
