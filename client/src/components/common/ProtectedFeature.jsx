@@ -2,8 +2,11 @@ import React, { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes.js'
 import { AuthContext } from '../../context/AuthContext.jsx' 
-import { getPlanTier } from '../../constants/plans.js' // 🏆 ربط مباشر بملف الباقات الحقيقي حقتك
+import { getPlanTier } from '../../constants/plans.js' 
 
+/**
+ * TrendAura Premium Feature Shielding Wrapper - Elite Edition
+ */
 export default function ProtectedFeature({ minRequiredPlan = 'pro', featureName = 'الميزة المتقدمة', children }) {
   const navigate = useNavigate()
   const { profile, loading } = useContext(AuthContext) 
@@ -18,11 +21,9 @@ export default function ProtectedFeature({ minRequiredPlan = 'pro', featureName 
     )
   }
 
-  // 🎯 مطابقة رقمية تامة وصارمة ومستوردة من الـ plans.js الأصلي
   const userTier = getPlanTier(profile?.plan || 'free')
   const requiredTier = getPlanTier(minRequiredPlan)
 
-  // فتح الميزة فوراً إذا كانت باقة المستخدم تؤهله بالملي
   if (userTier >= requiredTier) {
     return <>{children}</>
   }
