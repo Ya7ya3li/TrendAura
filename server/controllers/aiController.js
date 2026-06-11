@@ -1,8 +1,9 @@
 import OpenAI from 'openai';
 
-// 📡 تهيئة حساب OpenAI باستخدام المفتاح السري المعتمد في ريلوي
+// 📡 تهيئة الحساب ليوجه الطلبات حقيقياً ومباشرة إلى سيرفر OpenRouter
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1" // 👈 استقبال مفتاح sk-or-v1 بنجاح
 });
 
 /**
@@ -30,15 +31,15 @@ export const generateScript = async (req, res) => {
       }
     `;
 
+    // 🚀 الشغل النظيف: قراءة الموديل ديناميكياً من متغيرات البيئة حقك
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: process.env.OPENAI_MODEL || "openai/gpt-oss-120b:free", 
       messages: [{ role: "user", content: systemPrompt }],
       response_format: { type: "json_object" },
     });
 
     const result = JSON.parse(response.choices[0].message.content);
 
-    // إرجاع النتيجة لتغذية كروت الداشبورد (ScriptCard, HashtagsCard, إلخ)
     return res.status(200).json({
       success: true,
       result: result
@@ -81,8 +82,9 @@ export const analyzeViralScript = async (req, res) => {
       }
     `;
 
+    // 🚀 الشغل النظيف: قراءة الموديل ديناميكياً من متغيرات البيئة حقك
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", 
+      model: process.env.OPENAI_MODEL || "openai/gpt-oss-120b:free", 
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" }, 
     });
