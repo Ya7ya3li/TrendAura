@@ -27,8 +27,9 @@ export const aiService = {
    */
   async analyzeScriptMetrics(scriptText) {
     try {
+      // 🚀 تم تعديل الاسم إلى scriptText ليطابق الباك إند بالملي ويمر عبر أكسيوس الموحد لايف
       const response = await axiosInstance.post('/api/ai/analyze-metrics', {
-        script: scriptText
+        scriptText: scriptText 
       });
       return response.data;
     } catch (error) {
