@@ -1,15 +1,15 @@
 import express from 'express';
-// 🏆 الاستيراد الشامل الآمن لمنع خطأ الـ SyntaxError نهائياً في نظام ESM
-import * as aiController from '../controllers/aiController.js';
+// 🏆 الشغل النظيف: استيراد الدوال بأسمائها المباشرة من الكنترولر الأصلي حقك بدون أي زيادة
+import { generateScript, analyzeScriptMetrics } from '../controllers/aiController.js';
 import { authGuard } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validateRequest.js';
 
 const router = express.Router();
 
-// 🧠 مسار توليد السكريبتات وهندسة الخطافات النفسية الخاطفة للفيديو
-router.post('/generate', authGuard, validateRequest.generationBody, aiController.generateScript);
+// 🧠 مسار توليد السكريبتات القديم والمستقر
+router.post('/generate', authGuard, validateRequest.generationBody, generateScript);
 
-// 🔬 مسار تحليل مؤشرات الفيروسية (تم تعديل الاسم ليتطابق مع ملف الكنترولر حقك بالظبط)
-router.post('/analyze-metrics', authGuard, aiController.analyzeViralScript);
+// 🔬 مسار تحليل مؤشرات الفيروسية - تم تمرير الدالة مباشرة لمنع كراش الـ Undefined
+router.post('/analyze-metrics', authGuard, analyzeScriptMetrics);
 
 export default router;
