@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null)
       setProfile(null)
       
-      // 🚀 صمام الأمان: قذف العميل فوراً لصفحة اللوجن لمنع كراش كروت الداشبورد عند الخروج
+      // صمام أمان طرد المستخدم فوراً لصفحة اللوجن لمنع كراش كروت الداشبورد عند الخروج
       window.location.href = '/login'
     } catch (err) {
       console.error('❌ [Logout Signout Exception]:', err.message)
@@ -103,3 +103,6 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   )
 }
+
+// 👑 السطر الملوكي اللي كان ناقص وتسبب في كراش الفيت الحين رجع مكانه بالملي
+export default AuthProvider
