@@ -1,9 +1,9 @@
 import OpenAI from 'openai';
 
-// 📡 تهيئة الحساب ليوجه الطلبات حقيقياً ومباشرة إلى سيرفر OpenRouter
+// 📡 تهيئة حساب OpenAI ليوجه الطلبات حقيقياً ومباشرة إلى سيرفر OpenRouter
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1" // 👈 استقبال مفتاح sk-or-v1 بنجاح
+  baseURL: "https://openrouter.ai/api/v1" // 👈 هذا السطر السحري لاستقبال مفتاح sk-or-v1 بنجاح
 });
 
 /**
@@ -31,11 +31,12 @@ export const generateScript = async (req, res) => {
       }
     `;
 
-    // 🚀 الشغل النظيف: قراءة الموديل ديناميكياً من متغيرات البيئة حقك
+    // 🚀 الاتصال عبر OpenRouter - تم استخدام الموديل المجاني ديناميكياً من Variables ريلوي
+    // (موديلopenai/gpt-oss-120b:free)
     const response = await openai.chat.completions.create({
       model: process.env.OPENAI_MODEL || "openai/gpt-oss-120b:free", 
       messages: [{ role: "user", content: systemPrompt }],
-      response_format: { type: "json_object" },
+      response_format: { type: "json_object" }, // 💡 قد يسبب خطأ مع بعض الموديلات المجانية، عِلمني إذا كرّش
     });
 
     const result = JSON.parse(response.choices[0].message.content);
@@ -82,9 +83,9 @@ export const analyzeViralScript = async (req, res) => {
       }
     `;
 
-    // 🚀 الشغل النظيف: قراءة الموديل ديناميكياً من متغيرات البيئة حقك
+    // 🚀 الاتصال عبر OpenRouter للفحص الفيروسي الحقيقي والمجاني
     const response = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "openai/gpt-oss-120b:free", 
+      model: process.env.OPENAI_MODEL || "openai/gpt-oss-120b:free",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" }, 
     });
