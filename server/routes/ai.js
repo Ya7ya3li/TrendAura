@@ -1,15 +1,15 @@
 import express from 'express';
-// 🏆 الاستيراد النظيف: استدعاء الدوال بأسمائها الحقيقية الموجودة داخل الكنترولر حقك
+// 🏆 استيراد الدالتين المكتملتين معاً باسمائهما الصريحة من الكنترولر الصافي
 import { generateScript, analyzeViralScript } from '../controllers/aiController.js';
 import { authGuard } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validateRequest.js';
 
 const router = express.Router();
 
-// 🧠 مسار توليد السكريبتات المستقر
+// 🧠 مسار توليد السكريبتات وهندسة الخطافات
 router.post('/generate', authGuard, validateRequest.generationBody, generateScript);
 
-// 🔬 مسار تحليل مؤشرات الفيروسية الحقيقي مرتبط بالدالة الصحيحة
+// 🔬 مسار تحليل مؤشرات الفيروسية ونسب احتفاظ الجماهير الحقيقي
 router.post('/analyze-metrics', authGuard, analyzeViralScript);
 
 export default router;
