@@ -42,13 +42,13 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // 1. تسجيل الخروج من سوبابيس وتصفير الذاكرة المحلية
-      await supabase.auth.signOut()
+      // 1. تصفير الحساب والبروفايل فوراً في الذاكرة
       setUser(null)
       setProfile(null)
+      await supabase.auth.signOut()
       
-      // 2. 🚀 الطرد التكتيكي الفوري لصفحة تسجيل الدخول وتنظيف المتصفح كلياً لمنع كراش كروت البرو
-      window.location.href = '/login'
+      // 2. 🚀 استبدال حاد للمسار لتنظيف كاش المتصفح العبيط وطرد المستخدم بأمان
+      window.location.replace('/login')
     } catch (err) {
       console.error('❌ [Logout Signout Exception]:', err.message)
     }
@@ -57,25 +57,40 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let active = true
 
-    // 🏆 هندسة موحدة: الاعتماد الكلي على دالة سوبابيس المركزية لمنع سباق البيانات والتكرار
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // 🏆 دالة الإقلاع الفورية والمستقلة لضمان قتل اللودر فوراً
+    const initialize = async () => {
       try {
-        if (session?.user) {
-          if (active) setUser(session.user)
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user && active) {
+          setUser(session.user)
           const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
           if (active && p) setProfile(p)
-        } else {
-          if (active) {
-            setUser(null)
-            setProfile(null)
-          }
         }
-      } catch (error) {
-        console.error("❌ [Auth Transition Failure]:", error)
+      } catch (e) {
+        console.error("❌ [Auth Core Initialization Error]:", e)
       } finally {
-        // 🛡️ صمام الأمان المطلق: اللودر سيغلق حتماً ويتحول لـ false في كل الحالات (زائر أو مشترك)
+        // 🛡️ صمام الأمان القاطع غصب عن سوبابيس: طفي اللودر فوراً وافتح الشاشة
         if (active) setLoading(false)
       }
+    }
+
+    initialize()
+
+    // 📡 دالة الاستماع للمتغيرات اللاحقة بدون حظر خط الزمن
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!active) return
+
+      if (session?.user) {
+        setUser(session.user)
+        const p = await fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
+        if (active && p) setProfile(p)
+      } else {
+        setUser(null)
+        setProfile(null)
+      }
+      
+      // تأكيد أمني إضافي لفك حظر الشاشة
+      setLoading(false)
     })
 
     return () => {
