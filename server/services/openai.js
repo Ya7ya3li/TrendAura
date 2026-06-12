@@ -1,9 +1,8 @@
 import OpenAI from 'openai';
 import { env } from '../config/env.js';
-import { promptComposer } from '../utils/generatePrompt.js'; 
 
 const openai = new OpenAI({
-  apiKey: env.openaiApiKey, // يكلم مفتاحك trendiaura الصافي وبس
+  apiKey: env.openaiApiKey, // يكلم مفتاحك الأساسي المفتوح trendiaura
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: {
     "HTTP-Referer": "https://trendaura.app", 
@@ -11,7 +10,7 @@ const openai = new OpenAI({
   }
 });
 
-// ⏱️ فتيل زمني صارم (15 ثانية) لحمايتك من تعليق البوابة الخارجية
+// ⏱️ فتيل زمني (20 ثانية) لإعطاء ديب سيك كامل الوقت للتفكير والتوليد الصافي
 const apiTimeout = (ms) => new Promise((_, reject) => 
   setTimeout(() => reject(new Error('TIMEOUT')), ms)
 );
@@ -28,39 +27,48 @@ const cleanAndParseResponse = (rawJsonText) => {
 
 export const openaiService = {
   /**
-   * 🧠 1. توليد حقيقي ونقي 100% عبر موديل Nex-N2-Pro المعتمد
+   * 🧠 1. التوليد النقي 100% المطابق لهيكلية الكروت القديمة في الفرونت إند
    */
-  generateViralContent: async (userPrompt, options = {}) => {
+  generateViralContent: async (userPrompt) => {
     try {
-      const contentStyle = options.hookStyle || 'تحفيزي';
-      const systemContext = promptComposer.buildSystemContext(contentStyle);
-      const formattedUserPrompt = promptComposer.buildUserPrompt(userPrompt);
+      // صياغة البرومبت القديم الصارم ليعيد الحقول الأربعة المطلوبة بالملي
+      const customPrompt = `
+        أنت خبير محترف ورائد في صناعة المحتوى الفيروسي على منصة تيك توك وخوارزمياتها.
+        بناءً على الفكرة التالية التي قدمها المستخدم: "${userPrompt}"
+        
+        قم بتوليد رد صريح ومباشر وبصيغة JSON Object يحتوي تماماً وحصرياً على المفاتيح التالية باللغة العربية:
+        1. "script": سكريبت تيك توك كامل، مشوق، مثير، ومكتوب بأسلوب خاطف للعين من أول ثانيتين.
+        2. "hashtags": مصفوفة (Array) تحتوي على 10 هاشتاقات قوية ونشطة ومستهدفة لضرب التريند.
+        3. "ideas": مصفوفة (Array) تحتوي على 5 أفكار لفيديوهات مشابهة أو تابعة ومكملة لهذه الفكرة.
+        4. "bestTime": أفضل وقت دقيق ومقترح للنشر لجلب أعلى نسبة تفاعل وحركية للمقطع (مثال: "7PM").
+
+        تنبيه صارم: أعد كائن الـ JSON فقط، دون كتابة أي مقدمات أو تفسيرات أو علامات تشفير خارج أقواس الـ JSON.
+      `;
 
       const response = await Promise.race([
         openai.chat.completions.create({
-          model: 'nex-agi/nex-n2-pro:free', // 🚀 تم حقن الـ Slug الصحيح والصريح حقك هنا
+          model: 'deepseek/deepseek-chat', // 🚀 العودة للعملاق المستقر والمفضل عندك DeepSeek V3
           messages: [
-            { role: 'system', content: systemContext },
-            { role: 'user', content: formattedUserPrompt }
+            { role: 'user', content: customPrompt }
           ],
-          temperature: 0.82 
+          temperature: 0.72 
         }),
-        apiTimeout(15000)
+        apiTimeout(20000) // مهلة 20 ثانية للحماية
       ]);
 
       if (response && response.choices && response.choices.length > 0) {
         const parsed = cleanAndParseResponse(response.choices[0].message?.content || '');
         if (parsed) return parsed;
       }
-      throw new Error('فشل الموديل الخارجي في صياغة رد صالح ببيئة JSON.');
+      throw new Error('فشل المحرك في صياغة رد JSON متوافق مع الكروت.');
     } catch (error) {
-      console.error('❌ [AI Engine Real Error Caught]:', error.message);
-      throw new Error(error.message === 'TIMEOUT' ? 'انتهت مهلة الاتصال بأوبن راوتر.' : error.message);
+      console.error('❌ [DeepSeek Engine Real Error Caught]:', error.message);
+      throw new Error(error.message === 'TIMEOUT' ? 'انتهت مهلة خادم DeepSeek الخارجي، يرجى إعادة المحاولة.' : error.message);
     }
   },
 
   /**
-   * 🔬 2. فحص وتحليل حقيقي 100% عبر نفس الموديل المعتمد
+   * 🔬 2. فحص المؤشرات المتوافق مع شريان DeepSeek
    */
   analyzeViralMetrics: async (scriptText) => {
     try {
@@ -68,12 +76,11 @@ export const openaiService = {
 
       const response = await Promise.race([
         openai.chat.completions.create({
-          model: 'nex-agi/nex-n2-pro:free', // 🚀 توحيد الـ Slug المباشر هنا أيضاً
+          model: 'deepseek/deepseek-chat',
           messages: [
-            { role: 'system', content: 'تحليل تيك توك ذكي JSON' },
-            { role: 'user', content: `حلل: "${scriptText}"` }
+            { role: 'user', content: `قم بتحليل نص السكريبت التالي وأعطني مصفوفة إحصائية سريعة له بصيغة JSON تحتوي حصراً على المفاتيح trendProbability و retentionRate و hookStrength و ctaRating كمفاتيح صريحة: "${scriptText}"` }
           ],
-          temperature: 0.45 
+          temperature: 0.3
         }),
         apiTimeout(15000)
       ]);
@@ -82,9 +89,9 @@ export const openaiService = {
         const parsed = cleanAndParseResponse(response.choices[0].message?.content || '');
         if (parsed) return parsed;
       }
-      throw new Error('فشل محرك التحليل الخارجي في معالجة المصفوفة الحركية.');
+      throw new Error('فشل محرك التحليل في معالجة البيانات.');
     } catch (error) {
-      console.error('❌ [Viral Metrics Real Error Caught]:', error.message);
+      console.error('❌ [DeepSeek Metrics Error Caught]:', error.message);
       throw new Error(error.message === 'TIMEOUT' ? 'انتهت مهلة خادم الفحص والتحليل.' : error.message);
     }
   }

@@ -1,9 +1,10 @@
 /**
  * TrendAura AI Language Model Constraints
+ * Maps system scopes and response lengths per production layer.
  */
 export const AI_MODELS = {
   PRIMARY_CORE: {
-    id: 'nex-agi/nex-n2-pro:free', // 🚀 ربط متناسق ومطابق 100% مع الباك إند
+    id: 'deepseek/deepseek-chat', // 🚀 ربط مليمتر مع السيرفر لتوحيد شريان DeepSeek V3 المستقر
     name: 'TrendAura Turbo Core',
     provider: 'OpenRouter',
     temperature: 0.7,
@@ -14,7 +15,7 @@ export const AI_MODELS = {
     }
   },
   ANALYTICS_CORE: {
-    id: 'nex-agi/nex-n2-pro:free',
+    id: 'deepseek/deepseek-chat',
     name: 'TrendAura Analytics Engine',
     provider: 'OpenRouter',
     temperature: 0.3 
