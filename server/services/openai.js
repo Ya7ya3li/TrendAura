@@ -3,7 +3,7 @@ import { env } from '../config/env.js';
 import { promptComposer } from '../utils/generatePrompt.js'; 
 
 const openai = new OpenAI({
-  apiKey: env.openaiApiKey, // يكلم مفتاحك trendiaura فقط لا غير
+  apiKey: env.openaiApiKey, // يكلم مفتاحك trendiaura الصافي وبس
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: {
     "HTTP-Referer": "https://trendaura.app", 
@@ -11,7 +11,7 @@ const openai = new OpenAI({
   }
 });
 
-// ⏱️ فتيل زمني صارم؛ لو علق السيرفر الخارجي أكثر من 15 ثانية نقطع الاتصال ونكشف العلة
+// ⏱️ فتيل زمني صارم (15 ثانية) لحمايتك من تعليق البوابة الخارجية
 const apiTimeout = (ms) => new Promise((_, reject) => 
   setTimeout(() => reject(new Error('TIMEOUT')), ms)
 );
@@ -28,7 +28,7 @@ const cleanAndParseResponse = (rawJsonText) => {
 
 export const openaiService = {
   /**
-   * 🧠 1. توليد حقيقي ونقي 100% مستند على فكرتك فقط بدون أي تزييف
+   * 🧠 1. توليد حقيقي ونقي 100% عبر موديل Nex-N2-Pro المعتمد
    */
   generateViralContent: async (userPrompt, options = {}) => {
     try {
@@ -38,30 +38,29 @@ export const openaiService = {
 
       const response = await Promise.race([
         openai.chat.completions.create({
-          model: 'google/gemma-2-9b-it:free', // الموديل المجاني المستقر محقون هنا مباشرة
+          model: 'nex-agi/nex-n2-pro:free', // 🚀 تم حقن الـ Slug الصحيح والصريح حقك هنا
           messages: [
             { role: 'system', content: systemContext },
             { role: 'user', content: formattedUserPrompt }
           ],
           temperature: 0.82 
         }),
-        apiTimeout(15000) // مهلة 15 ثانية للتوليد الكامل
+        apiTimeout(15000)
       ]);
 
       if (response && response.choices && response.choices.length > 0) {
         const parsed = cleanAndParseResponse(response.choices[0].message?.content || '');
         if (parsed) return parsed;
       }
-      throw new Error('فشل السيرفر الخارجي في إرجاع قالب JSON صالح.');
+      throw new Error('فشل الموديل الخارجي في صياغة رد صالح ببيئة JSON.');
     } catch (error) {
       console.error('❌ [AI Engine Real Error Caught]:', error.message);
-      // يرمي الخطأ الحقيقي الصافي للكنترولر بدون أي نصوص وهمية
-      throw new Error(error.message === 'TIMEOUT' ? 'انتهت مهلة الاتصال بأوبن راوتر، السيرفر الخارجي معلق حالياً.' : error.message);
+      throw new Error(error.message === 'TIMEOUT' ? 'انتهت مهلة الاتصال بأوبن راوتر.' : error.message);
     }
   },
 
   /**
-   * 🔬 2. فحص وتحليل حقيقي ونقي 100%
+   * 🔬 2. فحص وتحليل حقيقي 100% عبر نفس الموديل المعتمد
    */
   analyzeViralMetrics: async (scriptText) => {
     try {
@@ -69,7 +68,7 @@ export const openaiService = {
 
       const response = await Promise.race([
         openai.chat.completions.create({
-          model: 'google/gemma-2-9b-it:free',
+          model: 'nex-agi/nex-n2-pro:free', // 🚀 توحيد الـ Slug المباشر هنا أيضاً
           messages: [
             { role: 'system', content: 'تحليل تيك توك ذكي JSON' },
             { role: 'user', content: `حلل: "${scriptText}"` }
@@ -83,10 +82,10 @@ export const openaiService = {
         const parsed = cleanAndParseResponse(response.choices[0].message?.content || '');
         if (parsed) return parsed;
       }
-      throw new Error('فشل محرك التحليل الخارجي في صياغة الإحصائيات.');
+      throw new Error('فشل محرك التحليل الخارجي في معالجة المصفوفة الحركية.');
     } catch (error) {
       console.error('❌ [Viral Metrics Real Error Caught]:', error.message);
-      throw new Error(error.message === 'TIMEOUT' ? 'انتهت مهلة خادم الفحص والتحليل الخارجي.' : error.message);
+      throw new Error(error.message === 'TIMEOUT' ? 'انتهت مهلة خادم الفحص والتحليل.' : error.message);
     }
   }
 };

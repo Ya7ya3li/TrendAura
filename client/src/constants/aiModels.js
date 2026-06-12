@@ -1,10 +1,9 @@
 /**
  * TrendAura AI Language Model Constraints
- * Maps system scopes and response lengths per production layer.
  */
 export const AI_MODELS = {
   PRIMARY_CORE: {
-    id: 'google/gemma-2-9b-it:free', // ربط مليمتر مباشر وسريع مع السيرفر لتوحيد التوليد الحقيقي
+    id: 'nex-agi/nex-n2-pro:free', // 🚀 ربط متناسق ومطابق 100% مع الباك إند
     name: 'TrendAura Turbo Core',
     provider: 'OpenRouter',
     temperature: 0.7,
@@ -15,7 +14,7 @@ export const AI_MODELS = {
     }
   },
   ANALYTICS_CORE: {
-    id: 'google/gemma-2-9b-it:free',
+    id: 'nex-agi/nex-n2-pro:free',
     name: 'TrendAura Analytics Engine',
     provider: 'OpenRouter',
     temperature: 0.3 
