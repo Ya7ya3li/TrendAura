@@ -1,12 +1,8 @@
-/**
- * TrendAura AI Language Model Constraints
- * Maps system scopes and response lengths per production layer.
- */
 export const AI_MODELS = {
   PRIMARY_CORE: {
-    id: 'deepseek/deepseek-chat', // 🚀 ربط مليمتر مع السيرفر لتوحيد شريان DeepSeek V3 المستقر
-    name: 'TrendAura Turbo Core',
-    provider: 'OpenRouter',
+    id: 'gemini-2.5-flash',
+    name: 'TrendAura AI Core',
+    provider: 'Google Gemini',
     temperature: 0.7,
     maxTokens: {
       free: 400,
@@ -14,10 +10,11 @@ export const AI_MODELS = {
       viral_engine: 1500
     }
   },
+
   ANALYTICS_CORE: {
-    id: 'deepseek/deepseek-chat',
+    id: 'gemini-2.5-flash',
     name: 'TrendAura Analytics Engine',
-    provider: 'OpenRouter',
-    temperature: 0.3 
+    provider: 'Google Gemini',
+    temperature: 0.3
   }
 };
