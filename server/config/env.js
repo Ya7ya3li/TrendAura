@@ -31,7 +31,7 @@ export const env = {
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   
-  // المحرك المعتمد - يتكلم مع المفتاح فقط ولا عزاء للموديلات هنا
+  // المحرك المعتمد لسرعة ودقة التحليل السلوكي - يتكلم مع المفتاح بس
   openaiApiKey: process.env.OPENAI_API_KEY,
   
   // بوابة الدفع السعودية ميسر لبناء أنظمة اشتراكات SaaS مستقرة
@@ -41,4 +41,4 @@ export const env = {
   // الأمان والتشفير للجلسات الداخلية وحزم البيانات
   jwtSecret: process.env.JWT_SECRET || 'trendaura-core-tactical-secret-key-2026',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d'
-}; // 👈 قفلنا القوس المكسور هنا ونظفنا البيئة بالملي
+};

@@ -3,7 +3,7 @@ import { env } from '../config/env.js';
 import { promptComposer } from '../utils/generatePrompt.js'; 
 
 const openai = new OpenAI({
-  apiKey: env.openaiApiKey, // يتكلم مع الـ API KEY حقك وبس!
+  apiKey: env.openaiApiKey, // يكلم مفتاحك trendiaura فقط لا غير
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: {
     "HTTP-Referer": "https://trendaura.app", 
@@ -11,7 +11,7 @@ const openai = new OpenAI({
   }
 });
 
-// ⏱️ فتيل زمني صارم لقطع الاتصال لو علق أوبن راوتر أكثر من 6 ثوانٍ لحماية حارس ريلوي
+// ⏱️ فتيل زمني صارم؛ لو علق السيرفر الخارجي أكثر من 15 ثانية نقطع الاتصال ونكشف العلة
 const apiTimeout = (ms) => new Promise((_, reject) => 
   setTimeout(() => reject(new Error('TIMEOUT')), ms)
 );
@@ -27,6 +27,9 @@ const cleanAndParseResponse = (rawJsonText) => {
 };
 
 export const openaiService = {
+  /**
+   * 🧠 1. توليد حقيقي ونقي 100% مستند على فكرتك فقط بدون أي تزييف
+   */
   generateViralContent: async (userPrompt, options = {}) => {
     try {
       const contentStyle = options.hookStyle || 'تحفيزي';
@@ -35,68 +38,55 @@ export const openaiService = {
 
       const response = await Promise.race([
         openai.chat.completions.create({
-          model: 'meta-llama/llama-3-8b-instruct:free', // 🚀 موديل مستقل ومباشر ومثبت نصاً هنا!
+          model: 'google/gemma-2-9b-it:free', // الموديل المجاني المستقر محقون هنا مباشرة
           messages: [
             { role: 'system', content: systemContext },
             { role: 'user', content: formattedUserPrompt }
           ],
           temperature: 0.82 
         }),
-        apiTimeout(6000)
+        apiTimeout(15000) // مهلة 15 ثانية للتوليد الكامل
       ]);
 
       if (response && response.choices && response.choices.length > 0) {
         const parsed = cleanAndParseResponse(response.choices[0].message?.content || '');
         if (parsed) return parsed;
       }
-      throw new Error('Fallback triggered');
+      throw new Error('فشل السيرفر الخارجي في إرجاع قالب JSON صالح.');
     } catch (error) {
-      console.warn('⚠️ [AI Engine Dynamic Fallback Activated]:', error.message);
-      const cleanKeyword = userPrompt ? userPrompt.trim() : "فكرتك المميزة";
-      return {
-        hook: `🔥 السر الحقيقي اللي بيخلي فكرتك عن "${cleanKeyword}" تضرب ملايين المشاهدات في ثوانٍ معدودة!`,
-        script: `الكل جالس ينشر محتوى عن "${cleanKeyword}" الحين وفيديوهاتهم معلقة في الـ 200 مشاهدة، لأنهم يجهلون القاعدة الذهبية الفايرال: 'لا تشرح الفكرة التقليدية، بل بع الشغف والغموض في أول ثانيتين لخطف العين'. الأسرار الجديدة للخوارزمية الحين تتطلب تطبيق ريتم سريع ومتناسق تماماً مع سياق "${cleanKeyword}" عشان تحول حسابك لماكينة تفاعل وتجبر المشاهد يعيد المقطع 3 مرات بدون ما يحس!`,
-        cta: `إذا تبغى استراتيجيتي السرية المخصصة لتفجير مشاهدات وتفاعل "${cleanKeyword}"، اكتب كلمة 'تم' في التعليقات الحين وطير للموقع بالبايو! 🚀`,
-        hashtags: [cleanKeyword.replace(/\s+/g, '_'), "صناعة_محتوى", "أسرار_الخوارزمية", "TrendAura"],
-        aiScore: 95,
-        retentionRate: 91
-      };
+      console.error('❌ [AI Engine Real Error Caught]:', error.message);
+      // يرمي الخطأ الحقيقي الصافي للكنترولر بدون أي نصوص وهمية
+      throw new Error(error.message === 'TIMEOUT' ? 'انتهت مهلة الاتصال بأوبن راوتر، السيرفر الخارجي معلق حالياً.' : error.message);
     }
   },
 
+  /**
+   * 🔬 2. فحص وتحليل حقيقي ونقي 100%
+   */
   analyzeViralMetrics: async (scriptText) => {
     try {
-      if (!scriptText || scriptText.trim() === "") throw new Error('فارغ');
+      if (!scriptText || scriptText.trim() === "") throw new Error('السياق فارغ');
 
       const response = await Promise.race([
         openai.chat.completions.create({
-          model: 'meta-llama/llama-3-8b-instruct:free', // 🚀 مثبت نصاً ومباشر هنا أيضاً!
+          model: 'google/gemma-2-9b-it:free',
           messages: [
             { role: 'system', content: 'تحليل تيك توك ذكي JSON' },
             { role: 'user', content: `حلل: "${scriptText}"` }
           ],
           temperature: 0.45 
         }),
-        apiTimeout(6000)
+        apiTimeout(15000)
       ]);
 
       if (response && response.choices && response.choices.length > 0) {
         const parsed = cleanAndParseResponse(response.choices[0].message?.content || '');
         if (parsed) return parsed;
       }
-      throw new Error('Fallback triggered');
+      throw new Error('فشل محرك التحليل الخارجي في صياغة الإحصائيات.');
     } catch (error) {
-      return {
-        trendProbability: 92,
-        retentionRate: 88,
-        hookStrength: "ممتاز وخاطف (9/10)",
-        ctaRating: "ذكي ويحفز حركية التعليقات",
-        tips: [
-          "⚡ النص متناسق وممتاز، نقترح إضافة حركة بصرية مفاجئة في أول ثانيتين لتثبيت عين المشاهد.",
-          "⏱️ ريتم الكلمات سريع ومثالي للانتشار، تأكد من دمج موسيقى تريند غامضة.",
-          "💬 الـ CTA قوي وموجه، سيرفع نسبة الردود في التعليقات بمقدار 40%."
-        ]
-      };
+      console.error('❌ [Viral Metrics Real Error Caught]:', error.message);
+      throw new Error(error.message === 'TIMEOUT' ? 'انتهت مهلة خادم الفحص والتحليل الخارجي.' : error.message);
     }
   }
 };

@@ -50,4 +50,4 @@ export const analyzeViralScript = async (req, res) => {
     console.error("❌ [Controller Viral Engine Failure]:", error.message);
     return res.status(500).json({ success: false, message: error.message });
   }
-}; // 🚀 تم مسح القوس الزائد المكسور وتنظيف الملف كلياً!
+};

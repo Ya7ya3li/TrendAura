@@ -4,7 +4,7 @@
  */
 export const AI_MODELS = {
   PRIMARY_CORE: {
-    id: 'meta-llama/llama-3-8b-instruct:free', // 🚀 ربط مليمتر مباشر وسريع مع السيرفر لتوحيد شريان التوليد
+    id: 'google/gemma-2-9b-it:free', // ربط مليمتر مباشر وسريع مع السيرفر لتوحيد التوليد الحقيقي
     name: 'TrendAura Turbo Core',
     provider: 'OpenRouter',
     temperature: 0.7,
@@ -15,9 +15,9 @@ export const AI_MODELS = {
     }
   },
   ANALYTICS_CORE: {
-    id: 'meta-llama/llama-3-8b-instruct:free', // 🚀 الموديل السريع والمستقر للتحليل والفحص أيضاً
+    id: 'google/gemma-2-9b-it:free',
     name: 'TrendAura Analytics Engine',
     provider: 'OpenRouter',
-    temperature: 0.3 // درجة منخفضة لضمان دقة واستقرار مصفوفات الأرقام والإحصائيات
+    temperature: 0.3 
   }
 };

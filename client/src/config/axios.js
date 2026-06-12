@@ -9,7 +9,7 @@ import { supabase } from './supabase.js';
  */
 const axiosInstance = axios.create({
   baseURL: ENV.API_URL,
-  timeout: 60000, // 🔥 تم رفع المهلة لـ 60 ثانية لانتظار عمليات توليد OpenAI/OpenRouter المعقدة والديناميكية
+  timeout: 60000, // مهلة 60 ثانية لانتظار التوليد الكامل والديناميكي
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
