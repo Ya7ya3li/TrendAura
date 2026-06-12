@@ -4,7 +4,7 @@
  */
 export const AI_MODELS = {
   PRIMARY_CORE: {
-    id: 'openai/gpt-oss-120b:free', // ربط مليمتر مع السيرفر لتوحيد شريان التوليد المستقر
+    id: 'meta-llama/llama-3-8b-instruct:free', // 🚀 ربط مليمتر مباشر وسريع مع السيرفر لتوحيد شريان التوليد
     name: 'TrendAura Turbo Core',
     provider: 'OpenRouter',
     temperature: 0.7,
@@ -15,7 +15,7 @@ export const AI_MODELS = {
     }
   },
   ANALYTICS_CORE: {
-    id: 'openai/gpt-oss-120b:free',
+    id: 'meta-llama/llama-3-8b-instruct:free', // 🚀 الموديل السريع والمستقر للتحليل والفحص أيضاً
     name: 'TrendAura Analytics Engine',
     provider: 'OpenRouter',
     temperature: 0.3 // درجة منخفضة لضمان دقة واستقرار مصفوفات الأرقام والإحصائيات

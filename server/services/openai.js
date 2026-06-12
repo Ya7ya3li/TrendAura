@@ -3,7 +3,7 @@ import { env } from '../config/env.js';
 import { promptComposer } from '../utils/generatePrompt.js'; 
 
 const openai = new OpenAI({
-  apiKey: env.openaiApiKey,
+  apiKey: env.openaiApiKey, // يتكلم مع الـ API KEY حقك وبس!
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: {
     "HTTP-Referer": "https://trendaura.app", 
@@ -11,7 +11,7 @@ const openai = new OpenAI({
   }
 });
 
-// ⏱️ فتيل زمني صارم لقطع اتصال أوبن راوتر لو علق ومصخها
+// ⏱️ فتيل زمني صارم لقطع الاتصال لو علق أوبن راوتر أكثر من 6 ثوانٍ لحماية حارس ريلوي
 const apiTimeout = (ms) => new Promise((_, reject) => 
   setTimeout(() => reject(new Error('TIMEOUT')), ms)
 );
@@ -33,17 +33,16 @@ export const openaiService = {
       const systemContext = promptComposer.buildSystemContext(contentStyle);
       const formattedUserPrompt = promptComposer.buildUserPrompt(userPrompt);
 
-      // 🚀 سباق حاسم: لو أوبن راوتر ما رد في 5 ثوانٍ، نسحب عليه فوراً لمنع الـ 500 حقت ريلوي
       const response = await Promise.race([
         openai.chat.completions.create({
-          model: env.openaiModel || 'openrouter/free',
+          model: 'meta-llama/llama-3-8b-instruct:free', // 🚀 موديل مستقل ومباشر ومثبت نصاً هنا!
           messages: [
             { role: 'system', content: systemContext },
             { role: 'user', content: formattedUserPrompt }
           ],
           temperature: 0.82 
         }),
-        apiTimeout(5000) // 5 ثوانٍ كحد أقصى!
+        apiTimeout(6000)
       ]);
 
       if (response && response.choices && response.choices.length > 0) {
@@ -71,14 +70,14 @@ export const openaiService = {
 
       const response = await Promise.race([
         openai.chat.completions.create({
-          model: env.openaiModel || 'openrouter/free',
+          model: 'meta-llama/llama-3-8b-instruct:free', // 🚀 مثبت نصاً ومباشر هنا أيضاً!
           messages: [
             { role: 'system', content: 'تحليل تيك توك ذكي JSON' },
             { role: 'user', content: `حلل: "${scriptText}"` }
           ],
           temperature: 0.45 
         }),
-        apiTimeout(5000) // 5 ثوانٍ كحد أقصى!
+        apiTimeout(6000)
       ]);
 
       if (response && response.choices && response.choices.length > 0) {
