@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AuthProvider, { AuthContext } from './context/AuthContext'
 import { SubscriptionProvider } from './context/SubscriptionContext'
 import { ThemeProvider } from './context/ThemeContext'
-import { AppProvider } from './context/AppContext' // مطابقة مليمترية مع هيكل الملفات الثابت
+import { AppProvider } from './context/AppContext' 
 import DashboardLayout from './layouts/DashboardLayout'
 import AuthLayout from './layouts/AuthLayout'
 import LandingLayout from './layouts/LandingLayout'
@@ -57,9 +57,11 @@ export default function App() {
 }
 
 function AppContent() {
-  const { user, loading } = useContext(AuthContext)
+  // 🚀 استدعاء العلم الحتمي والمستقر (ready flag) من السياق
+  const { user, initialized } = useContext(AuthContext)
 
-  if (loading) {
+  // 🎯 الشرط الحتمي: إذا لم ينتهِ أول فحص بدئي للجلسة، احجب الشاشة.. وغير كذا افتح البوابات فوراً!
+  if (!initialized) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center dir-rtl">
         <div className="flex flex-col items-center gap-4">
@@ -70,6 +72,7 @@ function AppContent() {
     )
   }
 
+  // 🔓 أول ما initialized تصير true، السد ينهار وتفتح كامل صفحات المنصة لايف
   return (
     <div className="min-h-screen bg-slate-900 font-sans antialiased relative selection:bg-blue-500/20 selection:text-blue-400">
       <Routes>

@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import { ThemeContext } from '../../context/ThemeContext.jsx'
 import CopyButton from '../common/CopyButton.jsx'
 
-export default function ScriptCard({ hook, script, cta, onSave, isSaving }) {
+export default function ScriptCard({ hook, script, cta }) { // 🚀 تم تنظيف الـ Props المتعارضة نهائياً
   const { theme } = useContext(ThemeContext)
   
   const displayHook = hook || 'أفكار التوليد تظهر هنا فور ضغط الزر... 🚀'
@@ -23,12 +23,14 @@ export default function ScriptCard({ hook, script, cta, onSave, isSaving }) {
           <span className="text-base">📄</span>
           <h3 className="text-xs font-black tracking-tight">السكريبت المقترح </h3>
         </div>
+        {/* ⚡ تحديث الوشاح البصري ليعكس حالة الحفظ الآلي المستقر */}
         <span className={`text-[9px] font-black border px-2.5 py-0.5 rounded-md flex items-center gap-1 transition-all ${
           hook
             ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
             : 'bg-slate-800/40 text-slate-500 border-slate-800'
         }`}>
-          <span className={`w-1 h-1 rounded-full ${hook ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} /> {hook ? 'جاهز للنشر' : 'في انتظار الفكرة'}
+          <span className={`w-1 h-1 rounded-full ${hook ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} /> 
+          {hook ? 'جاهز ومحفوظ تلقائياً ✨' : 'في انتظار الفكرة'}
         </span>
       </div>
 
@@ -57,22 +59,11 @@ export default function ScriptCard({ hook, script, cta, onSave, isSaving }) {
         )}
       </div>
 
+      {/* 🏁 تصفية الحقل السفلي كلياً من الأزرار اليدوية المكسورة والتركيز فقط على زر النسخ الحركي السريع */}
       <div className={`flex items-center gap-2 border-t pt-3 mt-4 shrink-0 transition-colors ${
         theme === 'dark' ? 'border-[#1f1438]/50' : 'border-slate-50'
       }`}>
         <CopyButton text={fullScriptText} label="نسخ السكريبت" />
-        <button
-          type="button"
-          disabled={!hook || isSaving}
-          onClick={onSave} // 🚀 تفعيل إطلاق دالة الحفظ الحقيقية الممررة
-          className={`px-3 py-1.5 rounded-xl text-[10px] font-black border transition-all active:scale-95 disabled:opacity-50 ${
-            theme === 'dark'
-              ? 'border-[#1f1438] text-slate-300 hover:bg-white/5'
-              : 'border-slate-200/60 text-slate-500 hover:bg-slate-50'
-          }`}
-        >
-          {isSaving ? '⏳ جاري الحفظ...' : '💾 حفظ السكريبت'}
-        </button>
       </div>
 
     </div>

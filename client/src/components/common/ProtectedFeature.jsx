@@ -12,7 +12,7 @@ export default function ProtectedFeature({ minRequiredPlan = 'pro', featureName 
     return (
       <div className="w-full min-h-[220px] flex items-center justify-center border border-slate-200/40 dark:border-slate-800/40 rounded-[28px] bg-slate-50/5 dark:bg-slate-900/5">
         <div className="text-center p-4 text-[11px] font-bold text-slate-400 dark:text-slate-500 animate-pulse">
-          جاري فحص صلاحيات الباقة الملكية...
+          جاري فحص صلاحيات الباقة ...
         </div>
       </div>
     )

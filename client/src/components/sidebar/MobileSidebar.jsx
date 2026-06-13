@@ -6,8 +6,7 @@ import UserProfileCard from './UserProfileCard.jsx'
 import useSubscription from '../../hooks/useSubscription.js'
 
 /**
- * TrendAura Mobile Navigation Sidebar
- * شريحة جانبية منزلقة مصممة للجوال واللمس 100%
+ * TrendAura Mobile Navigation Sidebar - Hardware Accelerated (No lag Edition)
  */
 export default function MobileSidebar() {
   const { sidebarOpen, setSidebarOpen } = useContext(AppContext)
@@ -15,16 +14,22 @@ export default function MobileSidebar() {
   const isPremium = plan === 'pro' || plan === 'viral_engine'
   const menuItems = getSidebarItems(isPremium)
 
-  if (!sidebarOpen) return null
-
   return (
-    <div className="md:hidden fixed inset-0 z-50 flex dir-rtl text-right select-none">
+    // الحاوية الرئيسية مدمجة دائماً وتتحكم بالظهور عبر الـ opacity والـ pointer-events لمنع تهنيق الـ DOM
+    <div className={`md:hidden fixed inset-0 z-50 flex dir-rtl text-right select-none transition-all duration-300 ${
+      sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+    }`}>
       
-      {/* الخلفية المضببة التفاعلية لغلق القائمة فور الضغط خارج الحيز */}
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setSidebarOpen(false)} />
+      {/* الخلفية المعتامة الزجاجية مع تأثير ناعم للأنيميشن */}
+      <div 
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300" 
+        onClick={() => setSidebarOpen(false)} 
+      />
 
-      {/* انزلاق القائمة من الجهة اليمنى المتوافقة مع اللغة العربية */}
-      <div className="relative w-64 max-w-sm h-full bg-slate-950 border-l border-slate-900 shadow-2xl p-5 flex flex-col justify-between z-10 animate-slide-right mr-0 transition-all duration-300">
+      {/* 🚀 الانزلاق الحركي الملوكي: يخرج ويدخل عبر الـ translate-x بناءً على حالة القائمة بدقة فائقة */}
+      <div className={`relative w-64 max-w-sm h-full bg-slate-950 border-l border-slate-900 shadow-2xl p-5 flex flex-col justify-between z-10 transition-transform duration-300 ease-in-out ${
+        sidebarOpen ? 'translate-x-0' : 'translate-x-full'
+      }`}>
         
         <div>
           {/* هيدر اللوجو للبراند مع زر الإغلاق الحركي السريع */}
@@ -40,6 +45,7 @@ export default function MobileSidebar() {
             
             {/* زر غلق السايدبار بالجوال */}
             <button 
+              type="button"
               onClick={() => setSidebarOpen(false)} 
               className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
             >
@@ -49,7 +55,7 @@ export default function MobileSidebar() {
             </button>
           </div>
 
-          {/* روابط الملاحة المحدثة بناءً على حالة باقة العميل */}
+          {/* روابط الملاحة المحدثة */}
           <nav className="flex flex-col gap-1.5">
             {menuItems.map((item, idx) => (
               <SidebarItem 
@@ -64,7 +70,7 @@ export default function MobileSidebar() {
           </nav>
         </div>
 
-        {/* الكرت السفلي للبروفايل مدمج بشكل فخم */}
+        {/* الكرت السفلي للبروفايل */}
         <div className="pt-4 border-t border-slate-900">
           <UserProfileCard />
         </div>
