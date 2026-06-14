@@ -63,23 +63,29 @@ export default function useAiGenerator() {
         };
 
         // 🚀 1. كبس وحقن الحفظ التلقائي في سوبابيس وفحص الـ error الحقيقي
-        const { error: insertError } = await supabase.from('scripts').insert([
-          {
-            user_id: profile.id,
-            hook: finalResult.hook,
-            script: finalResult.script,
-            cta: finalResult.cta,
-            hashtags: finalResult.hashtags,
-            ai_score: finalResult.aiScore,
-            retention_rate: finalResult.retentionRate
-          }
-        ]);
+       const payload = {
+  user_id: profile.id,
+  hook: finalResult.hook,
+  script: finalResult.script,
+  cta: finalResult.cta,
+  hashtags: finalResult.hashtags,
+  ai_score: finalResult.aiScore,
+  retention_rate: finalResult.retentionRate
+}
 
-        // لو سوبابيس رفضت الحفظ، نرمي الخطأ فوراً بداخل الـ catch لمنع كود التوكنات وتنبيه المتصفح بالعلة الصريحة
-        if (insertError) {
-          console.error("❌ [Supabase Direct Insert Error]:", insertError);
-          throw new Error(`سوبابيس رفضت الحفظ الآلي: ${insertError.message}`);
-        }
+console.log('🚀 INSERT PAYLOAD:', payload)
+
+const { data, error: insertError } = await supabase
+  .from('scripts')
+  .insert([payload])
+  .select()
+
+console.log('🚀 INSERT RESULT:', data)
+console.log('🚀 INSERT ERROR:', insertError)
+
+if (insertError) {
+  throw insertError
+} 
 
         // 🚀 2. تحديث واجهة العرض بالبيانات (لا يتم التحديث إلا بعد نجاح الحفظ بالجدول صخر)
         setResult(finalResult);

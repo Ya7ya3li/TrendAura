@@ -16,7 +16,8 @@ const app = express();
 // 🛡️ مصفوفة النطاقات المسموح لها باختراق جدار السيرفر (قائمة براند TrendAura الرسمية)
 const allowedOrigins = [
   'https://trendaura-two.vercel.app',
-  'https://trendaura.vercel.app'
+  'https://trendaura.vercel.app',
+  'http://localhost:3000'
 ];
 
 // 1. تفعيل الميدل وير العالمي للـ CORS وتحديد الصلاحيات بالملي
