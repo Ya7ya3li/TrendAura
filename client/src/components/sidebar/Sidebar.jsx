@@ -2,7 +2,6 @@ import React, { useContext } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { ThemeContext } from '../../context/ThemeContext.jsx'
 import { AuthContext } from '../../context/AuthContext.jsx'
-import { SIDEBAR_ITEMS } from '../../constants/sidebarItems.js'
 import { ROUTES } from '../../constants/routes.js'
 
 export default function Sidebar() {
@@ -22,20 +21,80 @@ export default function Sidebar() {
     }
   }
 
+  const userPlan = (profile?.plan || 'free').toLowerCase().trim()
+
+  // 🚀 هندسة عناصر القائمة الجانبية بأيقونات SVG نقية بالكامل وفلترة حسب الصلاحية
+  const navigationItems = [
+    {
+      id: 'dashboard',
+      name: 'لوحة التحكم',
+      path: ROUTES.DASHBOARD,
+      show: true,
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
+        </svg>
+      )
+    },
+    {
+      id: 'history',
+      name: 'أرشيف السكريبتات',
+      path: ROUTES.HISTORY,
+      show: userPlan !== 'free', // 🔒 مخفي تماماً للمجاني
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5M5 19v-4a2 2 0 002-2h12a2 2 0 002 2v4a2 2 0 01-2 2H5z" />
+        </svg>
+      )
+    },
+    {
+      id: 'pricing',
+      name: 'الباقات والأسعار',
+      path: ROUTES.PRICING,
+      show: true,
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    },
+    {
+      id: 'settings',
+      name: 'الإعدادات الشخصية',
+      path: ROUTES.SETTINGS,
+      show: true,
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      )
+    },
+    {
+      id: 'support',
+      name: 'دعم المشتركين 24/7',
+      path: '/support', // مسار الدعم الفني الجديد
+      show: userPlan !== 'free', // 🔒 حصري للمشتركين فقط Pro+
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M5.636 5.636l3.536 3.536m0 5.656l-3.536 3.536M9.172 9.172a4 4 0 115.656 5.656 4 4 0 01-5.656-5.656z" />
+        </svg>
+      )
+    }
+  ]
+
   if (loading) {
     return (
       <aside className={`hidden md:flex flex-col w-64 h-screen fixed right-0 top-0 z-30 p-5 border-l ${
         theme === 'dark' ? 'bg-slate-950 border-slate-900' : 'bg-white border-slate-100'
       }`}>
         <div className="animate-pulse space-y-5">
-          <div className="h-10 bg-slate-800 rounded-xl w-full" />
-          <div className="h-40 bg-slate-800 rounded-2xl w-full" />
+          <div className="h-10 bg-slate-800 dark:bg-slate-900 rounded-xl w-full" />
+          <div className="h-40 bg-slate-800 dark:bg-slate-900 rounded-2xl w-full" />
         </div>
       </aside>
     )
   }
-
-  const userPlan = (profile?.plan || 'free').toLowerCase().trim()
 
   return (
     <aside className={`hidden md:flex flex-col w-64 h-screen fixed right-0 top-0 z-30 text-right dir-rtl font-sans p-5 backdrop-blur-xl border-l select-none transition-all duration-300 ${
@@ -56,7 +115,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-2">
-        {SIDEBAR_ITEMS && SIDEBAR_ITEMS.map((item) => (
+        {navigationItems.filter(item => item.show).map((item) => (
           <NavLink
             key={item.id}
             to={item.path}
@@ -72,6 +131,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
+      {/* بطاقة البروفايل الذكية مع الألوان الرمزية لخطط الاشتراك المستندة لـ SVG */}
       <div className={`mb-3 p-3 rounded-2xl border ${theme === 'dark' ? 'bg-slate-900/40 border-slate-900' : 'bg-slate-50 border-slate-200'}`}>
         <div className="flex items-center gap-3 w-full">
           <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shrink-0">
@@ -83,14 +143,22 @@ export default function Sidebar() {
           </div>
           
           <div className="flex flex-col min-w-0 flex-1 text-right">
-            <span className={`text-[8px] font-black uppercase tracking-wider ${userPlan === 'viral_engine' ? 'text-rose-400' : userPlan === 'pro' ? 'text-cyan-400' : 'text-slate-400'}`}>
-              {userPlan === 'viral_engine' ? '🔴 Viral Engine' : userPlan === 'pro' ? '🟢 PRO' : '⚪️ FREE'}
+            <span className="flex items-center gap-1 text-[8px] font-black uppercase tracking-wider">
+              <svg className={`w-2 h-2 shrink-0 ${userPlan === 'viral_engine' ? 'text-rose-500 animate-pulse' : userPlan === 'pro' ? 'text-cyan-400' : 'text-slate-400'}`} fill="currentColor" viewBox="0 0 8 8">
+                <circle cx="4" cy="4" r="3" />
+              </svg>
+              <span className={userPlan === 'viral_engine' ? 'text-rose-400' : userPlan === 'pro' ? 'text-cyan-400' : 'text-slate-400'}>
+                {userPlan === 'viral_engine' ? 'Viral Engine' : userPlan === 'pro' ? 'PRO VIP' : 'FREE'}
+              </span>
             </span>
-            <span className="text-xs font-black truncate text-slate-900 dark:text-white">
+            <span className="text-xs font-black truncate text-slate-900 dark:text-white mt-0.5">
               {profile?.full_name || 'مرحباً بك'}
             </span>
-            <span className="text-[9px] font-bold text-blue-600 dark:text-cyan-400 mt-0.5 font-sans">
-              ⚡ رصيدك: {profile?.tokens ?? 0}
+            <span className="text-[9px] font-bold text-blue-600 dark:text-cyan-400 mt-0.5 font-sans flex items-center gap-1">
+              <svg className="w-2.5 h-2.5 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              رصيدك: {profile?.tokens ?? 0}
             </span>
           </div>
         </div>

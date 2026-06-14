@@ -7,7 +7,6 @@ import { supabase } from '../config/supabase.js';
 import { showToast } from '../App.jsx';
 
 export default function useAiGenerator() {
-  // 🚀 التعديل: استدعاء initialized الصافي مباشرة وبدون ترقيع بأسماء قديمة
   const { profile, setProfile, initialized } = useContext(AuthContext);
   const { plan } = useContext(SubscriptionContext); 
   const [prompt, setPrompt] = useState('');
@@ -19,8 +18,10 @@ export default function useAiGenerator() {
     ctaRating: '', tips: []
   });
 
-  const generateScript = async () => {
-    // 🎯 الحارس الذكي: لو لم تكتمل التهيئة أو البروفايل لسه ما نزل، نبهه فوراً لحماية السيرفر
+  const currentPlan = (plan || 'free').toLowerCase().trim();
+
+  // 🛠️ الإصلاح: الدالة الآن تستقبل التعليمات المخصصة لكل باقة وتحقنها في الطلب
+  const generateScript = async (extraInstructions = '') => {
     if (!initialized || !profile?.id) {
       if (typeof showToast === 'function') showToast('جاري التحقق من بياناتك...', 'warning');
       return;
@@ -31,10 +32,9 @@ export default function useAiGenerator() {
       return;
     }
     
-    // بقية كود التوليد عندك...
-
     setLoading(true);
     try {
+      // 📊 الفحص المركزي الحقيقي من السيرفر لمنع ثغرات الـ F5 والتلاعب بالعدادات
       const isEligible = await usageService.checkEligibility(profile.id, plan);
       if (!isEligible) {
         if (typeof showToast === 'function') showToast('لقد استهلكت كامل حصتك، يرجى الترقية ⚠️', 'error');
@@ -42,12 +42,13 @@ export default function useAiGenerator() {
         return;
       }
 
-      const response = await aiService.generateScript(prompt); 
+      // دمج تعليمات الباقة مع برومبت المستخدم برمجياً
+      const finalPrompt = extraInstructions ? `${prompt}\n\n${extraInstructions}` : prompt;
+      const response = await aiService.generateScript(finalPrompt); 
       
       if (response && (response.success || response.hook)) {
         const aiData = response.success ? response.data : response;
 
-        // صهر وتوطين البيانات الحقيقية المستلمة كاملة ومطابقتها للكروت
         const finalResult = {
           hook: aiData.hook || '',
           script: aiData.script || '',
@@ -62,29 +63,30 @@ export default function useAiGenerator() {
           tips: Array.isArray(aiData.tips) ? aiData.tips : []
         };
 
-        // 🚀 1. كبس وحقن الحفظ التلقائي في سوبابيس وفحص الـ error الحقيقي
-       const { error: insertError } = await supabase.from('scripts').insert([
-          {
-            user_id: profile.id,
-            hook: finalResult.hook,
-            script: finalResult.script,
-            cta: finalResult.cta,
-            hashtags: finalResult.hashtags,
-            ai_score: finalResult.aiScore,
-            retention_rate: finalResult.retentionRate
-          }
-        ]);
+        // 🔒 الإصلاح: منع الحفظ التلقائي في سوبابيس نهائياً إذا كان المستخدم على الباقة المجانية
+        if (currentPlan !== 'free') {
+          const { error: insertError } = await supabase.from('scripts').insert([
+            {
+              user_id: profile.id,
+              hook: finalResult.hook,
+              script: finalResult.script,
+              cta: finalResult.cta,
+              hashtags: finalResult.hashtags,
+              ai_score: finalResult.aiScore,
+              retention_rate: finalResult.retentionRate
+            }
+          ]);
 
-        // لو سوبابيس رفضت الحفظ، نرمي الخطأ فوراً بداخل الـ catch لمنع كود التوكنات وتنبيه المتصفح بالعلة الصريحة
-        if (insertError) {
-          console.error("❌ [Supabase Direct Insert Error]:", insertError);
-          throw new Error(`سوبابيس رفضت الحفظ الآلي: ${insertError.message}`);
-        } 
+          if (insertError) {
+            console.error("❌ [Supabase Direct Insert Error]:", insertError);
+            throw new Error(`سوبابيس رفضت الحفظ الآلي: ${insertError.message}`);
+          } 
+        }
 
-        // 🚀 2. تحديث واجهة العرض بالبيانات (لا يتم التحديث إلا بعد نجاح الحفظ بالجدول صخر)
+        // تحديث الواجهة بالبيانات
         setResult(finalResult);
 
-        // 🚀 3. خصم التوكن ومزامنة الحساب بعد ضمان الحفظ الكامل
+        // خصم التوكن ومزامنة الحساب للمشتركين فقط
         const currentTokens = profile.tokens || 0;
         const deductedTokens = Math.max(0, currentTokens - 10);
         
@@ -93,7 +95,12 @@ export default function useAiGenerator() {
 
         setProfile(prev => ({ ...prev, tokens: deductedTokens }));
         
-        if (typeof showToast === 'function') showToast('تم التوليد وحفظ السكريبت في أرشيفك فوراً! ✨💾', 'success');
+        if (typeof showToast === 'function') {
+          const successMessage = currentPlan === 'free' 
+            ? 'تم توليد السكريبت المحدود بنجاح! ✨' 
+            : 'تم التوليد وحفظ السكريبت في أرشيفك فوراً! ✨💾';
+          showToast(successMessage, 'success');
+        }
         setPrompt('');
       } else {
         throw new Error('فشل السيرفر في توليد السكريبت الموحد.');
@@ -101,7 +108,7 @@ export default function useAiGenerator() {
     } catch (error) {
       console.error('❌ [useAiGenerator Real Exception Caught]:', error.message);
       if (typeof showToast === 'function') showToast(error.message || 'حدث خطأ أثناء الاتصال بالمحرك', 'error');
-    } finally {
+    } window.history.replaceState({}, document.title, window.location.pathname); {
       setLoading(false);
     }
   };

@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
     if (profileLock.has(userId)) return profileCache.get(userId)
     
     profileLock.add(userId)
-    console.log("🔬 [Profile TEST]: PROFILE FETCH START ➔ ID:", userId)
+    console.log("🔬 [Profile]: PROFILE FETCH START ➔ ID:", userId)
 
     try {
       const { data, error } = await supabase
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (data) {
-        console.log("🔬 [Profile TEST]: PROFILE FETCH END (Data Found) ✔")
+        console.log("🔬 [Profile]: PROFILE FETCH END (Data Found) ✔")
         profileCache.set(userId, data)
         return data
       }
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
         return newProfile
       }
 
-      console.log("🔬 [Profile TEST]: PROFILE FETCH END (New Created) ✔")
+      console.log("🔬 [Profile]: PROFILE FETCH END (New Created) ✔")
       const finalProfile = insertedData || newProfile
       profileCache.set(userId, finalProfile)
       return finalProfile

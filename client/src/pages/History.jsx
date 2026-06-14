@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext.jsx'
 import { ThemeContext } from '../context/ThemeContext.jsx'
 import { supabase } from '../config/supabase.js'
@@ -10,22 +10,29 @@ import SectionTitle from '../components/common/SectionTitle.jsx'
 
 export default function History() {
   const navigate = useNavigate()
-  const { user } = useContext(AuthContext)
+  const { user, profile } = useContext(AuthContext)
   const { theme } = useContext(ThemeContext)
   
   const [scripts, setScripts] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedScript, setSelectedScript] = useState(null)
 
+  const currentPlan = (profile?.plan || 'free').toLowerCase().trim()
+
+  // 🔒 طبقة حماية برمجية داخلية ثانية لمنع دخول المجاني عبر كتابة الرابط يدوياً بالمتصفح
+  if (currentPlan === 'free') {
+    return <Navigate to={ROUTES.PRICING} replace />
+  }
+
   useEffect(() => {
     const loadSavedScripts = async () => {
       try {
-          const { data, error } = await supabase
-              .from('scripts')
-              .select('*')
-              .eq('user_id', user.id)
-              .order('created_at', { ascending: false })
-          if (error) throw error
+        const { data, error } = await supabase
+            .from('scripts')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+        if (error) throw error
         
         const fetchedScripts = data || []
         setScripts(fetchedScripts)
@@ -45,18 +52,18 @@ export default function History() {
   }, [user])
 
   const totalWords = scripts.reduce((acc, item) => {
-  const text = `${item.hook || ''} ${item.script || ''} ${item.cta || ''}`
-  const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
-  return acc + wordCount
-}, 0)
+    const text = `${item.hook || ''} ${item.script || ''} ${item.cta || ''}`
+    const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
+    return acc + wordCount
+  }, 0)
 
   const lastActivity = scripts.length > 0 
     ? new Date(scripts[0].created_at).toLocaleDateString('ar-SA', { hour: '2-digit', minute: '2-digit' })
     : 'لا يوجد نشاط'
 
   const latestTopic = scripts.length > 0
-  ? (scripts[0].hook || 'سيناريو غير مصنف')
-  : 'لا يوجد مواضيع'
+    ? (scripts[0].hook || 'سيناريو غير مصنف')
+    : 'لا يوجد مواضيع'
 
   const handleCopyScript = (text) => {
     if (!text) return
@@ -85,26 +92,39 @@ export default function History() {
 
       {scripts.length === 0 ? (
         <EmptyState 
-          icon="📋" 
+          icon={
+            <svg className="w-12 h-12 text-slate-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          } 
           title="سجل السكريبتات فارغ" 
           message="لم تقم بتوليد أو أرشفة أي سيناريو حتى الآن." 
           actionText="توليد سكريبت الآن 🚀"
-          onAction={() => navigate(ROUTES.DASHBOARD)} // سحق الهارد ريلود
+          onAction={() => navigate(ROUTES.DASHBOARD)} 
         />
       ) : (
         <div className="space-y-6 animate-fade-in">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className={`border rounded-2xl p-4 ${theme === 'dark' ? 'bg-slate-900/40 border-slate-800/80' : 'bg-white border-slate-100'}`}>
-              <span className="text-[10px] font-black text-slate-500">كلمة إجمالاً</span>
-              <p className="text-xl font-black text-blue-500 dark:text-cyan-400">{totalWords.toLocaleString()}</p>
+              <span className="text-[10px] font-black text-slate-500 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                ... الكلمات المكتوبة
+              </span>
+              <p className="text-xl font-black text-blue-500 dark:text-cyan-400 mt-1">{totalWords.toLocaleString()}</p>
             </div>
             <div className={`border rounded-2xl p-4 ${theme === 'dark' ? 'bg-slate-900/40 border-slate-800/80' : 'bg-white border-slate-100'}`}>
-              <span className="text-[10px] font-black text-slate-500">آخر نشاط</span>
-              <p className="text-xs font-black truncate text-slate-300">{lastActivity}</p>
+              <span className="text-[10px] font-black text-slate-500 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                آخر نشاط
+              </span>
+              <p className="text-xs font-black truncate text-slate-400 mt-2 font-sans">{lastActivity}</p>
             </div>
             <div className={`border rounded-2xl p-4 ${theme === 'dark' ? 'bg-slate-900/40 border-slate-800/80' : 'bg-white border-slate-100'}`}>
-              <span className="text-[10px] font-black text-slate-500">أحدث موضوع</span>
-              <p className="text-xs font-black truncate text-slate-300">{latestTopic}</p>
+              <span className="text-[10px] font-black text-slate-500 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16" /></svg>
+                أحدث موضوع
+              </span>
+              <p className="text-xs font-black truncate text-slate-400 mt-2">{latestTopic}</p>
             </div>
           </div>
 
@@ -120,8 +140,9 @@ export default function History() {
                       : (theme === 'dark' ? 'border-slate-800 bg-slate-900/20 hover:bg-slate-900/40' : 'border-slate-100 bg-white hover:bg-slate-50')
                   }`}
                 >
-                  <h4 className="text-xs font-black truncate">
-                     {item.hook}
+                  <h4 className="text-xs font-black truncate flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    {item.hook}
                   </h4>
                 </div>
               ))}
@@ -131,24 +152,13 @@ export default function History() {
               {selectedScript ? (
                 <div className={`border rounded-[28px] p-5 h-full flex flex-col justify-between ${theme === 'dark' ? 'bg-slate-900/40 border-slate-800/60' : 'bg-white border-slate-100'}`}>
                   <div className={`p-4 rounded-xl border text-xs whitespace-pre-wrap max-h-[380px] overflow-y-auto ${theme === 'dark' ? 'bg-slate-950/60 border-slate-800/40 text-slate-300' : 'bg-slate-50 border-slate-100 text-slate-700'}`}>
-                    {`${selectedScript.hook || ''}
-
-                    ${selectedScript.script || ''}
-
-                    ${selectedScript.cta || ''}`}
+                    {`${selectedScript.hook || ''}\n\n${selectedScript.script || ''}\n\n${selectedScript.cta || ''}`}
                   </div>
                   <button 
-                    onClick={() =>
-                     handleCopyScript(
-                   `${selectedScript.hook || ''}
-
-                    ${selectedScript.script || ''}
-
-                    ${selectedScript.cta || ''}`
-                      )
-                    } 
-                    className="w-full py-3 mt-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black transition-all active:scale-[0.99]"
+                    onClick={() => handleCopyScript(`${selectedScript.hook || ''}\n\n${selectedScript.script || ''}\n\n${selectedScript.cta || ''}`)} 
+                    className="w-full py-3 mt-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black transition-all active:scale-[0.99] flex items-center justify-center gap-1.5"
                   >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m-2 4h5m0 0l-2-2m2 2l-2 2" /></svg>
                     نسخ السيناريو 
                   </button>
                 </div>

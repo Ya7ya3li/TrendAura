@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-// 🚀 استيراد السيرفس المركزي ليمر عبر الأكسيوس الموحد وتوكن الأمان
 import { aiService } from '../../services/aiService'
 
 export default function ViralEngineCard({ plan, scriptText }) {
@@ -7,7 +6,32 @@ export default function ViralEngineCard({ plan, scriptText }) {
   const [analysisData, setAnalysisData] = useState(null)
   const [errorMsg, setErrorMsg] = useState('')
 
-  // 🚀 الاتصال الحقيقي بالسيرفر الموحد وفحص النص لايف
+  const userPlan = (plan || 'free').toLowerCase().trim()
+
+  // 🔒 جدار حماية حاسم: إذا المستخدم ليس على باقة الـ Viral Engine، نحجب لوحة الفحص ونعرض جدار الترقية
+  if (userPlan !== 'viral_engine') {
+    return (
+      <div className="w-full bg-slate-950/40 border border-slate-900 rounded-[28px] p-6 shadow-2xl backdrop-blur-md text-center flex flex-col items-center justify-center p-8 min-h-[280px]">
+        <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mb-4">
+          <svg className="w-6 h-6 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <h3 className="text-sm font-black text-white mb-2">مصفوفات التحليل المجهري مقفلة</h3>
+        <p className="text-[10px] font-bold text-slate-400 max-w-[240px] leading-relaxed mb-5">
+          تحليل قوة الهوك بالدرجات، حساب التماسك الجماهيري (Retention)، ونسب صعود التريند الحقيقية حصرية لباقة Viral Engine فقط.
+        </p>
+        <button 
+          type="button"
+          onClick={() => window.location.href = '/pricing'}
+          className="w-full py-3 bg-gradient-to-r from-rose-600 to-amber-600 text-white font-black text-xs rounded-xl hover:opacity-95 transition-all shadow-lg shadow-rose-900/20 active:scale-[0.98]"
+        >
+          امتلك ترسانة الـ Viral Engine الآن 🔥
+        </button>
+      </div>
+    )
+  }
+
   const handleStartAnalysis = async () => {
     if (!scriptText) {
       alert("فضلاً اكتب فكرتك أو ولد سكريبت أولاً ليتمكن المحرك من فصحه حقيقياً!")
@@ -19,11 +43,8 @@ export default function ViralEngineCard({ plan, scriptText }) {
     setAnalysisData(null)
     
     try {
-      // 🏆 الشغل النظيف: استدعاء السيرفس المركزي الموحد بدلاً من الفيتش المحلي القديم
       const result = await aiService.analyzeScriptMetrics(scriptText)
-
       if (result && result.success) {
-        // الكنترولر يرجع النتيجة مفرودة أو داخل data لضمان أعلى مستويات المرونة
         setAnalysisData(result.data || result.result || result) 
       } else {
         setErrorMsg(result?.message || 'فشل جلب التحليل من السيرفر.')
@@ -39,7 +60,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
   return (
     <div className="w-full bg-slate-950/40 border border-slate-900 rounded-[28px] p-6 shadow-2xl backdrop-blur-md text-right dir-rtl font-sans transition-all duration-300">
       
-      {/* 🔹 عنوان القسم */}
       <div className="text-center mb-6 flex flex-col items-center justify-center">
         <h2 className="text-base font-black text-white flex items-center justify-center gap-2 mb-1">
           <span>أدوات الـ Viral Engine النشطة</span>
@@ -53,7 +73,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
         </p>
       </div>
 
-      {/* 🔹 زر الفحص */}
       <div className="w-full mb-6">
         <button
           type="button"
@@ -81,7 +100,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
           )}
         </button>
 
-        {/* 🛡️ إشعار حالة السكريبت */}
         <div className="mt-3 flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-900/30 border border-slate-900 text-[10px] font-bold text-slate-400">
           <span className="flex items-center gap-1.5">
             <span className={`w-2 h-2 rounded-full ${scriptText ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
@@ -111,11 +129,8 @@ export default function ViralEngineCard({ plan, scriptText }) {
         )}
       </div>
 
-      {/* 🔹 📊 عرض تقرير التحليل من الـ API */}
       {analysisData && (
         <div className="w-full space-y-5 animate-fade-in">
-          
-          {/* كارت المؤشرات */}
           <div className="border border-indigo-500/20 rounded-[24px] p-5 bg-slate-900/20 backdrop-blur-sm relative overflow-hidden group hover:border-indigo-500/40 transition-all duration-300">
             <h3 className="text-xs font-black text-white flex items-center gap-2 mb-4 border-b border-slate-900 pb-2">
               <svg className="w-4 h-4 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -125,7 +140,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
             </h3>
 
             <div className="space-y-4">
-              {/* احتمالية الصعود */}
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
                   <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
@@ -134,7 +148,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
                 <span className="text-xs font-black text-blue-400 tracking-wider">{analysisData.trendProbability}%</span>
               </div>
 
-              {/* معدل الاحتفاظ */}
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
                   <svg className="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -143,7 +156,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
                 <span className="text-xs font-black text-cyan-400 tracking-wider">{analysisData.retentionRate}%</span>
               </div>
 
-              {/* قوة الهوك */}
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
                   <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
@@ -152,7 +164,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
                 <span className="text-[11px] font-black text-indigo-400">{analysisData.hookStrength}</span>
               </div>
 
-              {/* تقييم الـ CTA */}
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
                   <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -170,7 +181,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
             </div>
           </div>
 
-          {/* كارت نصائح الهندسة */}
           <div className="border border-slate-900 rounded-[24px] p-5 bg-slate-900/10 backdrop-blur-sm">
             <h3 className="text-xs font-black text-white flex items-center gap-2 mb-3">
               <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -187,11 +197,9 @@ export default function ViralEngineCard({ plan, scriptText }) {
               ))}
             </ul>
           </div>
-
         </div>
       )}
 
-      {/* حالة الانتظار قبل الضغط */}
       {!analysisData && !isAnalyzing && (
         <div className="w-full py-8 text-center border border-dashed border-slate-900 rounded-2xl bg-slate-950/20 flex flex-col items-center justify-center gap-2">
           <svg className="w-7 h-7 text-slate-700 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
@@ -202,7 +210,6 @@ export default function ViralEngineCard({ plan, scriptText }) {
           </p>
         </div>
       )}
-
     </div>
   )
 }
