@@ -20,13 +20,12 @@ export default function History() {
   useEffect(() => {
     const loadSavedScripts = async () => {
       try {
-        const { data, error } = await supabase
-          .from('generated_scripts')
-          .select('*')
-          .eq('user_id', user?.id)
-          .order('created_at', { ascending: false })
-
-        if (error) throw error
+          const { data, error } = await supabase
+              .from('scripts')
+              .select('*')
+              .eq('user_id', user.id)
+              .order('created_at', { ascending: false })
+          if (error) throw error
         
         const fetchedScripts = data || []
         setScripts(fetchedScripts)
@@ -46,17 +45,18 @@ export default function History() {
   }, [user])
 
   const totalWords = scripts.reduce((acc, item) => {
-    const wordCount = item.content ? item.content.trim().split(/\s+/).length : 0
-    return acc + wordCount
-  }, 0)
+  const text = `${item.hook || ''} ${item.script || ''} ${item.cta || ''}`
+  const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
+  return acc + wordCount
+}, 0)
 
   const lastActivity = scripts.length > 0 
     ? new Date(scripts[0].created_at).toLocaleDateString('ar-SA', { hour: '2-digit', minute: '2-digit' })
     : 'لا يوجد نشاط'
 
-  const latestTopic = scripts.length > 0 
-    ? (scripts[0].prompt_summary || 'سيناريو غير مصنف') 
-    : 'لا يوجد مواضيع'
+  const latestTopic = scripts.length > 0
+  ? (scripts[0].hook || 'سيناريو غير مصنف')
+  : 'لا يوجد مواضيع'
 
   const handleCopyScript = (text) => {
     if (!text) return
@@ -120,7 +120,9 @@ export default function History() {
                       : (theme === 'dark' ? 'border-slate-800 bg-slate-900/20 hover:bg-slate-900/40' : 'border-slate-100 bg-white hover:bg-slate-50')
                   }`}
                 >
-                  <h4 className="text-xs font-black truncate">{item.prompt_summary}</h4>
+                  <h4 className="text-xs font-black truncate">
+                     {item.hook}
+                  </h4>
                 </div>
               ))}
             </div>
@@ -129,13 +131,25 @@ export default function History() {
               {selectedScript ? (
                 <div className={`border rounded-[28px] p-5 h-full flex flex-col justify-between ${theme === 'dark' ? 'bg-slate-900/40 border-slate-800/60' : 'bg-white border-slate-100'}`}>
                   <div className={`p-4 rounded-xl border text-xs whitespace-pre-wrap max-h-[380px] overflow-y-auto ${theme === 'dark' ? 'bg-slate-950/60 border-slate-800/40 text-slate-300' : 'bg-slate-50 border-slate-100 text-slate-700'}`}>
-                    {selectedScript.content}
+                    {`${selectedScript.hook || ''}
+
+                    ${selectedScript.script || ''}
+
+                    ${selectedScript.cta || ''}`}
                   </div>
                   <button 
-                    onClick={() => handleCopyScript(selectedScript.content)} 
+                    onClick={() =>
+                     handleCopyScript(
+                   `${selectedScript.hook || ''}
+
+                    ${selectedScript.script || ''}
+
+                    ${selectedScript.cta || ''}`
+                      )
+                    } 
                     className="w-full py-3 mt-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black transition-all active:scale-[0.99]"
                   >
-                    نسخ السيناريو الملوكي
+                    نسخ السيناريو 
                   </button>
                 </div>
               ) : null}
