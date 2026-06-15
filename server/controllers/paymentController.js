@@ -21,12 +21,16 @@ export const paymentController = {
       }
 
       const cleanPlan = String(planName || 'pro').toLowerCase().trim();
-      let calculatedTokens = 50000; 
+      
+      // 🛡️ الحصن البرمجي: توزين حزم التوكنز على المسطرة ومنع النزيف الهاردكود القديم
+      let calculatedTokens = 0; 
       
       if (cleanPlan === 'viral_engine' || cleanPlan === 'viral engine') {
-        calculatedTokens = 200000; 
+        calculatedTokens = 10000; // باقة الموتور الفيروسي تمنح 10 آلاف توكن
+      } else if (cleanPlan === 'pro') {
+        calculatedTokens = 1000;   // باقة البرو تمنح 1000 توكن
       } else if (cleanPlan === 'token_booster') {
-        calculatedTokens = 50000;
+        calculatedTokens = 5000;   // حزمة الشحن السريع تمنح 5000 توكن بالملي
       } else if (cleanPlan === 'free') {
         calculatedTokens = 0;
       }
@@ -52,7 +56,7 @@ export const paymentController = {
       const strictMetadata = {
         user_id: String(userId),
         plan_id: String(cleanPlan),
-        tokens_to_add: String(calculatedTokens) 
+        tokens_to_add: String(calculatedTokens) // تمرير القيمة المحمية والنظيفة لميسر
       };
 
       // 🏆 الاتصال الصحيح بـ Invoices API لفتح صفحة ميسر الرسمية المستضافة
@@ -125,7 +129,8 @@ export const paymentController = {
       if (status === 'paid' || status === 'captured') {
         let userId = metadata?.user_id;
         let targetPlan = metadata?.plan_id || 'pro';
-        let tokensToAdd = Number(metadata?.tokens_to_add) || 50000; 
+        // 🛡️ تصفير صمام الأمان لمنع حقن قيم افتراضية عمياء
+        let tokensToAdd = Number(metadata?.tokens_to_add) || 0; 
 
         if (!userId && paymentData.invoice_id) {
           try {
@@ -140,7 +145,7 @@ export const paymentController = {
               const invData = await invResponse.json();
               userId = invData.metadata?.user_id;
               targetPlan = invData.metadata?.plan_id || 'pro';
-              tokensToAdd = Number(invData.metadata?.tokens_to_add) || 50000;
+              tokensToAdd = Number(invData.metadata?.tokens_to_add) || 0;
             }
           } catch (fetchInvErr) {
             console.error('❌ [Webhook Fetch Invoice Error]:', fetchInvErr.message);
@@ -185,16 +190,15 @@ export const paymentController = {
 
         if (error) throw error;
 
-        // 🏆 التعديل الحاسم والنهائي: تغيير الحقل من plan إلى plan_type ليتطابق مع سوبابيس بالملي وينتهي الخطأ
+        // تحديث جدول الفواتير
         const { error: invoiceError } = await supabase.from('invoices').insert([{
           user_id: userId,
           payment_id: id,
           amount: (amount / 100).toFixed(2),
-          plan_type: targetPlan.toUpperCase().trim(), // 🚀 تم الإصلاح هنا
+          plan_type: targetPlan.toUpperCase().trim(),
           created_at: new Date().toISOString()
         }]);
 
-        // 🛡️ صمام أمان: إذا فشل الحقن، السيرفر يرمي استثناء ويطبع السبب فوراً في ريلوي
         if (invoiceError) {
           console.error('❌ [Supabase Invoice Insert Fault]:', invoiceError.message);
           throw new Error(`Supabase Invoice Failed: ${invoiceError.message}`);
