@@ -22,7 +22,6 @@ export default function SubscriptionManagement() {
   const isFree = activePlanId === 'free'
   const isViralEngine = activePlanId === 'viral_engine'
 
-  // 🏆 جلب بيانات الباقات ديناميكياً مع ضبط قيم التوكنات التراكمية الجديدة بالملي للـ Fallback
   const proPlanInfo = PLANS.find(p => p.id === 'pro') || { price: 29, tokensReward: 1000 }
   const viralPlanInfo = PLANS.find(p => p.id === 'viral_engine') || { price: 69, tokensReward: 10000 }
 
@@ -47,50 +46,68 @@ export default function SubscriptionManagement() {
   }, [profile])
 
   const triggerMoyasarCheckout = async (amount, planId, tokensCount) => {
-    const paymentWindow = window.open('about:blank', 'moyasar_payment', 'width=600,height=750,scrollbars=yes,resizable=yes')
-    if (paymentWindow) {
-      paymentWindow.document.write('<h3 style="text-align:center;font-family:sans-serif;color:#64748b;margin-top:40%;">جاري تأمين اتصالك ببوابة ميسر...</h3>')
+    // 📱 فحص ذكي لنوع الجهاز لمنع حظر متصفحات الجوال للنوافذ المنبثقة
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    
+    let paymentWindow = null
+    
+    // فتح النافذة المنبثقة فقط إذا كان المستخدم يتصفح من كمبيوتر
+    if (!isMobileDevice) {
+      paymentWindow = window.open('about:blank', 'moyasar_payment', 'width=600,height=750,scrollbars=yes,resizable=yes')
+      if (paymentWindow) {
+        paymentWindow.document.write('<h3 style="text-align:center;font-family:sans-serif;color:#64748b;margin-top:40%;">جاري تأمين اتصالك ببوابة ميسر...</h3>')
+      }
     }
 
     setPaymentLoading(true)
     try {
       const res = await paymentService.createInvoice(amount, planId, profile.id, tokensCount)
-      if (res && res.invoiceUrl && paymentWindow) {
-        paymentWindow.location.href = res.invoiceUrl
+      if (res && res.invoiceUrl) {
+        
+        // 🚀 إذا كان جوال، حوّل العميل مباشرة في نفس الشاشة لضمان عدم الكراش
+        if (isMobileDevice) {
+          window.location.href = res.invoiceUrl
+          return
+        }
 
-        const pollInterval = setInterval(async () => {
-          try {
-            const { data: updatedProfile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', profile.id)
-              .single()
+        // إذا كان ديسك توب، أكمل بروتوكول النافذة المنفصلة
+        if (paymentWindow) {
+          paymentWindow.location.href = res.invoiceUrl
 
-            const serverPlan = (updatedProfile?.plan || 'free').toLowerCase().trim()
-            const isTokenBooster = planId === 'token_booster'
+          const pollInterval = setInterval(async () => {
+            try {
+              const { data: updatedProfile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', profile.id)
+                .single()
 
-            const conditionMet = isTokenBooster 
-              ? (updatedProfile?.tokens > profile?.tokens)
-              : (serverPlan === planId.toLowerCase().trim())
+              const serverPlan = (updatedProfile?.plan || 'free').toLowerCase().trim()
+              const isTokenBooster = planId === 'token_booster'
 
-            if (conditionMet) {
-              clearInterval(pollInterval)
-              if (updatedProfile) setProfile(updatedProfile) 
-              await loadBilling() 
-              paymentWindow.close() 
-              
-              if (typeof showToast === 'function') {
-                showToast(isTokenBooster ? 'تم شحن محفظة التوكنز بنجاح!' : 'تمت ترقية باقتك بنجاح حياً!', 'success')
+              const conditionMet = isTokenBooster 
+                ? (updatedProfile?.tokens > profile?.tokens)
+                : (serverPlan === planId.toLowerCase().trim())
+
+              if (conditionMet) {
+                clearInterval(pollInterval)
+                if (updatedProfile) setProfile(updatedProfile) 
+                await loadBilling() 
+                paymentWindow.close() 
+                
+                if (typeof showToast === 'function') {
+                  showToast(isTokenBooster ? 'تم شحن محفظة التوكنز بنجاح!' : 'تمت ترقية باقتك بنجاح حياً!', 'success')
+                }
               }
+            } catch (dbErr) {
+              console.error('Polling Error:', dbErr)
             }
-          } catch (dbErr) {
-            console.error('Polling Error:', dbErr)
-          }
 
-          if (paymentWindow.closed) clearInterval(pollInterval)
-        }, 2000)
+            if (paymentWindow.closed) clearInterval(pollInterval)
+          }, 2000)
 
-        setTimeout(() => clearInterval(pollInterval), 300000)
+          setTimeout(() => clearInterval(pollInterval), 300000)
+        }
       } else {
         if (paymentWindow) paymentWindow.close()
         throw new Error("رابط الدفع مفقود")
@@ -145,6 +162,7 @@ export default function SubscriptionManagement() {
   const cardClass = "bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-[32px] p-6 shadow-xl text-right transition-colors duration-300"
 
   return (
+    // ✅ تم تصحيح صياغة كلاس تيمبليت ليتيرال هنا بإضافة الباك تيك
     <div className={`w-full max-w-5xl mx-auto p-4 md:p-6 font-sans select-none pb-24 md:pb-6 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
       <SectionTitle title="إدارة الاشتراك والفوترة" subtitle="بوابات الفوترة، حزم شحن التوكنز، ونظام المكافآت" badge="Enterprise Billing" />
 
@@ -154,14 +172,14 @@ export default function SubscriptionManagement() {
           <div className="absolute top-0 left-0 bg-blue-500/10 px-4 py-1 rounded-bl-2xl text-[9px] font-black font-sans text-blue-600 dark:text-cyan-400">STATUS: LIVE</div>
           <p className="text-[10px] font-black text-blue-600 dark:text-cyan-400 uppercase tracking-widest">الباقة والاشتراك الحالي</p>
           <h2 className="text-2xl font-black mt-2 mb-1 text-slate-900 dark:text-white">{activePlan.name}</h2>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-6 font-semibold">تمنحك الباقة صلاحيات تكتيكية متطورة   .</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-6 font-semibold">تمنحك الباقة صلاحيات تكتيكية متطورة .</p>
           
           <div className="flex flex-col sm:flex-row gap-3 mt-auto">
             {isFree ? (
               <Button onClick={() => triggerMoyasarCheckout(proPlanInfo.price, 'pro', proPlanInfo.tokensReward || 1000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md flex items-center justify-center gap-1.5">
                 <span>اشترك الآن في Pro VIP</span>
                 <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15L15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15L15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12z" />
                 </svg>
               </Button>
             ) : (
@@ -196,7 +214,6 @@ export default function SubscriptionManagement() {
               <span className="text-[10px] font-black text-slate-800 dark:text-slate-200"> حزمة شحن سريعة </span>
               <span className="text-[11px] font-sans font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-lg">49 ريال فقط</span>
             </div>
-            {/* 🚀 التعديل الإستراتيجي هنا: حزمة شحن ميسر تضخ 5000 توكن عادل بدلاً من الخسارة السابقة */}
             <Button onClick={() => triggerMoyasarCheckout(49, 'token_booster', 5000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-slate-950 text-white dark:bg-white dark:text-slate-950 hover:opacity-90 transition-all flex items-center justify-center gap-1.5">
               <span>شحن 5,000 توكن إضافي</span>
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
@@ -216,6 +233,7 @@ export default function SubscriptionManagement() {
             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">شارك رابط إحالتك الفريد؛ وعند تسجيل أي مستخدم جديد عن طريقك يحصل الطرفان على <span className="text-emerald-500 font-bold">500 توكن مجاني فوراً</span> شحناً للمحفظة!</p>
           </div>
           <button 
+            type="button"
             onClick={copyReferralLink}
             className="w-full md:w-auto px-5 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-300 rounded-2xl text-[10px] font-black hover:border-emerald-500 dark:hover:border-emerald-500 transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
           >

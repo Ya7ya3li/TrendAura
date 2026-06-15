@@ -79,11 +79,11 @@ export default function Success() {
             </h2>
 
             <p className="text-[11px] font-bold text-cyan-400 bg-cyan-500/10 px-4 py-1.5 rounded-xl inline-block mt-3">
-              تم تفعيل {planName.toUpperCase()} بنجاح ملوكي واثق
+              تم تفعيل {planName.toUpperCase()}بنجاح  
             </p>
             
             <p className="text-[11px] font-semibold text-slate-400 leading-relaxed mt-4 mb-6">
-              تم شحن حسابك بالتوكنات التراكمية وترقية سقف قيودك بالملي حياً. استمتع بكامل أدوات المحرك الفايرال الاستراتيجي الآن واكتسح المشاهدات.
+              تم شحن حسابك بالتوكنات التراكمية وترقية سقف قيودك حياً. استمتع بكامل أدوات المحرك Viral Engine الاستراتيجي الآن واكتسح المشاهدات.
             </p>
 
             <div className="space-y-3">
