@@ -6,7 +6,7 @@ export default function HashtagsCard({ hashtags = [] }) {
   const { theme } = useContext(ThemeContext)
   
   // تأمين مصفوفة الفالباك في حال كان التوليد في أوله ولم يفرز السيرفر الهاشتاقات بعد
-  const displayTags = hashtags && hashtags.length > 0 ? hashtags : ['#fyp', '#viral', '#صناعة_محتوى']
+  const displayTags = hashtags && hashtags.length > 0 ? hashtags : ['#fyp', '#viral', '#foryou', '#fypシ', '#اكسبلور', '#ترند', '#الشعب_الصيني_ماله_حل', '#صناعة_محتوى', '#ذكاء_اصطناعي', '#ترند_جديد']
   const hashtagsString = displayTags.join(' ')
 
   return (

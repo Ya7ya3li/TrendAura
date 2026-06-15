@@ -47,7 +47,7 @@ export default function UserProfileCard() {
 
       {/* - شريط حالة رتبة الباقة الحالية */}
       <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-[10px] font-black select-none">
-        <span className="text-slate-500">باقة حسابك الحركي:</span>
+        <span className="text-slate-500">باقة حسابك :</span>
         <span className={`px-2 py-0.5 rounded-md text-[9px] font-black tracking-wide uppercase ${
           userPlan === 'viral_engine'
             ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'

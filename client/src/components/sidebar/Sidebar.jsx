@@ -87,8 +87,9 @@ export default function Sidebar() {
       path: '/support', 
       show: userPlan !== 'free', 
       icon: (
+        /* 🎧 أيقونة سماعة الدعم الفني الملوكية الهندسية الصافية */
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M5.636 5.636l3.536 3.536m0 5.656l-3.536 3.536M9.172 9.172a4 4 0 115.656 5.656 4 4 0 01-5.656-5.656z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 14c0-4.97 4.03-9 9-9s9 4.03 9 9M3 14h3a2 2 0 012 2v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-5zm13 2a2 2 0 012-2h3v5a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3zm-5 5h-1a4 4 0 01-4-4" />
         </svg>
       )
     }
