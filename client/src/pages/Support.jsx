@@ -57,7 +57,7 @@ export default function Support() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
           </svg>
         </h1>
-        <p className="text-xs font-bold text-slate-400 mt-1">مرحباً بك في الدعم الخاص؛ فريقنا متاح على مدار الساعة لخدمتك وضمان تصدر مقاطعك للترند.</p>
+        <p className="text-xs font-bold text-slate-400 mt-1">مرحباً بك في الدعم الخاص؛ فريقنا متاح على مدار الساعة لخدمتك.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -16,32 +16,36 @@ export default function Register() {
     e.preventDefault()
 
     if (!fullName.trim() || !email.trim() || !password.trim()) {
-      if (typeof showToast === 'function') showToast('فضلاً املأ جميع الحقول المطلوبة أولاً ⚠️', 'warning')
+      if (typeof showToast === 'function') showToast('فضلاً املأ جميع الحقول المطلوبة أولاً', 'warning')
       return
     }
 
     if (password.length < 6) {
-      if (typeof showToast === 'function') showToast('كلمة المرور يجب أن تكون من 6 خانات أو أكثر 🔒', 'warning')
+      if (typeof showToast === 'function') showToast('كلمة المرور يجب أن تكون من 6 خانات أو أكثر', 'warning')
       return
     }
 
     setLoading(true)
     try {
-      if (typeof showToast === 'function') showToast('جاري تشييد حسابك في قاعدة البيانات... ✦', 'info')
+      if (typeof showToast === 'function') showToast('جاري تشييد حسابك في قاعدة البيانات...', 'info')
       
+      // 🚀 حقن الـ 100 توكن والعداد الصفري في الميتاداتا ليلقطها ترنجر السيرفر فوراً
       const { error } = await supabase.auth.signUp({
         email: email.trim(),
         password: password,
         options: {
           data: {
-            full_name: fullName.trim()
+            full_name: fullName.trim(),
+            tokens: 100,
+            daily_generations: 0,
+            plan: 'free'
           }
         }
       })
 
       if (error) throw error
 
-      if (typeof showToast === 'function') showToast('تم إنشاء الحساب بنجاح ملوكي! 👑', 'success')
+      if (typeof showToast === 'function') showToast('تم إنشاء الحساب بنجاح ملوكي!', 'success')
       navigate(ROUTES.DASHBOARD)
 
     } catch (error) {
@@ -108,9 +112,19 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-slate-500"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                 >
-                  {showPassword ? '🔒' : '👁️'}
+                  {/* ⚡️ استبدال إيموجيات القفل والعين بـ SVG برميوم وصافي */}
+                  {showPassword ? (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
                 </button>
               </div>
             </div>
@@ -127,7 +141,12 @@ export default function Register() {
                     <span>جاري تشييد الحصن...</span>
                   </>
                 ) : (
-                  <span>إنشاء حسابك الحركي الآن 👑</span>
+                  <>
+                    <span>إنشاء حسابك الحركي الآن</span>
+                     <svg className="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15L15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                     </svg>
+                  </>
                 )}
               </button>
             </div>

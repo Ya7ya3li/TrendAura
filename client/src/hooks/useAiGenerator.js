@@ -20,7 +20,6 @@ export default function useAiGenerator() {
 
   const currentPlan = (plan || 'free').toLowerCase().trim();
 
-  // 🛠️ الإصلاح: الدالة الآن تستقبل التعليمات المخصصة لكل باقة وتحقنها في الطلب
   const generateScript = async (extraInstructions = '') => {
     if (!initialized || !profile?.id) {
       if (typeof showToast === 'function') showToast('جاري التحقق من بياناتك...', 'warning');
@@ -34,10 +33,39 @@ export default function useAiGenerator() {
     
     setLoading(true);
     try {
-      // 📊 الفحص المركزي الحقيقي من السيرفر لمنع ثغرات الـ F5 والتلاعب بالعدادات
-      const isEligible = await usageService.checkEligibility(profile.id, plan);
+      const currentDailyGens = profile.daily_generations || 0;
+      const currentTokens = profile.tokens || 0;
+
+      // 📊 1. هندسة حارس الأحقية الهجين (Hybrid Freemium Gate)
+      let isEligible = false;
+      let shouldChargeTokensForFreePlan = false;
+
+      if (currentPlan === 'free') {
+        if (currentDailyGens < 5) {
+          // لسه تحت الـ 5 توليدات: مسموح له مجاناً بدون شروط توكنز
+          isEligible = true;
+          shouldChargeTokensForFreePlan = false;
+        } else if (currentTokens >= 10) {
+          // تخطى الـ 5 توليدات ومعه رصيد كافي: مسموح له بخصم توكنز
+          isEligible = true;
+          shouldChargeTokensForFreePlan = true;
+        } else {
+          // تخطى الـ 5 وما معه توكنز: قفل حتمي!
+          isEligible = false;
+        }
+      } else {
+        // الباقات المدفوعة Pro / Viral تعتمد على فحص السيرفر المعتاد
+        isEligible = await usageService.checkEligibility(profile.id, plan);
+        shouldChargeTokensForFreePlan = false; // الباقات المدفوعة لها منطقها الخاص بالتوكنز
+      }
+
+      // إذا غير مؤهل، ارفع الخطأ فوراً واقفل التوليد
       if (!isEligible) {
-        if (typeof showToast === 'function') showToast('لقد استهلكت كامل حصتك، يرجى الترقية ⚠️', 'error');
+        const errorAlertMsg = currentPlan === 'free' && currentDailyGens >= 5
+          ? '⚠️ لقد استهلكت الـ 5 توليدات المجانية وليس لديك رصيد توكنز كافٍ للاستمرار، يرجى الشحن أو الترقية!'
+          : 'لقد استهلكت كامل حصتك، يرجى الترقية ⚠️';
+          
+        if (typeof showToast === 'function') showToast(errorAlertMsg, 'error');
         setLoading(false);
         return;
       }
@@ -63,7 +91,7 @@ export default function useAiGenerator() {
           tips: Array.isArray(aiData.tips) ? aiData.tips : []
         };
 
-        // 🔒 الإصلاح: منع الحفظ التلقائي في سوبابيس نهائياً إذا كان المستخدم على الباقة المجانية
+        // 🔒 منع الحفظ التلقائي في سوبابيس نهائياً إذا كان المستخدم على الباقة المجانية
         if (currentPlan !== 'free') {
           const { error: insertError } = await supabase.from('scripts').insert([
             {
@@ -86,19 +114,45 @@ export default function useAiGenerator() {
         // تحديث الواجهة بالبيانات
         setResult(finalResult);
 
-        // خصم التوكن ومزامنة الحساب للمشتركين فقط
-        const currentTokens = profile.tokens || 0;
+        // 🚀 2. خوارزمية تحديث العدادات الذكية وخصم التوكن الح ديناميكياً
+        const nextDailyGens = currentDailyGens + 1;
         const deductedTokens = Math.max(0, currentTokens - 10);
         
-        const { error: profileError } = await supabase.from('profiles').update({ tokens: deductedTokens }).eq('id', profile.id);
+        let databaseUpdatePayload = {};
+
+        if (currentPlan === 'free') {
+          if (shouldChargeTokensForFreePlan) {
+            // خلص الـ 5 ومعه توكنز: نزيد العداد ونخصم 10 توكنز
+            databaseUpdatePayload = { daily_generations: nextDailyGens, tokens: deductedTokens };
+          } else {
+            // لسه تحت الـ 5: نزيد عداد اليوم فقط بدون لمس التوكنز
+            databaseUpdatePayload = { daily_generations: nextDailyGens };
+          }
+        } else {
+          // الباقات المدفوعة: يخصم 10 توكنز ويزيد العداد الافتراضي
+          databaseUpdatePayload = { tokens: deductedTokens, daily_generations: nextDailyGens };
+        }
+
+        // إطلاق أمر التحديث الموحد إلى جدول البروفايلات في Supabase
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update(databaseUpdatePayload)
+          .eq('id', profile.id);
+
         if (profileError) throw profileError;
 
-        setProfile(prev => ({ ...prev, tokens: deductedTokens }));
+        // مزامنة الـ Context محلياً لايف ليعكس الرصيد والعداد الجديد على الشاشة فوراً
+        setProfile(prev => ({ ...prev, ...databaseUpdatePayload }));
         
         if (typeof showToast === 'function') {
-          const successMessage = currentPlan === 'free' 
-            ? 'تم توليد السكريبت المحدود بنجاح! ✨' 
-            : 'تم التوليد وحفظ السكريبت في أرشيفك فوراً! ✨💾';
+          let successMessage = '';
+          if (currentPlan === 'free') {
+            successMessage = shouldChargeTokensForFreePlan
+              ? `تم التوليد بنجاح بخصم 10 توكنز من رصيدك! ⚡`
+              : `تم توليد السكريبت المحدود مجاناً! (${nextDailyGens} من أصل 5 اليوم) ✨`;
+          } else {
+            successMessage = 'تم التوليد وحفظ السكريبت في أرشيفك فوراً! ✨💾';
+          }
           showToast(successMessage, 'success');
         }
         setPrompt('');
@@ -108,7 +162,8 @@ export default function useAiGenerator() {
     } catch (error) {
       console.error('❌ [useAiGenerator Real Exception Caught]:', error.message);
       if (typeof showToast === 'function') showToast(error.message || 'حدث خطأ أثناء الاتصال بالمحرك', 'error');
-    } window.history.replaceState({}, document.title, window.location.pathname); {
+    } finally {
+      window.history.replaceState({}, document.title, window.location.pathname);
       setLoading(false);
     }
   };

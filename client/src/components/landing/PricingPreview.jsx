@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PLANS } from '../../constants/plans.js'
+import { PLANS } from '../../constants/plans.jsx'
 import { ROUTES } from '../../constants/routes.js'
 import Button from '../common/Button.jsx'
 

@@ -23,7 +23,7 @@ export default function Sidebar() {
 
   const userPlan = (profile?.plan || 'free').toLowerCase().trim()
 
-  // 🚀 هندسة عناصر القائمة الجانبية بأيقونات SVG نقية بالكامل وفلترة حسب الصلاحية
+  // 🚀 هندسة عناصر القائمة الجانبية بأيقونات SVG نقية وحقن زر الإدارة المفقود فوق الإعدادات
   const navigationItems = [
     {
       id: 'dashboard',
@@ -38,9 +38,9 @@ export default function Sidebar() {
     },
     {
       id: 'history',
-      name: 'أرشيف السكريبتات',
+      name: ' السكريبتات المحفوظة',
       path: ROUTES.HISTORY,
-      show: userPlan !== 'free', // 🔒 مخفي تماماً للمجاني
+      show: userPlan !== 'free', 
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5M5 19v-4a2 2 0 002-2h12a2 2 0 002 2v4a2 2 0 01-2 2H5z" />
@@ -59,8 +59,19 @@ export default function Sidebar() {
       )
     },
     {
+      id: 'subscription',
+      name: 'إدارة الاشتراك والفوترة',
+      path: ROUTES.SUBSCRIPTION || '/subscription', // استدعاء الراوت الملوكي مع غطاء حماية لو لم يُعرف
+      show: true, // يظهر للجميع للوصول لنظام الإحالة وشحن المحفظة
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        </svg>
+      )
+    },
+    {
       id: 'settings',
-      name: 'الإعدادات الشخصية',
+      name: 'الإعدادات ',
       path: ROUTES.SETTINGS,
       show: true,
       icon: (
@@ -73,8 +84,8 @@ export default function Sidebar() {
     {
       id: 'support',
       name: 'دعم المشتركين 24/7',
-      path: '/support', // مسار الدعم الفني الجديد
-      show: userPlan !== 'free', // 🔒 حصري للمشتركين فقط Pro+
+      path: '/support', 
+      show: userPlan !== 'free', 
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M5.636 5.636l3.536 3.536m0 5.656l-3.536 3.536M9.172 9.172a4 4 0 115.656 5.656 4 4 0 01-5.656-5.656z" />
@@ -131,7 +142,6 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* بطاقة البروفايل الذكية مع الألوان الرمزية لخطط الاشتراك المستندة لـ SVG */}
       <div className={`mb-3 p-3 rounded-2xl border ${theme === 'dark' ? 'bg-slate-900/40 border-slate-900' : 'bg-slate-50 border-slate-200'}`}>
         <div className="flex items-center gap-3 w-full">
           <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shrink-0">
@@ -158,7 +168,7 @@ export default function Sidebar() {
               <svg className="w-2.5 h-2.5 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              رصيدك: {profile?.tokens ?? 0}
+              رصيدك: {Number(profile?.tokens ?? 0).toLocaleString()}
             </span>
           </div>
         </div>

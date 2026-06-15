@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react'
 import { AuthContext } from '../context/AuthContext.jsx'
 import { ThemeContext } from '../context/ThemeContext.jsx'
 import { supabase } from '../config/supabase.js'
-import { PLANS } from '../constants/plans.js'
+import { PLANS } from '../constants/plans.jsx'
 import { paymentService } from '../services/paymentService.js'
 import SectionTitle from '../components/common/SectionTitle.jsx'
 import Button from '../components/common/Button.jsx'
@@ -22,11 +22,10 @@ export default function SubscriptionManagement() {
   const isFree = activePlanId === 'free'
   const isViralEngine = activePlanId === 'viral_engine'
 
-  // 🏆 جلب بيانات الباقات ديناميكياً من ملف الثوابت لمنع تضارب الأسعار ومضاعفتها
-  const proPlanInfo = PLANS.find(p => p.id === 'pro') || { price: 29, tokensReward: 50000 }
-  const viralPlanInfo = PLANS.find(p => p.id === 'viral_engine') || { price: 69, tokensReward: 200000 }
+  // 🏆 جلب بيانات الباقات ديناميكياً مع ضبط قيم التوكنات التراكمية الجديدة بالملي للـ Fallback
+  const proPlanInfo = PLANS.find(p => p.id === 'pro') || { price: 29, tokensReward: 1000 }
+  const viralPlanInfo = PLANS.find(p => p.id === 'viral_engine') || { price: 69, tokensReward: 10000 }
 
-  // 🏆 جعل دالة جلب الفواتير مركزية ليمكن استدعاؤها لحظياً فور نجاح الدفع
   const loadBilling = async () => {
     if (!profile?.id) return
     try {
@@ -47,7 +46,6 @@ export default function SubscriptionManagement() {
     if (profile?.id) loadBilling()
   }, [profile])
 
-  // 🚀 تفعيل آلية الـ Popup والـ Polling الذكية لمنع الضرب المزدوج وتحديث الذاكرة لحظياً
   const triggerMoyasarCheckout = async (amount, planId, tokensCount) => {
     const paymentWindow = window.open('about:blank', 'moyasar_payment', 'width=600,height=750,scrollbars=yes,resizable=yes')
     if (paymentWindow) {
@@ -60,7 +58,6 @@ export default function SubscriptionManagement() {
       if (res && res.invoiceUrl && paymentWindow) {
         paymentWindow.location.href = res.invoiceUrl
 
-        // 📡 إطلاق رصد سوبابيس كل 2 ثانية
         const pollInterval = setInterval(async () => {
           try {
             const { data: updatedProfile } = await supabase
@@ -72,22 +69,18 @@ export default function SubscriptionManagement() {
             const serverPlan = (updatedProfile?.plan || 'free').toLowerCase().trim()
             const isTokenBooster = planId === 'token_booster'
 
-            // شرط تحقق العملية: إما زيادة التوكنز في حال الشحن السريع أو مطابقة اسم الباقة
             const conditionMet = isTokenBooster 
               ? (updatedProfile?.tokens > profile?.tokens)
               : (serverPlan === planId.toLowerCase().trim())
 
             if (conditionMet) {
               clearInterval(pollInterval)
-              if (updatedProfile) setProfile(updatedProfile) // تحديث الـ Context فوراً local State
-              
-              // 🏆 إعادة سحب سجل الكشوفات فوراً لكي تظهر الفاتورة بالجدول بدون ريفريش
+              if (updatedProfile) setProfile(updatedProfile) 
               await loadBilling() 
-
-              paymentWindow.close() // إغلاق البوب أب تلقائياً
+              paymentWindow.close() 
               
               if (typeof showToast === 'function') {
-                showToast(isTokenBooster ? 'تم شحن محفظة التوكنز بنجاح! 🚀' : 'تمت ترقية باقتك بنجاح حياً! 🔥', 'success')
+                showToast(isTokenBooster ? 'تم شحن محفظة التوكنز بنجاح!' : 'تمت ترقية باقتك بنجاح حياً!', 'success')
               }
             }
           } catch (dbErr) {
@@ -105,14 +98,13 @@ export default function SubscriptionManagement() {
     } catch (err) {
       if (paymentWindow) paymentWindow.close()
       if (typeof showToast === 'function') {
-        showToast('فشل تأمين رابط دفع ميسر، يرجى إعادة المحاولة', 'error')
+        showToast('فشل تأمين رابط الدفع، يرجى إعادة المحاولة', 'error')
       }
     } finally {
       setPaymentLoading(false)
     }
   }
 
-  // 🔒 دالة الإلغاء الآمنة والمباشرة عبر سوبابيس لإنهاء عطل زر الإلغاء القديم
   const handleCancelSubscription = async () => {
     const confirmCancel = window.confirm('هل أنت متأكد من إلغاء اشتراكك الحالي؟ ستفقد جميع ميزات النخبة فوراً وتعود للباقة المجانية.')
     if (!confirmCancel) return
@@ -130,14 +122,14 @@ export default function SubscriptionManagement() {
 
       if (error) throw error
 
-      // تحديث الـ Context محلياً وإعادة سحب الكشوفات
       setProfile(prev => ({ ...prev, plan: 'free', subscription_status: 'cancelled' }))
       await loadBilling()
 
-      if (typeof showToast === 'function') showToast('تم إلغاء الاشتراك بنجاح وعودتك للباقة الحرة 💳', 'success')
+      if (typeof showToast === 'function') showToast('تم إلغاء الاشتراك بنجاح وعودتك للباقة الحرة', 'success')
     } catch (err) {
       if (typeof showToast === 'function') showToast(err.message || 'حدث خطأ أثناء إلغاء الاشتراك', 'error')
     } finally {
+      setProfile(prev => ({ ...prev, plan: 'free', subscription_status: 'cancelled' }))
       setPaymentLoading(false)
     }
   }
@@ -146,7 +138,7 @@ export default function SubscriptionManagement() {
     const link = `https://trendaura.com/register?ref=${profile?.id || 'aura'}`
     navigator.clipboard.writeText(link)
     setCopied(true)
-    if (typeof showToast === 'function') showToast('تم نسخ رابط الإحالة بنجاح 🎁', 'success')
+    if (typeof showToast === 'function') showToast('تم نسخ رابط الإحالة بنجاح', 'success')
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -154,7 +146,7 @@ export default function SubscriptionManagement() {
 
   return (
     <div className={`w-full max-w-5xl mx-auto p-4 md:p-6 font-sans select-none pb-24 md:pb-6 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-      <SectionTitle title="إدارة الاشتراك والفوترة " subtitle="بوابات الفوترة، حزم شحن التوكنز، ونظام المكافآت " badge="Enterprise Billing" />
+      <SectionTitle title="إدارة الاشتراك والفوترة" subtitle="بوابات الفوترة، حزم شحن التوكنز، ونظام المكافآت" badge="Enterprise Billing" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* كرت الباقة النشطة */}
@@ -166,8 +158,11 @@ export default function SubscriptionManagement() {
           
           <div className="flex flex-col sm:flex-row gap-3 mt-auto">
             {isFree ? (
-              <Button onClick={() => triggerMoyasarCheckout(proPlanInfo.price, 'pro', proPlanInfo.tokensReward || 50000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md">
-                اشترك الآن في Pro VIP ✦
+              <Button onClick={() => triggerMoyasarCheckout(proPlanInfo.price, 'pro', proPlanInfo.tokensReward || 1000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md flex items-center justify-center gap-1.5">
+                <span>اشترك الآن في Pro VIP</span>
+                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15L15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                </svg>
               </Button>
             ) : (
               <>
@@ -175,8 +170,12 @@ export default function SubscriptionManagement() {
                   إلغاء الاشتراك الحالي
                 </Button>
                 {!isViralEngine && (
-                  <Button onClick={() => triggerMoyasarCheckout(viralPlanInfo.price, 'viral_engine', viralPlanInfo.tokensReward || 200000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md">
-                    ترقية إلى VIRAL ENGINE 🔥
+                  <Button onClick={() => triggerMoyasarCheckout(viralPlanInfo.price, 'viral_engine', viralPlanInfo.tokensReward || 10000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md flex items-center justify-center gap-1.5">
+                    <span>ترقية إلى VIRAL ENGINE</span>
+                    <svg className="w-3.5 h-3.5 text-white animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.25 8.25 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" />
+                    </svg>
                   </Button>
                 )}
               </>
@@ -188,7 +187,7 @@ export default function SubscriptionManagement() {
         <div className={`${cardClass} border-r-4 border-r-indigo-600 dark:border-r-pink-500 flex flex-col justify-between`}>
           <div>
             <p className="text-[10px] font-black text-indigo-600 dark:text-pink-400 uppercase tracking-widest">محفظة التوكنز </p>
-            <h2 className="text-3xl font-black mt-2 text-slate-900 dark:text-white font-sans">{(profile?.tokens || 0).toLocaleString()} <span className="text-xs text-slate-400">توكن متوفر</span></h2>
+            <h2 className="text-3xl font-black mt-2 text-slate-900 dark:text-white font-sans">{Number(profile?.tokens || 0).toLocaleString()} <span className="text-xs text-slate-400">توكن متوفر</span></h2>
             <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">تستهلك المنظومة 10 توكنز فقط لكل سكريبت تيك توك فايرال يتم صياغته.</p>
           </div>
           
@@ -197,8 +196,12 @@ export default function SubscriptionManagement() {
               <span className="text-[10px] font-black text-slate-800 dark:text-slate-200"> حزمة شحن سريعة </span>
               <span className="text-[11px] font-sans font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-lg">49 ريال فقط</span>
             </div>
-            <Button onClick={() => triggerMoyasarCheckout(49, 'token_booster', 50000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-slate-950 text-white dark:bg-white dark:text-slate-950 hover:opacity-90 transition-all flex items-center justify-center gap-2">
-              شحن 50,000 توكن إضافي  
+            {/* 🚀 التعديل الإستراتيجي هنا: حزمة شحن ميسر تضخ 5000 توكن عادل بدلاً من الخسارة السابقة */}
+            <Button onClick={() => triggerMoyasarCheckout(49, 'token_booster', 5000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-slate-950 text-white dark:bg-white dark:text-slate-950 hover:opacity-90 transition-all flex items-center justify-center gap-1.5">
+              <span>شحن 5,000 توكن إضافي</span>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+              </svg>
             </Button>
           </div>
         </div>
@@ -210,16 +213,23 @@ export default function SubscriptionManagement() {
           <div>
             <span className="text-[8px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md font-sans">Viral Network Growth</span>
             <h3 className="text-sm font-black mt-1 text-slate-900 dark:text-white">برنامج نظام الإحالة</h3>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">شارك رابط إحالتك الفريد؛ وعند تسجيل أي مستخدم جديد عن طريقك يحصل الطرفان على <span className="text-emerald-500 font-bold">500 توكن مجاني مجاناً فوراً</span> شحناً للمحفظة!</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">شارك رابط إحالتك الفريد؛ وعند تسجيل أي مستخدم جديد عن طريقك يحصل الطرفان على <span className="text-emerald-500 font-bold">500 توكن مجاني فوراً</span> شحناً للمحفظة!</p>
           </div>
           <button 
             onClick={copyReferralLink}
             className="w-full md:w-auto px-5 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-300 rounded-2xl text-[10px] font-black hover:border-emerald-500 dark:hover:border-emerald-500 transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
           >
             <span>{copied ? 'تم النسخ!' : 'نسخ رابط الإحالة'}</span>
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 00-2 2v12a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-            </svg>
+            {copied ? (
+              <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0 transition-all duration-300 scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            ) : (
+              <svg className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0 transition-all duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.3">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2h-6a2 2 0 01-2-2V5z" />
+              </svg>
+            )}
           </button>
         </div>
       </div>
@@ -250,7 +260,6 @@ export default function SubscriptionManagement() {
                   <tr key={inv.id} className="border-b border-slate-50 dark:border-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-900/20 transition-all font-medium">
                     <td className="py-4 font-mono text-blue-600 dark:text-cyan-400">{inv.payment_id}</td>
                     <td className="py-4 text-slate-500 dark:text-slate-400 font-sans">{new Date(inv.created_at).toLocaleDateString('ar-SA')}</td>
-                    {/* 🏆 هنا التعديل الحاسم: قراءة الحقل الصحيح من السيرفر plan_type بدلًا من plan القديـم */}
                     <td className="py-4"><span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-900 font-bold uppercase">{inv.plan_type || 'PRO'}</span></td>
                     <td className="py-4 font-black text-slate-900 dark:text-white font-sans">{inv.amount} SAR</td>
                   </tr>

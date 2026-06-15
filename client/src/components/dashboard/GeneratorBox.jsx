@@ -3,13 +3,13 @@ import Button from '../common/Button.jsx'
 
 export default function GeneratorBox({ prompt, setPrompt, loading, onGenerate }) {
   const [activeChip, setActiveChip] = useState('تحفيزي')
-  const chips = ['تحفيزي', 'تعليمي', 'قصير', '📝 تفاصيل']
+  const chips = ['تحفيزي', 'تعليمي', 'قصير', ' تفاصيل']
 
   return (
     <div className="w-full bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-[28px] p-5 shadow-xl text-right dir-rtl select-none animate-scale-up transition-colors duration-300">
       
       <div className="relative w-full mb-4">
-        <span className="absolute right-4 top-4 text-slate-400 dark:text-slate-500 text-sm">📎</span>
+        <span className="absolute right-4 top-4 text-slate-400 dark:text-slate-500 text-sm"> </span>
         <textarea
           value={prompt}
           onChange={(e) => e.target.value.length <= 500 && setPrompt(e.target.value)}

@@ -3,7 +3,7 @@ import MobileNavbar from './MobileNavbar.jsx'
 import NotificationBell from './NotificationBell.jsx'
 import { ThemeContext } from '../../context/ThemeContext.jsx'
 
-export default function Navbar({ title = 'لوحة التحكم الملوكية' }) {
+export default function Navbar({ title = 'لوحة التحكم ' }) {
   const { theme } = useContext(ThemeContext)
 
   return (

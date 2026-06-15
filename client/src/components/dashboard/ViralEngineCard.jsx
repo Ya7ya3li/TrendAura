@@ -62,14 +62,14 @@ export default function ViralEngineCard({ plan, scriptText }) {
       
       <div className="text-center mb-6 flex flex-col items-center justify-center">
         <h2 className="text-base font-black text-white flex items-center justify-center gap-2 mb-1">
-          <span>أدوات الـ Viral Engine النشطة</span>
+          <span>أدواتViral Engine النشطة</span>
           <svg className="w-5 h-5 text-indigo-500 animate-pulse shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.5 8.5c.7-.7 1.5-1 2.5-1 .3 1-.1 1.8-.7 2.5M11.5 12.5l-4-4m1.5 9.5a13.9 13.9 0 005.5-2.5l4-4c1.1-1.1 1.7-2.6 1.5-4.2a4 4 0 00-4.3-4.3c-1.5-.2-3 .4-4.1 1.5l-4 4a13.9 13.9 0 00-2.6 5.5l-.5 2.5 2.5-.5z" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 15l-3 3m0 0a1 1 0 01-1.5-1.5L7.5 14M4.5 19.5h.01" />
           </svg>
         </h2>
         <p className="text-[10px] font-bold text-slate-400 max-w-[320px] mx-auto leading-relaxed mt-1">
-          حسّن مقاطعك من خلال تحليلنا المتقدم والمدعوم بالذكاء الاصطناعي للهوكس والاحتفاظ الجماهيري الحقيقي.
+              حسن مقاطعك من خلال تحليلنا المتقدم المدعوم بالذكاء الاصطناعي.
         </p>
       </div>
 
@@ -91,7 +91,7 @@ export default function ViralEngineCard({ plan, scriptText }) {
             </>
           ) : (
             <>
-              <span>فحص السكريبت وتحليل Viral الحقيقي</span>
+              <span>فحص السكريبت وتحليل Viral </span>
               <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14l-1.121 2.121z" />
@@ -103,7 +103,7 @@ export default function ViralEngineCard({ plan, scriptText }) {
         <div className="mt-3 flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-900/30 border border-slate-900 text-[10px] font-bold text-slate-400">
           <span className="flex items-center gap-1.5">
             <span className={`w-2 h-2 rounded-full ${scriptText ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
-            حالة السكريبت الجاري:
+            حالة السكريبت :
           </span>
           <span className="flex items-center gap-1.5 font-black">
             {scriptText ? (
