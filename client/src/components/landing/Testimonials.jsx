@@ -18,7 +18,7 @@ export default function Testimonials() {
       handle: '@sara_creatives',
       avatar: 'س',
       role: 'خبير تسويق رقمي وصناعة محتوى',
-      text: 'أعظم ميزة هي محرك الفايرال النفسي وحساب الـ AI Score. صرت أعرف قوة الفيديو ومشاكله قبل ما أنشره وأضيع عليه وقت المونتاج. باقة Viral Engine تستحق كل ريال.'
+      text: 'أعظم ميزة هي محرك Viral Engine النفسي وحساب الـ AI Score. صرت أعرف قوة الفيديو ومشاكله قبل ما أنشره وأضيع عليه وقت المونتاج. باقة Viral Engine تستحق كل ريال.'
     },
     {
       name: 'عمر القحطاني',
@@ -39,10 +39,10 @@ export default function Testimonials() {
             <svg className="w-3.5 h-3.5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            <span>مجتمع المبدعين والنخبة</span>
+            <span>مجتمع المبدعين</span>
           </span>
           <h2 className="text-2xl font-black text-white tracking-tight md:text-3xl mt-4">
-            ماذا يقول نخبة صناع المحتوى عن ترسانة TrendAura؟
+            ماذا يقول  صناع المحتوى عن  TrendAura
           </h2>
         </div>
 

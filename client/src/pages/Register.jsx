@@ -68,7 +68,7 @@ export default function Register() {
           </h2>
         </div>
         <h3 className="text-center text-sm font-black text-slate-300 tracking-tight">
-          امتلك ترسانة صناعة السكريبتات الفيروسية اليوم
+          امتلك ترسانة صناعة السكريبتات اليوم
         </h3>
       </div>
 
@@ -83,7 +83,7 @@ export default function Register() {
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="عبدالله محمد"
+                placeholder="         "
                 className="w-full bg-slate-950 text-slate-200 px-4 py-3 rounded-xl border border-slate-800 text-xs font-bold outline-none focus:border-blue-500 transition-all"
               />
             </div>
@@ -94,7 +94,7 @@ export default function Register() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
+                placeholder="           "
                 className="w-full bg-slate-950 text-slate-200 px-4 py-3 rounded-xl border border-slate-800 text-xs font-bold outline-none focus:border-blue-500 transition-all text-left dir-ltr"
               />
             </div>
@@ -106,7 +106,7 @@ export default function Register() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="        "
                   className="w-full bg-slate-950 text-slate-200 pl-12 pr-4 py-3 rounded-xl border border-slate-800 text-xs font-bold outline-none focus:border-blue-500 transition-all text-left dir-ltr"
                 />
                 <button
@@ -142,7 +142,7 @@ export default function Register() {
                   </>
                 ) : (
                   <>
-                    <span>إنشاء حسابك الحركي الآن</span>
+                    <span>إنشاء حسابك الآن</span>
                      <svg className="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15L15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
                      </svg>

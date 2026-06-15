@@ -21,7 +21,7 @@ export default function FeaturesSection() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       ),
-      title: 'محرك الفايرال النفسي المتقدم',
+      title: 'محرك  viral Engine النفسي المتقدم',
       desc: 'تحليل البنية السلوكية للجماهير وتضمين محفزات الرغبة والفضول بداخل النص لزيادة احتمالية المشاركة العضوية.'
     },
     {

@@ -54,7 +54,7 @@ export default function LandingLayout() {
 
       <footer className="w-full bg-slate-950 border-t border-slate-900 py-8 text-center text-xs text-slate-600 font-medium dir-rtl z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} TrendAura. جميع الحقوق محفوظة لشريكي الأول.</p>
+          <p>© {new Date().getFullYear()} TrendAura.جميع الحقوق محفوظة.</p>
           <div className="flex items-center gap-6 font-bold">
             <a href="#terms" className="hover:text-slate-400 transition-colors duration-200">شروط الاستخدام</a>
             <a href="#privacy" className="hover:text-slate-400 transition-colors duration-200">سياسة الخصوصية</a>

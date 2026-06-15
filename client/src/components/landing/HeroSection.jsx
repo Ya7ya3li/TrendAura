@@ -26,7 +26,7 @@ export default function HeroSection() {
         {/* العنوان السيادي الخارق */}
         <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight md:leading-none mb-6 animate-scale-up">
           حوّل أفكارك البسيطة إلى <br className="hidden md:block" />
-          <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">سيناريوهات فيروسية</span> تحصد الملايين
+          <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">سيناريوهات </span> تحصد الملايين
         </h1>
 
         {/* الوصف التسويقي الاستراتيجي */}
@@ -54,7 +54,7 @@ export default function HeroSection() {
             variant="secondary"
             className="w-full sm:w-auto px-8 py-4 text-xs font-black rounded-xl transition-all border-slate-800 text-slate-300 flex items-center justify-center gap-2"
           >
-            <span>استكشف الميزات والترسانة</span>
+            <span>استكشف الميزات </span>
             <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7-7-7m14-6l-7 7-7-7" />
             </svg>

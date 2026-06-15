@@ -81,7 +81,7 @@ export default function Login() {
           </h2>
         </div>
         <h3 className="text-center text-sm font-black text-slate-300">
-          تسجيل الدخول للحصن الداخلي
+          تسجيل الدخول
         </h3>
       </div>
 
@@ -112,7 +112,7 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
+                placeholder="             "
                 className="w-full bg-slate-950 text-slate-200 px-4 py-3 rounded-xl border border-slate-800 text-xs font-bold outline-none focus:border-blue-500 transition-all text-left dir-ltr"
               />
             </div>
@@ -124,7 +124,7 @@ export default function Login() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="           "
                   className="w-full bg-slate-950 text-slate-200 pl-12 pr-4 py-3 rounded-xl border border-slate-800 text-xs font-bold outline-none focus:border-blue-500 transition-all text-left dir-ltr"
                 />
                 <button

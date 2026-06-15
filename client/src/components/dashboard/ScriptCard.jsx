@@ -5,8 +5,8 @@ import CopyButton from '../common/CopyButton.jsx'
 export default function ScriptCard({ hook, script, cta }) { // 🚀 تم تنظيف الـ Props المتعارضة نهائياً
   const { theme } = useContext(ThemeContext)
   
-  const displayHook = hook || 'أفكار التوليد تظهر هنا فور ضغط الزر... 🚀'
-  const displayScript = script || 'اكتب فكرتك بالأعلى واكبس توليد ليقوم الذكاء الاصطناعي بنسج السيناريو الكامل بالملي.'
+  const displayHook = hook || 'أفكار التوليد تظهر هنا فور ضغط الزر... '
+  const displayScript = script || 'اكتب فكرتك بالأعلى  ليقوم الذكاء الاصطناعي بنسج السيناريو الكامل .'
   const fullScriptText = hook ? `${hook}\n\n${script}\n\n${cta || ''}` : `${displayHook}\n\n${displayScript}`
 
   return (

@@ -65,7 +65,7 @@ export default function ProfileSettings() {
   const handleUpdateProfile = async (e) => {
     e.preventDefault()
     if (!fullName.trim()) {
-      if (typeof showToast === 'function') showToast('حقل الاسم بالكامل لا يمكن أن يكون فارغاً', 'warning')
+      if (typeof showToast === 'function') showToast('حقل الاسم لا يمكن أن يكون فارغاً', 'warning')
       return
     }
 
@@ -92,7 +92,7 @@ export default function ProfileSettings() {
     <form onSubmit={handleUpdateProfile} className="space-y-6 text-right dir-rtl select-none animate-fade-in font-sans">
       <div>
         <h3 className="text-xs font-black text-white tracking-tight mb-1">البيانات والملفات الشخصية</h3>
-        <p className="text-[10px] font-bold text-slate-400">قم بتحديث اسم العرض وصورة البروفايل الحركية الفاخرة.</p>
+        <p className="text-[10px] font-bold text-slate-400"> تحديث اسم العرض وصورة البروفايل.</p>
       </div>
 
       <div className="flex items-center gap-4 pb-2">
@@ -114,13 +114,13 @@ export default function ProfileSettings() {
         </div>
         <input type="file" ref={fileInputRef} onChange={handleAvatarChange} accept="image/*" className="hidden" />
         <div className="flex flex-col">
-          <span className="text-xs font-black text-white">الصورة الشخصية المعتمدة لحسابك</span>
+          <span className="text-xs font-black text-white">الصورة الشخصية </span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black text-slate-400">الاسم بالكامل</label>
+          <label className="text-[10px] font-black text-slate-400">الاسم </label>
           <input
             type="text"
             value={fullName}
@@ -141,7 +141,7 @@ export default function ProfileSettings() {
 
       <div className="pt-2 border-t border-slate-800 flex justify-end">
         <Button type="submit" variant="primary" loading={loading} className="px-6 py-2.5 rounded-xl text-[11px]">
-          حفظ التغييرات الشخصية 💾
+          حفظ التغييرات الشخصية
         </Button>
       </div>
     </form>

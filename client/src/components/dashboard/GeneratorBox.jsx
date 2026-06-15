@@ -13,7 +13,7 @@ export default function GeneratorBox({ prompt, setPrompt, loading, onGenerate })
         <textarea
           value={prompt}
           onChange={(e) => e.target.value.length <= 500 && setPrompt(e.target.value)}
-          placeholder="اكتب فكرتك المليونية هنا ودع الذكاء الاصطناعي يتكفل بصياغة الـ Hook والسيناريو..."
+          placeholder="اكتب فكرتك  هنا ودع الذكاء الاصطناعي يتكفل بصياغة الـ Hook والسيناريو..."
           disabled={loading}
           className="w-full bg-slate-50 dark:bg-slate-950/60 text-slate-900 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 pr-11 pl-4 pt-4 pb-10 rounded-2xl border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-all min-h-[110px] resize-none text-xs font-bold leading-relaxed"
         />

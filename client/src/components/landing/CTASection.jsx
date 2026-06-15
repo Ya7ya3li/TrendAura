@@ -28,7 +28,7 @@ export default function CTASection() {
             variant="purple"
             className="w-full sm:w-auto px-8 py-3.5 text-xs font-black rounded-xl shadow-xl shadow-purple-900/20 border-none flex items-center justify-center gap-2 text-white"
           >
-            <span>ابدأ رحلة الانتشار الفايرال مجاناً</span>
+            <span>ابدأ رحلة الانتشار Viral Engine مجاناً</span>
             <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 12h14" />
             </svg>

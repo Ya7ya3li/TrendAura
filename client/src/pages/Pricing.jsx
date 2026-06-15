@@ -139,7 +139,7 @@ export default function Pricing() {
       <div className="text-center mb-10">
         <SectionTitle 
           title="خطط واشتراكات النخبة" 
-          subtitle="اختر خطة القوة المناسبة لطموحك واكتسح خوارزميات تيك توك اليوم" 
+          subtitle="اختر خطة القوة المناسبة لطموحك " 
           badge="باقات الترقية" 
         />
       </div>
@@ -163,7 +163,7 @@ export default function Pricing() {
       }`}>
         <h4 className="text-xs font-black mb-1">🛡️ ضمان أمان المدفوعات السيادية</h4>
         <p className="text-[10px] font-bold text-slate-500 leading-relaxed">
-          جميع المعاملات مشفرة ومؤمنة بالكامل عبر بوابات دفع ميسر (Moyasar Key Engine) المعتمدة سعودياً لبناء SaaS موثوق.
+          جميع المعاملات مشفرة ومؤمنة بالكامل عبر بوابات دفع ميسر (Moyasar) المعتمدة في المملكة العربية السعودية.
         </p>
       </div>
     </div>

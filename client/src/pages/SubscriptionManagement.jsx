@@ -154,7 +154,7 @@ export default function SubscriptionManagement() {
           <div className="absolute top-0 left-0 bg-blue-500/10 px-4 py-1 rounded-bl-2xl text-[9px] font-black font-sans text-blue-600 dark:text-cyan-400">STATUS: LIVE</div>
           <p className="text-[10px] font-black text-blue-600 dark:text-cyan-400 uppercase tracking-widest">الباقة والاشتراك الحالي</p>
           <h2 className="text-2xl font-black mt-2 mb-1 text-slate-900 dark:text-white">{activePlan.name}</h2>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-6 font-semibold">تمنحك الباقة صلاحيات تكتيكية متطورة ومقيدة بحصانة خطتك.</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-6 font-semibold">تمنحك الباقة صلاحيات تكتيكية متطورة   .</p>
           
           <div className="flex flex-col sm:flex-row gap-3 mt-auto">
             {isFree ? (
@@ -188,7 +188,7 @@ export default function SubscriptionManagement() {
           <div>
             <p className="text-[10px] font-black text-indigo-600 dark:text-pink-400 uppercase tracking-widest">محفظة التوكنز </p>
             <h2 className="text-3xl font-black mt-2 text-slate-900 dark:text-white font-sans">{Number(profile?.tokens || 0).toLocaleString()} <span className="text-xs text-slate-400">توكن متوفر</span></h2>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">تستهلك المنظومة 10 توكنز فقط لكل سكريبت تيك توك فايرال يتم صياغته.</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-semibold">تستهلك المنظومة 10 توكنز فقط لكل سكريبت </p>
           </div>
           
           <div className="border-t border-slate-100 dark:border-slate-800/60 pt-4 mt-4">

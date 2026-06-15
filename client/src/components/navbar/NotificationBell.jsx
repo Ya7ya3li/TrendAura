@@ -174,7 +174,7 @@ export default function NotificationBell() {
       {isOpen && (
         <div className="absolute left-0 mt-2 w-72 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 animate-scale-up text-right dir-rtl">
           <div className="p-3.5 border-b border-slate-100 dark:border-slate-900 flex items-center justify-between">
-            <span className="text-xs font-black text-slate-900 dark:text-white">مركز تنبيهات المنظومة</span>
+            <span className="text-xs font-black text-slate-900 dark:text-white">مركز التنبيهات </span>
             <span className="text-[8px] font-black text-blue-600 dark:text-cyan-400 bg-blue-500/10 dark:bg-cyan-500/10 px-2 py-0.5 rounded-md uppercase font-sans">Live System</span>
           </div>
 

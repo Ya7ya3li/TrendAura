@@ -11,7 +11,7 @@ export const validators = {
   },
 
   /**
-   * فحص قوة كلمة المرور لمنع الحسابات الهشة
+   * فحص قوة كلمة  المرور
    */
   isStrongPassword(password) {
     return password && password.length >= 6;

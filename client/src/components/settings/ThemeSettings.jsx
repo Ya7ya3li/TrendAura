@@ -85,8 +85,8 @@ export default function ThemeSettings() {
           <label className="text-[10px] font-black text-slate-400">حواف وهندسة كتل الحاويات (Rounded Edges)</label>
           <div className="flex flex-wrap gap-3">
             {[
-              { id: 'premium', label: 'كروت منحنية(28px)', desc: 'ستايل التكافؤ البصري للواجهات المعاصرة العريضة' },
-              { id: 'classic', label: 'حواف حادة(12px)', desc: 'المظهر المعياري الثابت للمتصفحات القديمة' }
+              { id: 'premium', label: 'كروت منحنية', desc: 'ستايل التكافؤ البصري للواجهات المعاصرة العريضة' },
+              { id: 'classic', label: 'حواف حادة', desc: 'المظهر المعياري الثابت للمتصفحات القديمة' }
             ].map((opt) => (
               <div
                 key={opt.id}
@@ -113,7 +113,7 @@ export default function ThemeSettings() {
           onClick={handleSaveThemePreferences}
           className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-500/20 border-none outline-none"
         >
-          حفظ وتطبيق التفضيلات  🎨
+          حفظ وتطبيق التفضيلات
         </button>
       </div>
     </div>
