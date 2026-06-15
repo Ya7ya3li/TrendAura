@@ -6,7 +6,7 @@ export const SIDEBAR_ITEMS = [
     id: 'dashboard',
     name: 'الرئيسية',
     path: ROUTES.DASHBOARD,
-    icon: React.createElement('svg', { className: "w-5 h-5", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", strokeWidth: "2" },
+    icon: React.createElement('svg', { className: "w-5 h-5", fill: "none", viewBox: "0 0 24 24" || "0 0 24 24", stroke: "currentColor", strokeWidth: "2" },
       React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" }),
       React.createElement('polyline', { points: "9 22 9 12 15 12 15 22" })
     )
@@ -28,7 +28,7 @@ export const SIDEBAR_ITEMS = [
       React.createElement('polygon', { strokeLinecap: "round", strokeLinejoin: "round", points: "12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" })
     )
   },
-  {
+ {
     id: 'subscription',
     name: 'إدارة الاشتراك',
     path: ROUTES.SUBSCRIPTION,
@@ -41,14 +41,33 @@ export const SIDEBAR_ITEMS = [
     id: 'settings',
     name: 'الإعدادات',
     path: ROUTES.SETTINGS,
-    /* ⚙️ تم إعادة تشييد أيقونة الترس الهندسي الفاخر بالـ SVG بدلاً من أيقونة الشمس السابقة */
     icon: React.createElement('svg', { className: "w-5 h-5", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", strokeWidth: "2" },
+      // ✅ تم الحسم والتصحيح هنا هندسياً وتحويل علامة الـ (=) إلى (:) قطعية ومطابقة للمواصفات
       React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" }),
       React.createElement('circle', { cx: "12", cy: "12", r: "3" })
+    )
+  },
+  {
+    id: 'support',
+    name: 'دعم المشتركين 24/7',
+    path: '/support',
+    icon: React.createElement('svg', { className: "w-5 h-5", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", strokeWidth: "2" },
+      React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M5.636 5.636l3.536 3.536m0 5.656l-3.536 3.536M9.172 9.172a4 4 0 115.656 5.656 4 4 0 01-5.656-5.656z" })
     )
   }
 ];
 
 export const getSidebarItems = (currentPlan = 'free') => {
-  return SIDEBAR_ITEMS;
-};
+  // 🛡️ حزام الأمان الملوكي لغلق الثغرات والتحويل القطعي لنص صريح
+  const plan = String(currentPlan || 'free').toLowerCase().trim()
+
+  return SIDEBAR_ITEMS.filter(item => {
+    if (item.id === 'history')
+      return plan !== 'free'
+
+    if (item.id === 'support')
+      return plan !== 'free'
+
+    return true
+  })
+}

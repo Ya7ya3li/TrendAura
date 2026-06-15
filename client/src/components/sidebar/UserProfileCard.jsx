@@ -32,13 +32,20 @@ export default function UserProfileCard() {
           <span className="text-xs font-black text-white truncate leading-none mb-1">
             {userName}
           </span>
-          <span className="text-[10px] font-bold text-slate-500 truncate leading-none font-sans">
+          <span className="text-[10px] font-bold text-slate-500 truncate leading-none font-sans mb-1">
             {userEmail}
+          </span>
+          {/* ⚡ حقن رصيد التوكنز التراكمي لايف أسفل الإيميل مباشرة بأعلى دقة سحب للأرقام */}
+          <span className="text-[10px] font-black text-cyan-400 mt-1 flex items-center gap-1 leading-none font-sans">
+            <svg className="w-2.5 h-2.5 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>{Number(profile?.tokens ?? 0).toLocaleString()} توكن</span>
           </span>
         </div>
       </div>
 
-      {/* شريط حالة رتبة الباقة الحالية */}
+      {/* - شريط حالة رتبة الباقة الحالية */}
       <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-[10px] font-black select-none">
         <span className="text-slate-500">باقة حسابك الحركي:</span>
         <span className={`px-2 py-0.5 rounded-md text-[9px] font-black tracking-wide uppercase ${
@@ -48,7 +55,7 @@ export default function UserProfileCard() {
             ? 'bg-blue-500/10 text-cyan-400 border border-blue-500/20'
             : 'bg-slate-800 text-slate-400 border border-slate-700/60'
         }`}>
-          {userPlan === 'viral_engine' ? '⚡ VIRAL ENGINE' : userPlan === 'pro' ? '🟢 PRO' : '⚪️ FREE'}
+          {userPlan === 'viral_engine' ? '⚡ VIRAL ENGINE' : userPlan === 'pro' ? '🟢 PRO VIP' : '⚪️ FREE'}
         </span>
       </div>
 
