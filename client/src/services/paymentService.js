@@ -11,23 +11,17 @@ export const paymentService = {
     try {
       const cleanPlanId = String(planId || '').toLowerCase().trim();
       
-      // 🛡️ توزين احتياطي ذكي في الفرونت إند لمطابقة الباقات بالملي قبل الإرسال
-      let verifiedTokens = tokensCount;
-      if (!verifiedTokens) {
-        if (cleanPlanId === 'token_booster') verifiedTokens = 5000;
-        else if (cleanPlanId === 'pro') verifiedTokens = 1000;
-        else if (cleanPlanId === 'viral_engine') verifiedTokens = 10000;
-        else verifiedTokens = 0;
-      }
+      // 🧠 تحديد نوع العملية بذكاء وإرسالها للسيرفر
+      const productType = cleanPlanId === 'token_booster' ? 'tokens' : 'subscription';
 
-      // إرسال البيانات بشكل متوافق هندسياً بالكامل مع استقبال السيرفر والـ Webhook
+      // إرسال البيانات للباك إند الخاص بك بأمان 100%
       const response = await axiosInstance.post('/api/payment/create-invoice', {
         amount: Number(amount),
         planName: cleanPlanId,
         userId: userId,
-        tokensToAdd: Number(verifiedTokens) // إرسال الحسبة الدقيقة والنظيفة
+        tokensToAdd: Number(tokensCount || 0),
+        productType: productType // 👈 إضافة محدد النوع
       });
-      
       return response.data;
     } catch (error) {
       console.error('❌ [paymentService createInvoice Ingestion Failure]:', error.message);

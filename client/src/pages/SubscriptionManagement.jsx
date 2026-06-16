@@ -46,68 +46,50 @@ export default function SubscriptionManagement() {
   }, [profile])
 
   const triggerMoyasarCheckout = async (amount, planId, tokensCount) => {
-    // 📱 فحص ذكي لنوع الجهاز لمنع حظر متصفحات الجوال للنوافذ المنبثقة
-    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    
-    let paymentWindow = null
-    
-    // فتح النافذة المنبثقة فقط إذا كان المستخدم يتصفح من كمبيوتر
-    if (!isMobileDevice) {
-      paymentWindow = window.open('about:blank', 'moyasar_payment', 'width=600,height=750,scrollbars=yes,resizable=yes')
-      if (paymentWindow) {
-        paymentWindow.document.write('<h3 style="text-align:center;font-family:sans-serif;color:#64748b;margin-top:40%;">جاري تأمين اتصالك ببوابة ميسر...</h3>')
-      }
+    const paymentWindow = window.open('about:blank', 'moyasar_payment', 'width=600,height=750,scrollbars=yes,resizable=yes')
+    if (paymentWindow) {
+      paymentWindow.document.write('<h3 style="text-align:center;font-family:sans-serif;color:#64748b;margin-top:40%;">جاري تأمين اتصالك ببوابة ميسر...</h3>')
     }
 
     setPaymentLoading(true)
     try {
       const res = await paymentService.createInvoice(amount, planId, profile.id, tokensCount)
-      if (res && res.invoiceUrl) {
-        
-        // 🚀 إذا كان جوال، حوّل العميل مباشرة في نفس الشاشة لضمان عدم الكراش
-        if (isMobileDevice) {
-          window.location.href = res.invoiceUrl
-          return
-        }
+          if (res && (res.invoiceUrl || res.checkoutUrl) && paymentWindow) { 
+            paymentWindow.location.href = res.invoiceUrl || res.checkoutUrl
 
-        // إذا كان ديسك توب، أكمل بروتوكول النافذة المنفصلة
-        if (paymentWindow) {
-          paymentWindow.location.href = res.invoiceUrl
+        const pollInterval = setInterval(async () => {
+          try {
+            const { data: updatedProfile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', profile.id)
+              .single()
 
-          const pollInterval = setInterval(async () => {
-            try {
-              const { data: updatedProfile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', profile.id)
-                .single()
+            const serverPlan = (updatedProfile?.plan || 'free').toLowerCase().trim()
+            const isTokenBooster = planId === 'token_booster'
 
-              const serverPlan = (updatedProfile?.plan || 'free').toLowerCase().trim()
-              const isTokenBooster = planId === 'token_booster'
+            const conditionMet = isTokenBooster 
+              ? (updatedProfile?.tokens > profile?.tokens)
+              : (serverPlan === planId.toLowerCase().trim())
 
-              const conditionMet = isTokenBooster 
-                ? (updatedProfile?.tokens > profile?.tokens)
-                : (serverPlan === planId.toLowerCase().trim())
-
-              if (conditionMet) {
-                clearInterval(pollInterval)
-                if (updatedProfile) setProfile(updatedProfile) 
-                await loadBilling() 
-                paymentWindow.close() 
-                
-                if (typeof showToast === 'function') {
-                  showToast(isTokenBooster ? 'تم شحن محفظة التوكنز بنجاح!' : 'تمت ترقية باقتك بنجاح حياً!', 'success')
-                }
+            if (conditionMet) {
+              clearInterval(pollInterval)
+              if (updatedProfile) setProfile(updatedProfile) 
+              await loadBilling() 
+              paymentWindow.close() 
+              
+              if (typeof showToast === 'function') {
+                showToast(isTokenBooster ? 'تم شحن محفظة التوكنز بنجاح!' : 'تمت ترقية باقتك بنجاح حياً!', 'success')
               }
-            } catch (dbErr) {
-              console.error('Polling Error:', dbErr)
             }
+          } catch (dbErr) {
+            console.error('Polling Error:', dbErr)
+          }
 
-            if (paymentWindow.closed) clearInterval(pollInterval)
-          }, 2000)
+          if (paymentWindow.closed) clearInterval(pollInterval)
+        }, 2000)
 
-          setTimeout(() => clearInterval(pollInterval), 300000)
-        }
+        setTimeout(() => clearInterval(pollInterval), 300000)
       } else {
         if (paymentWindow) paymentWindow.close()
         throw new Error("رابط الدفع مفقود")
@@ -162,24 +144,23 @@ export default function SubscriptionManagement() {
   const cardClass = "bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-[32px] p-6 shadow-xl text-right transition-colors duration-300"
 
   return (
-    // ✅ تم تصحيح صياغة كلاس تيمبليت ليتيرال هنا بإضافة الباك تيك
+    // ✅ تم إعادة علامات التنصيص المفقودة في الكلاسات
     <div className={`w-full max-w-5xl mx-auto p-4 md:p-6 font-sans select-none pb-24 md:pb-6 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
       <SectionTitle title="إدارة الاشتراك والفوترة" subtitle="بوابات الفوترة، حزم شحن التوكنز، ونظام المكافآت" badge="Enterprise Billing" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* كرت الباقة النشطة */}
         <div className={`${cardClass} border-l-4 border-l-blue-600 dark:border-l-cyan-500 relative overflow-hidden`}>
           <div className="absolute top-0 left-0 bg-blue-500/10 px-4 py-1 rounded-bl-2xl text-[9px] font-black font-sans text-blue-600 dark:text-cyan-400">STATUS: LIVE</div>
           <p className="text-[10px] font-black text-blue-600 dark:text-cyan-400 uppercase tracking-widest">الباقة والاشتراك الحالي</p>
           <h2 className="text-2xl font-black mt-2 mb-1 text-slate-900 dark:text-white">{activePlan.name}</h2>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-6 font-semibold">تمنحك الباقة صلاحيات تكتيكية متطورة .</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-6 font-semibold">تمنحك الباقة صلاحيات تكتيكية متطورة  .</p>
           
           <div className="flex flex-col sm:flex-row gap-3 mt-auto">
             {isFree ? (
               <Button onClick={() => triggerMoyasarCheckout(proPlanInfo.price, 'pro', proPlanInfo.tokensReward || 1000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md flex items-center justify-center gap-1.5">
                 <span>اشترك الآن في Pro VIP</span>
                 <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15L15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15L15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
                 </svg>
               </Button>
             ) : (
@@ -201,7 +182,6 @@ export default function SubscriptionManagement() {
           </div>
         </div>
         
-        {/* كرت محفظة التوكنز */}
         <div className={`${cardClass} border-r-4 border-r-indigo-600 dark:border-r-pink-500 flex flex-col justify-between`}>
           <div>
             <p className="text-[10px] font-black text-indigo-600 dark:text-pink-400 uppercase tracking-widest">محفظة التوكنز </p>
@@ -224,7 +204,6 @@ export default function SubscriptionManagement() {
         </div>
       </div>
 
-      {/* برنامج نظام الإحالة */}
       <div className={`${cardClass} mb-8 border-t-4 border-t-emerald-500`}>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
@@ -233,7 +212,6 @@ export default function SubscriptionManagement() {
             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">شارك رابط إحالتك الفريد؛ وعند تسجيل أي مستخدم جديد عن طريقك يحصل الطرفان على <span className="text-emerald-500 font-bold">500 توكن مجاني فوراً</span> شحناً للمحفظة!</p>
           </div>
           <button 
-            type="button"
             onClick={copyReferralLink}
             className="w-full md:w-auto px-5 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-300 rounded-2xl text-[10px] font-black hover:border-emerald-500 dark:hover:border-emerald-500 transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
           >
@@ -252,7 +230,6 @@ export default function SubscriptionManagement() {
         </div>
       </div>
 
-      {/* سجل الفواتير */}
       <div className={cardClass}>
         <h3 className="text-xs font-black mb-6 text-slate-700 dark:text-slate-300 flex items-center gap-2">
           <span>سجل الكشوفات والفواتير</span>

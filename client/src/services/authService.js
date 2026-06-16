@@ -14,7 +14,7 @@ export const authService = {
   },
 
   /**
-   * 📝 إنشاء حساب لمبدع جديد في منظومة الأمان
+   *إنشاء حساب  جديد   
    */
   async register(email, password, fullName) {
     const { data, error } = await supabase.auth.signUp({

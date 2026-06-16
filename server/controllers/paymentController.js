@@ -12,7 +12,8 @@ export const paymentController = {
    */
   createInvoice: async (req, res) => {
     try {
-      const { amount, planName, userId } = req.body;
+      // 👈 استلام productType من الفرونت إند
+      const { amount, planName, userId, productType } = req.body;
       const moyasarKey = process.env.MOYASAR_SECRET_KEY || '';
       const origin = req.headers.origin || 'https://trendaura-two.vercel.app';
 
@@ -22,15 +23,15 @@ export const paymentController = {
 
       const cleanPlan = String(planName || 'pro').toLowerCase().trim();
       
-      // 🛡️ الحصن البرمجي: توزين حزم التوكنز على المسطرة ومنع النزيف الهاردكود القديم
+      // 🛡️ الحصن البرمجي: توزين حزم التوكنز على المسطرة
       let calculatedTokens = 0; 
       
       if (cleanPlan === 'viral_engine' || cleanPlan === 'viral engine') {
-        calculatedTokens = 10000; // باقة الموتور الفيروسي تمنح 10 آلاف توكن
+        calculatedTokens = 10000; 
       } else if (cleanPlan === 'pro') {
-        calculatedTokens = 1000;   // باقة البرو تمنح 1000 توكن
+        calculatedTokens = 1000;  
       } else if (cleanPlan === 'token_booster') {
-        calculatedTokens = 5000;   // حزمة الشحن السريع تمنح 5000 توكن بالملي
+        calculatedTokens = 5000;  
       } else if (cleanPlan === 'free') {
         calculatedTokens = 0;
       }
@@ -41,7 +42,6 @@ export const paymentController = {
         return res.status(400).json({ success: false, error: 'مبلغ الفاتورة غير صالح، الحد الأدنى 1 ريال سعودي.' });
       }
 
-      // وضع المحاكاة في حال عدم وجود مفتاح
       if (!moyasarKey) {
         const mockInvoiceId = `sim_invoice_${crypto.randomUUID().slice(0, 8)}`;
         const simulatedUrl = `${origin}/success?payment_id=${mockInvoiceId}&amount=${amount}&plan=${cleanPlan}`;
@@ -53,13 +53,14 @@ export const paymentController = {
         });
       }
 
+      // 🧠 الميتاداتا الصارمة مع محدد نوع المنتج
       const strictMetadata = {
         user_id: String(userId),
         plan_id: String(cleanPlan),
-        tokens_to_add: String(calculatedTokens) // تمرير القيمة المحمية والنظيفة لميسر
+        tokens_to_add: String(calculatedTokens),
+        product_type: String(productType || (cleanPlan === 'token_booster' ? 'tokens' : 'subscription'))
       };
 
-      // 🏆 الاتصال الصحيح بـ Invoices API لفتح صفحة ميسر الرسمية المستضافة
       const response = await fetch('https://api.moyasar.com/v1/invoices', {
         method: 'POST',
         headers: {
@@ -119,7 +120,7 @@ export const paymentController = {
   },
 
   /**
-   * 🔔 استقبال إشارات السداد (Webhooks) من ميسر وحقن رصيد التوكنز وتفعيل الباقات في سوبابيس
+   * 🔔 استقبال إشارات السداد (Webhooks) من ميسر وحقن رصيد التوكنز وتفعيل الباقات
    */
   handleWebhook: async (req, res) => {
     try {
@@ -127,10 +128,23 @@ export const paymentController = {
       const { id, status, amount, metadata } = paymentData;
 
       if (status === 'paid' || status === 'captured') {
+        
+        // 🚀 1. الحماية ضد التكرار (Idempotency Check)
+        const { data: existingInvoice } = await supabase
+          .from('invoices')
+          .select('id')
+          .eq('payment_id', id)
+          .maybeSingle();
+
+        if (existingInvoice) {
+          console.log(`[Webhook] Payment ${id} already processed. Skipping to prevent double-charging.`);
+          return res.status(200).json({ success: true, message: 'Already processed' });
+        }
+
         let userId = metadata?.user_id;
         let targetPlan = metadata?.plan_id || 'pro';
-        // 🛡️ تصفير صمام الأمان لمنع حقن قيم افتراضية عمياء
         let tokensToAdd = Number(metadata?.tokens_to_add) || 0; 
+        let productType = metadata?.product_type || 'subscription';
 
         if (!userId && paymentData.invoice_id) {
           try {
@@ -146,6 +160,7 @@ export const paymentController = {
               userId = invData.metadata?.user_id;
               targetPlan = invData.metadata?.plan_id || 'pro';
               tokensToAdd = Number(invData.metadata?.tokens_to_add) || 0;
+              productType = invData.metadata?.product_type || 'subscription';
             }
           } catch (fetchInvErr) {
             console.error('❌ [Webhook Fetch Invoice Error]:', fetchInvErr.message);
@@ -153,11 +168,9 @@ export const paymentController = {
         }
 
         if (!userId) {
-          console.error('❌ [Webhook Execution Aborted]: حقل user_id مفقود تماماً.');
-          return res.status(CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({ success: false, error: 'بيانات ميتاداتا الفاتورة مفقودة.' });
+          return res.status(400).json({ success: false, error: 'بيانات ميتاداتا الفاتورة مفقودة.' });
         }
 
-        // جلب رصيد التوكنز التراكمي للعميل
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('tokens')
@@ -165,32 +178,26 @@ export const paymentController = {
           .single();
 
         if (profileError || !profile) {
-          console.error('❌ [Webhook Profile Fetch Failure]:', profileError?.message);
-          return res.status(CONSTANTS.HTTP_STATUS.NOT_FOUND).json({ success: false, error: 'لم يتم العثور على بروفايل العميل.' });
+          return res.status(404).json({ success: false, error: 'لم يتم العثور على بروفايل العميل.' });
         }
 
         const newTokensBalance = (profile.tokens || 0) + tokensToAdd;
+        const isSubscription = productType === 'subscription';
 
-        // بناء كائن التحديث بذكاء: لو كان شحن توكنز فقط، لا نلمس الباقة الحالية للمستخدم
+        // 🚀 2. فصل التوكنز عن الاشتراكات (The Golden Rule)
         const profileUpdates = {
           tokens: newTokensBalance,
           updated_at: new Date().toISOString()
         };
 
-        if (targetPlan.toLowerCase().trim() !== 'token_booster') {
+        if (isSubscription) {
           profileUpdates.plan = targetPlan.toLowerCase().trim();
           profileUpdates.subscription_status = 'active';
         }
 
-        // تحديث حالة الحساب في سوبابيس
-        const { error } = await supabase
-          .from('profiles')
-          .update(profileUpdates)
-          .eq('id', userId);
-
+        const { error } = await supabase.from('profiles').update(profileUpdates).eq('id', userId);
         if (error) throw error;
 
-        // تحديث جدول الفواتير
         const { error: invoiceError } = await supabase.from('invoices').insert([{
           user_id: userId,
           payment_id: id,
@@ -199,19 +206,16 @@ export const paymentController = {
           created_at: new Date().toISOString()
         }]);
 
-        if (invoiceError) {
-          console.error('❌ [Supabase Invoice Insert Fault]:', invoiceError.message);
-          throw new Error(`Supabase Invoice Failed: ${invoiceError.message}`);
-        }
+        if (invoiceError) throw new Error(`Supabase Invoice Failed: ${invoiceError.message}`);
 
-        console.log(`💰 [Payment Verified Successfully]: تم تحديث بيانات المشترك ${userId} بنجاح وحقن الفاتورة.`);
-        return res.status(CONSTANTS.HTTP_STATUS.OK).json({ success: true, message: 'تمت معالجة المدفوعات بنجاح.' });
+        console.log(`💰 [Payment Verified]: Processed ${productType} for user ${userId}. Tokens added: ${tokensToAdd}`);
+        return res.status(200).json({ success: true, message: 'تمت معالجة المدفوعات بنجاح.' });
       }
 
-      return res.status(CONSTANTS.HTTP_STATUS.OK).json({ success: true, message: 'المعاملة معلقة أو لم تكتمل.' });
+      return res.status(200).json({ success: true, message: 'المعاملة معلقة أو لم تكتمل.' });
     } catch (error) {
       console.error('❌ [paymentController Webhook Error]:', error.message);
-      return res.status(CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, error: error.message });
+      return res.status(500).json({ success: false, error: error.message });
     }
   }
 };

@@ -17,6 +17,7 @@ export const SubscriptionProvider = ({ children }) => {
       
       setPlan(activePlan)
       setStatus(activeStatus)
+      // ✅ تم إعادة علامات التنصيص المفقودة هنا
       console.log(`📊 [Subscription Synced]: Tier [${activePlan}] | Status [${activeStatus}]`)
     } else {
       setPlan('free')
