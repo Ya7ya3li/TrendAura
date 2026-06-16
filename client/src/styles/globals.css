@@ -2,6 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html, body {
+    /* 1. منع تأثير الارتداد نهائياً */
+    overscroll-behavior-y: none;
+    
+    /* 2. إصلاح ضروري لمشكلة ارتفاع الشاشة وشريط سفاري السفلي في الآيفون */
+    height: 100%;
+    height: -webkit-fill-available;
+    
+    /* 3. قفل التمرير العشوائي في هيكل المتصفح */
+    overflow: hidden;
+  }
+  
+  /* 4. السماح بالتمرير الداخلي الناعم داخل حاوية React الأساسية فقط */
+  #root {
+    height: 100%;
+    height: -webkit-fill-available;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 :root {
   /* المتغيرات الأساسية للنظام */
   --bg-main: #f8fafc;
