@@ -41,7 +41,8 @@ export default function Pricing() {
       paymentWindow.document.write('<h3 style="text-align:center;font-family:sans-serif;color:#64748b;margin-top:40%;">جاري تأمين اتصالك ببوابة ميسر...</h3>')
     }
 
-    setLoadingPlan(plan.id)
+    setLoadingPlan(plan.id) // تشغيل التحميل
+
     try {
       const response = await paymentService.createInvoice(
         plan.price,
@@ -57,7 +58,6 @@ export default function Pricing() {
         // 📡 رصد الـ Webhook عبر قاعدة البيانات كل 2 ثانية
         const pollInterval = setInterval(async () => {
           try {
-            // 🏆 التعديل الثاني: استعلام سوبابيس صار يجلب كامل البيانات (*) وليس الـ plan فقط
             const { data: updatedProfile } = await supabase
               .from('profiles')
               .select('*')
@@ -67,18 +67,17 @@ export default function Pricing() {
             const serverPlan = (updatedProfile?.plan || 'free').toLowerCase().trim()
             const expectedPlan = plan.id.toLowerCase().trim()
 
-            // 🔍 طباعة الـ Logging التكتيكي الذي طلبته لمتابعة الرصد حياً
             console.log('🔍 Server Plan:', serverPlan, 'Expected:', expectedPlan)
 
             if (serverPlan === expectedPlan) {
               clearInterval(pollInterval)
+              setLoadingPlan(null) // ✅ إطفاء التحميل عند النجاح
               
-              // 🏆 التعديل الثالث: حقن البيانات الجديدة فوراً في ذاكرة التطبيق لتظهر الباقة والتوكنز حياً بدون ريفريش
               if (updatedProfile) {
                 setProfile(updatedProfile)
               }
 
-              paymentWindow.close() // إغلاق نافذة البنك تلقائياً
+              paymentWindow.close() 
               
               if (typeof showToast === 'function') {
                 showToast(`تم تفعيل اشتراكك في باقة ${plan.name} بنجاح 🎉🚀`, 'success')
@@ -89,14 +88,18 @@ export default function Pricing() {
             console.error('Polling DB Error:', dbErr)
           }
 
-          // صمام أمان: لو العميل قفل النافذة بنفسه نقتل المؤقت
+          // صمام أمان: لو العميل قفل النافذة بنفسه نقتل المؤقت ونطفي التحميل
           if (paymentWindow.closed) {
             clearInterval(pollInterval)
+            setLoadingPlan(null) // ✅ إطفاء التحميل إذا العميل قفل النافذة
           }
         }, 2000)
 
         // إنهاء الفحص تلقائياً بعد 5 دقائق حمايةً للموارد
-        setTimeout(() => clearInterval(pollInterval), 300000)
+        setTimeout(() => {
+          clearInterval(pollInterval)
+          setLoadingPlan(null) // ✅ إطفاء التحميل بعد انتهاء الوقت
+        }, 300000)
 
       } else {
         throw new Error('لم نتمكن من جلب رابط الفاتورة من السيرفر.')
@@ -104,12 +107,12 @@ export default function Pricing() {
     } catch (err) {
       console.error('Checkout Error:', err.message)
       if (paymentWindow) paymentWindow.close()
+      setLoadingPlan(null) // ✅ إطفاء التحميل عند حدوث خطأ
       if (typeof showToast === 'function') {
         showToast(err.message || 'فشل الاتصال ببوابة الدفع', 'error')
       }
-    } finally {
-      setLoadingPlan(null)
     }
+    // تم إزالة finally لأنها كانت تطفئ زر التحميل مبكراً جداً
   }
 
   return (
@@ -128,13 +131,16 @@ export default function Pricing() {
               : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
           }`}
         >
-          <svg className="w-4 h-4 transform rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          {/* 🎨 التعديل الثاني: أيقونة رجوع ناعمة بزوايا مطعوجة متناسقة مع باقي المنصة */}
+          <svg className="w-4 h-4 transform rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="5" y1="12" x2="19" y2="12" />
             <polyline points="12 5 19 12 12 19" />
           </svg>
           الرجوع إلى لوحة التحكم
         </button>
       </div>
+
+      {/* باقي الكود (SectionTitle و PricingCard) يبقى كما هو تحت هذا السطر... */}
 
       <div className="text-center mb-10">
         <SectionTitle 

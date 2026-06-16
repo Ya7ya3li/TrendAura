@@ -99,7 +99,7 @@ export default function History() {
           } 
           title="سجل السكريبتات فارغ" 
           message="لم تقم بتوليد أو أرشفة أي سيناريو حتى الآن." 
-          actionText="توليد سكريبت الآن 🚀"
+          actionText="توليد سكريبت الآن "
           onAction={() => navigate(ROUTES.DASHBOARD)} 
         />
       ) : (
