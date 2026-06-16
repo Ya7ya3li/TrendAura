@@ -4,7 +4,16 @@ export const ThemeContext = createContext(null)
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('trendaura-theme') || 'dark'
+    // 1. قراءة التفضيل المحفوظ
+    const savedTheme = localStorage.getItem('trendaura-theme')
+    if (savedTheme) return savedTheme
+    
+    // 2. إذا كان مستخدم جديد، اقرأ ثيم جهازه تلقائياً
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+    
+    return 'dark' // القيمة الاحتياطية الأخيرة
   })
 
   const [roundedStyle, setRoundedStyle] = useState(() => {
@@ -13,19 +22,18 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const root = window.document.documentElement
+    
+    // تنظيف مباشر وأنيق يعتمد على الـ CSS فقط
     if (theme === 'dark') {
       root.classList.remove('light')
       root.classList.add('dark')
-      root.style.setProperty('--bg-main', '#020617')
-      root.style.setProperty('--text-main', '#f8fafc')
       root.style.colorScheme = 'dark'
     } else {
       root.classList.remove('dark')
       root.classList.add('light')
-      root.style.setProperty('--bg-main', '#f8fafc')
-      root.style.setProperty('--text-main', '#0f172a')
       root.style.colorScheme = 'light'
     }
+    
     localStorage.setItem('trendaura-theme', theme)
   }, [theme])
 

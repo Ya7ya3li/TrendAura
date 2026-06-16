@@ -4,7 +4,17 @@ import React from 'react'
  * TrendAura Reusable Premium Button - Pure SVG Edition
  * Multi-variant button core with active micro-scaling and safe padding properties.
  */
-export default function Button({ children, type = 'button', variant = 'primary', size = 'md', loading = false, disabled = false, onClick, className = '' }) {
+export default function Button({ 
+  children, 
+  type = 'button', 
+  variant = 'primary', 
+  size = 'md', 
+  loading = false, 
+  loadingText = 'جاري التوليد...', // 🎯 الإضافة الجراحية: قيمة افتراضية تحمي كودك القديم
+  disabled = false, 
+  onClick, 
+  className = '' 
+}) {
   const baseStyle = "inline-flex items-center justify-center gap-2 rounded-2xl text-xs font-black transition-all duration-200 select-none transform active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none"
   
   const variants = {
@@ -34,7 +44,8 @@ export default function Button({ children, type = 'button', variant = 'primary',
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
-          <span>جاري التوليد...</span>
+          {/* 🎯 الإضافة الثانية: طباعة النص الديناميكي */}
+          <span>{loadingText}</span>
         </>
       ) : (
         children

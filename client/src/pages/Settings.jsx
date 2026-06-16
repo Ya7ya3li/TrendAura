@@ -1,9 +1,8 @@
 import React, { useContext, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ThemeContext } from '../context/ThemeContext.jsx'
-import { AuthContext } from '../context/AuthContext.jsx' // 🏆 استيراد سياق الهوية الملوكي
-import { supabase } from '../config/supabase.js' // 🏆 استيراد محرك سوبابيس للربط السحابي
-import { ROUTES } from '../constants/routes.js' // 🏆 استيراد مسارات النظام للتحويل اللحظي
+import { AuthContext } from '../context/AuthContext.jsx' 
+import { supabase } from '../config/supabase.js' 
+import { ROUTES } from '../constants/routes.js' 
 import ProfileSettings from '../components/settings/ProfileSettings.jsx'
 import ThemeSettings from '../components/settings/ThemeSettings.jsx'
 import SectionTitle from '../components/common/SectionTitle.jsx'
@@ -13,10 +12,9 @@ export default function Settings() {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('profile')
   const [isDeleting, setIsDeleting] = useState(false)
-  const { theme } = useContext(ThemeContext)
-  const { user } = useContext(AuthContext) // 🏆 سحب بيانات المستخدم لربط معرف الحذف بالـ ID
+  const { user } = useContext(AuthContext) 
 
-  // 🔒 محرك الحذف الشامل والتطهير القطعي لقاعدة البيانات
+  // 🔒 محرك الحذف الشامل
   const handleDeleteAllScripts = async () => {
     const confirmDelete = window.confirm('تحذير صارم: هل أنت متأكد من تصفير مستودع السكريبتات؟ هذا الإجراء نهائي ولا يمكن استرجاعه.')
     if (!confirmDelete) return
@@ -24,7 +22,6 @@ export default function Settings() {
     try {
       setIsDeleting(true)
 
-      // إطلاق صواريخ الحذف المباشرة لجدول السكريبتات المرتبطة بهذا المستخدم تحديداً
       const { error } = await supabase
         .from('scripts')
         .delete()
@@ -36,7 +33,6 @@ export default function Settings() {
         showToast('تم مسح مستودع السكريبتات بنجاح 🗑️', 'success')
       }
 
-      // 🚀 الحسم التكتيكي الذكي: التوجيه الفوري لصفحة الأرشيف لتحديث الـ State وإظهار الـ Empty State
       navigate(ROUTES.HISTORY || '/history')
     } catch (err) {
       console.error('❌ [Fatal Settings Delete Error]:', err.message)
@@ -46,7 +42,7 @@ export default function Settings() {
     }
   }
 
-  const cardClass = "bg-slate-900/40 backdrop-blur-xl border border-slate-800/60 rounded-[32px] p-8 shadow-2xl"
+  const cardClass = "bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-[32px] p-8 shadow-lg dark:shadow-2xl transition-colors duration-300"
 
   const settingsTabs = [
     { 
@@ -70,7 +66,7 @@ export default function Settings() {
   ];
 
   return (
-    <div className={`w-full max-w-4xl mx-auto p-6 font-sans ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+    <div className="w-full max-w-4xl mx-auto p-6 font-sans text-slate-900 dark:text-white transition-colors duration-300">
       <SectionTitle title="إعدادات الحساب" subtitle="تكوين الهوية الشخصية وتفضيلات المظهر " badge="System Config" />
 
       <div className="flex items-center gap-4 mb-8">
@@ -81,7 +77,7 @@ export default function Settings() {
             className={`px-5 py-2.5 rounded-full text-[10px] font-black transition-all flex items-center gap-2 group ${              
               activeTab === tab.id 
                 ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20'
-                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200'
             }`}          
           >
             {tab.icon}
@@ -95,16 +91,16 @@ export default function Settings() {
           <div className="space-y-8 animate-fade-in">
             <ProfileSettings />
             
-            <div className="pt-8 border-t border-slate-800/60 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="pt-8 border-t border-slate-200 dark:border-slate-800/60 flex flex-col md:flex-row items-center justify-between gap-4 transition-colors">
               <div>
-                <h4 className="text-xs font-black text-rose-400">منطقة التحكم </h4>
-                <p className="text-[10px] text-slate-400 mt-1">مسح نهائي لكامل محتوى السكريبتات المؤرشفة.</p>
+                <h4 className="text-xs font-black text-rose-600 dark:text-rose-400 transition-colors">منطقة التحكم </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 transition-colors">مسح نهائي لكامل محتوى السكريبتات المؤرشفة.</p>
               </div>
               <button
                 type="button"
                 onClick={handleDeleteAllScripts}
                 disabled={isDeleting}
-                className="px-6 py-3 bg-rose-600/20 border border-rose-500/40 hover:bg-rose-600 text-rose-400 hover:text-white text-[10px] font-black rounded-full transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
+                className="px-6 py-3 bg-rose-50 dark:bg-rose-600/20 border border-rose-200 dark:border-rose-500/40 hover:bg-rose-600 hover:border-rose-600 text-rose-600 dark:text-rose-400 hover:text-white text-[10px] font-black rounded-full transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0"
               >
                 {isDeleting ? (
                   <span>جاري التطهير...</span>

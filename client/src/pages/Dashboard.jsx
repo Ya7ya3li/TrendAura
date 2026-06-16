@@ -45,16 +45,18 @@ export default function Dashboard() {
     : (result?.viralIdeas ? result.viralIdeas.slice(0, 5) : []) 
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto select-text animate-fade-in dir-rtl text-right font-sans">
-      <div className="w-full flex items-center justify-between mb-8 pb-4 border-b border-slate-900/60">
+    <div className="w-full max-w-[1400px] mx-auto select-text animate-fade-in dir-rtl text-right font-sans transition-colors duration-300">
+      
+      {/* ترويسة الصفحة مع حماية الألوان للوضعين الفاتح والغامق */}
+      <div className="w-full flex items-center justify-between mb-8 pb-4 border-b border-slate-200 dark:border-slate-900/60 transition-colors duration-300">
         <div className="flex flex-col">
-          <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2 transition-colors">
             صناعة المحتوى بالذكاء الاصطناعي 
-            <svg className="w-5 h-5 text-blue-500 dark:text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <svg className="w-5 h-5 text-blue-600 dark:text-cyan-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
             </svg>
           </h1>
-          <p className="text-[11px] font-bold text-slate-400 mt-1">
+          <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1 transition-colors">
             {profile?.full_name ? `أهلاً بك يا ${profile.full_name}، اكتب فكرتك المليونية وابدأ التوليد فوراً.` : 'اكتب فكرتك ودع المحرك يصنع لك سكريبت يخترق الخوارزميات'}
           </p>
         </div>
@@ -78,9 +80,11 @@ export default function Dashboard() {
         <div className="flex flex-col gap-6">
           <ProtectedFeature minRequiredPlan="pro" featureName="الهاشتاقات الفايرال">
             <HashtagsCard hashtags={displayedHashtags} />
+            
+            {/* بانر الترقية التحفيزي - تم ضبط ألوانه المزدوجة */}
             {currentPlan === 'free' && result?.hashtags?.length > 0 && (
-              <div className="mt-3 text-center p-3 rounded-xl bg-blue-500/5 border border-blue-500/10 animate-pulse">
-                <span className="text-[10px] font-black text-blue-500 dark:text-cyan-400 flex items-center justify-center gap-1.5">
+              <div className="mt-3 text-center p-3 rounded-xl bg-blue-50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/10 animate-pulse transition-colors duration-300">
+                <span className="text-[10px] font-black text-blue-600 dark:text-cyan-400 flex items-center justify-center gap-1.5 transition-colors">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
@@ -88,6 +92,7 @@ export default function Dashboard() {
                 </span>
               </div>
             )}
+            
           </ProtectedFeature>
           <ProtectedFeature minRequiredPlan="pro" featureName="أفضل أوقات النشر">
             <BestTimeCard customTimes={result?.bestTimes || []} />

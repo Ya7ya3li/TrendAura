@@ -3,40 +3,91 @@
 @tailwind utilities;
 
 @layer base {
-  html, body {
-    /* 1. منع تأثير الارتداد نهائياً */
+  /* التخلص من الارتداد + استخدام 100dvh (حل مشكلة شريط سفاري السفلي) */
+  html, body, #root {
+    min-height: 100dvh;
     overscroll-behavior-y: none;
-    
-    /* 2. إصلاح ضروري لمشكلة ارتفاع الشاشة وشريط سفاري السفلي في الآيفون */
-    height: 100%;
-    height: -webkit-fill-available;
-    
-    /* 3. قفل التمرير العشوائي في هيكل المتصفح */
-    overflow: hidden;
   }
-  
-  /* 4. السماح بالتمرير الداخلي الناعم داخل حاوية React الأساسية فقط */
-  #root {
-    height: 100%;
-    height: -webkit-fill-available;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+
+  /* الخط الأساسي وتوحيد الألوان الافتراضية للوضع الفاتح */
+  body {
+    font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif;
+    @apply bg-slate-50 text-slate-900 transition-colors duration-300 antialiased;
+  }
+
+  /* الوضع الداكن التلقائي */
+  html.dark body {
+    @apply bg-slate-950 text-slate-100;
+  }
+
+  h1, h2, h3, h4, h5, h6, p, span {
+    @apply transition-colors duration-300;
   }
 }
 
+/* ========================================= */
+/* 🖱️ السكرول بار الاحترافي (Scrollbar) */
+/* ========================================= */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* ========================================= */
+/* ⚠️ TEMP LIGHT MODE PATCH 
+   سيتم حذفه بعد تحويل جميع المكونات إلى dark: classes 
+/* ========================================= */
+.light .bg-slate-950,
+.light .bg-slate-900,
+.light .bg-slate-900\/40,
+.light .bg-slate-800 {
+  background-color: #ffffff !important;
+}
+
+.light .border-slate-800,
+.light .border-slate-800\/80,
+.light .border-slate-700 {
+  border-color: #e2e8f0 !important;
+}
+
+.light .text-slate-100,
+.light .text-slate-300,
+.light .text-slate-400 {
+  color: #334155 !important;
+}
+
+/* ========================================= */
+/* متغيرات النظام والألوان المخصصة */
+/* ========================================= */
 :root {
-  /* المتغيرات الأساسية للنظام */
   --bg-main: #f8fafc;
   --bg-card: #ffffff;
   --text-main: #0f172a;
   --border-color: #e2e8f0;
-  
-  /* ألوان التدرج البريميوم لـ TrendAura */
   --primary: #2566ef;
   --purple: #8b5cf6;
   --pink: #ec4899;
-  
-  /* الظلال */
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
 }
@@ -46,55 +97,28 @@
   --bg-card: #0f172a;
   --text-main: #f8fafc;
   --border-color: #1e293b;
-  
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
-body {
-  font-family: var(--font-sans);
-  background-color: var(--bg-main) !important;
-  color: var(--text-main) !important;
-  overflow-x: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* التبديل الذكي لحاويات خطوط الإنتاج والوضع الفاتح بدون تدمير أزرار النظام */
-.light .bg-slate-950,
-.light .bg-slate-900,
-.light .bg-slate-900\/40 {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-}
-
-/* تحسين القراءة في الوضع الفاتح للمكونات النصية المعزولة فقط */
-.light p.text-slate-400,
-.light span.text-slate-500 {
-  color: #64748b !important;
-}
-
-/* المحرك الهندسي الفاخر للحواف والمنحنيات */
+/* ========================================= */
+/* المحرك الهندسي للحواف والمنحنيات */
+/* ========================================= */
 .radius-premium .rounded-3xl,
 .radius-premium .rounded-\[32px\],
-.radius-premium .rounded-\[28px\] {
-  border-radius: 28px !important;
-}
-.radius-premium .rounded-2xl {
-  border-radius: 20px !important;
-}
-.radius-premium .rounded-xl {
-  border-radius: 14px !important;
-}
+.radius-premium .rounded-\[28px\] { border-radius: 28px !important; }
+.radius-premium .rounded-2xl { border-radius: 20px !important; }
+.radius-premium .rounded-xl { border-radius: 14px !important; }
 
 .radius-classic .rounded-3xl,
 .radius-classic .rounded-\[32px\],
 .radius-classic .rounded-\[28px\],
 .radius-classic .rounded-2xl,
-.radius-classic .rounded-xl {
-  border-radius: 12px !important;
-}
+.radius-classic .rounded-xl { border-radius: 12px !important; }
 
+/* ========================================= */
+/* التأثيرات الحركية (Neon Effect) */
+/* ========================================= */
 @keyframes neonPulse {
   0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 2px var(--primary)); }
   50% { opacity: 1; filter: drop-shadow(0 0 10px var(--primary)); }

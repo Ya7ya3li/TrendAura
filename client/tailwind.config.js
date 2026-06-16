@@ -4,27 +4,28 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class', // 🏆 تم سحق الثغرة: تفعيل تبديل الأنماط عبر الكلاس لحماية المظهر الداكن
+  darkMode: 'class', 
+  safelist: [
+    'dark',
+    'light',
+    'radius-premium',
+    'radius-classic'
+  ],
   theme: {
     extend: {
-      // الحفاظ الكامل والأمين على الخطوط الأصلية الفخمة
       fontFamily: {
         sans: ['Cairo', 'Plus Jakarta Sans', 'sans-serif'],
       },
-      
-      // مصفوفة الألوان السيبرانية المخصصة لدعم الثيم الداكن المشع لـ TrendAura
       colors: {
         cyber: {
-          bg: '#05020c',       
-          card: '#0d071d',     
-          border: '#1f1438',   
-          cyan: '#00f2fe',     
-          pink: '#ff007f',     
-          purple: '#9d4edd',   
+          bg: '#05020c',      
+          card: '#0d071d',    
+          border: '#1f1438',  
+          cyan: '#00f2fe',    
+          pink: '#ff007f',    
+          purple: '#9d4edd',  
         }
       },
-      
-      // تأثيرات التوهج الضوئي اللحظي الخاطف للعين
       boxShadow: {
         'neon-cyan': '0 0 15px rgba(0, 242, 254, 0.45), 0 0 4px rgba(0, 242, 254, 0.2)',
         'neon-pink': '0 0 15px rgba(255, 0, 127, 0.45), 0 0 4px rgba(255, 0, 127, 0.2)',

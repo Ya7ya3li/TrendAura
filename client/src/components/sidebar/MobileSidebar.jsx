@@ -5,14 +5,10 @@ import SidebarItem from './SidebarItem.jsx'
 import UserProfileCard from './UserProfileCard.jsx'
 import useSubscription from '../../hooks/useSubscription.js'
 
-/**
- * TrendAura Mobile Navigation Sidebar - Hardware Accelerated (No lag Edition)
- */
 export default function MobileSidebar() {
   const { sidebarOpen, setSidebarOpen } = useContext(AppContext)
   const { plan } = useSubscription()
   
-  // ✅ هندسة أبو فيصل الحتمية: تمرير السلسلة النصية للباقة مباشرة أو الفولباك الآمن
   const menuItems = getSidebarItems(plan || 'free')
 
   return (
@@ -20,35 +16,32 @@ export default function MobileSidebar() {
       sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
     }`}>
       
-      {/* الخلفية المعتامة الزجاجية مع تأثير ناعم للأنيميشن */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300" 
+        className="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity duration-300" 
         onClick={() => setSidebarOpen(false)} 
       />
 
-      {/* الانزلاق الحركي الملوكي */}
-      <div className={`relative w-64 max-w-sm h-full bg-slate-950 border-l border-slate-900 shadow-2xl p-5 flex flex-col justify-between z-10 transition-transform duration-300 ease-in-out ${
+      <div className={`relative w-64 max-w-sm h-full bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-900 shadow-2xl p-5 flex flex-col justify-between z-10 transition-transform duration-300 ease-in-out ${
         sidebarOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         
         <div>
-          {/* هيدر اللوجو للبراند مع زر الإغلاق الحركي السريع */}
-          <div className="flex items-center justify-between border-b border-slate-900 pb-4 mb-5">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-900 pb-4 mb-5 transition-colors">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
                 <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <span className="text-sm font-black text-white tracking-tight">
-                Trend<span className="text-blue-500 dark:text-cyan-400">Aura</span>
+              <span className="text-sm font-black text-slate-900 dark:text-white tracking-tight transition-colors">
+                Trend<span className="text-blue-600 dark:text-cyan-400">Aura</span>
               </span>
             </div>
             
             <button 
               type="button"
               onClick={() => setSidebarOpen(false)} 
-              className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+              className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -56,7 +49,6 @@ export default function MobileSidebar() {
             </button>
           </div>
 
-          {/* روابط الملاحة المحدثة والمفلترة بشكل سليم */}
           <nav className="flex flex-col gap-1.5">
             {menuItems.map((item, idx) => (
               <SidebarItem 
@@ -71,8 +63,7 @@ export default function MobileSidebar() {
           </nav>
         </div>
 
-        {/* الكرت السفلي للبروفايل */}
-        <div className="pt-4 border-t border-slate-900">
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-900 transition-colors">
           <UserProfileCard />
         </div>
 

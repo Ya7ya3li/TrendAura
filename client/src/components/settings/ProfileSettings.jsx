@@ -89,21 +89,21 @@ export default function ProfileSettings() {
   }
 
   return (
-    <form onSubmit={handleUpdateProfile} className="space-y-6 text-right dir-rtl select-none animate-fade-in font-sans">
+    <form onSubmit={handleUpdateProfile} className="space-y-6 text-right dir-rtl select-none animate-fade-in font-sans transition-colors duration-300">
       <div>
-        <h3 className="text-xs font-black text-white tracking-tight mb-1">البيانات والملفات الشخصية</h3>
-        <p className="text-[10px] font-bold text-slate-400"> تحديث اسم العرض وصورة البروفايل.</p>
+        <h3 className="text-xs font-black text-slate-900 dark:text-white tracking-tight mb-1 transition-colors">البيانات والملفات الشخصية</h3>
+        <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 transition-colors"> تحديث اسم العرض وصورة البروفايل.</p>
       </div>
 
       <div className="flex items-center gap-4 pb-2">
         <div 
           onClick={() => !loading && fileInputRef.current.click()}
-          className="relative w-16 h-16 rounded-2xl cursor-pointer group overflow-hidden border-2 border-dashed border-slate-800 hover:border-blue-500 transition-all flex items-center justify-center bg-slate-950"
+          className="relative w-16 h-16 rounded-2xl cursor-pointer group overflow-hidden border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500 transition-all flex items-center justify-center bg-slate-50 dark:bg-slate-950"
         >
           {profile?.avatar_url ? (
             <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
           ) : (
-            <svg className="w-6 h-6 text-slate-600 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <svg className="w-6 h-6 text-slate-400 dark:text-slate-600 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
               <circle cx="12" cy="13" r="3" />
             </svg>
@@ -114,33 +114,39 @@ export default function ProfileSettings() {
         </div>
         <input type="file" ref={fileInputRef} onChange={handleAvatarChange} accept="image/*" className="hidden" />
         <div className="flex flex-col">
-          <span className="text-xs font-black text-white">الصورة الشخصية </span>
+          <span className="text-xs font-black text-slate-900 dark:text-white transition-colors">الصورة الشخصية </span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black text-slate-400">الاسم </label>
+          <label className="text-[10px] font-black text-slate-600 dark:text-slate-400 transition-colors">الاسم </label>
           <input
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="w-full bg-slate-950 text-slate-200 pr-4 pl-4 py-3 rounded-xl border border-slate-800 text-xs font-bold outline-none focus:border-blue-500 transition-all"
+            className="w-full bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-200 pr-4 pl-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold outline-none focus:border-blue-500 transition-all"
           />
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black text-slate-500">البريد الإلكتروني الموثق</label>
+          <label className="text-[10px] font-black text-slate-500 dark:text-slate-500 transition-colors">البريد الإلكتروني الموثق</label>
           <input
             type="email"
             value={profile?.email || '...'}
             disabled
-            className="w-full bg-slate-900/60 text-slate-500 pr-4 pl-4 py-3 rounded-xl border border-slate-800/40 text-xs font-bold cursor-not-allowed font-sans text-left dir-ltr"
+            className="w-full bg-slate-100 dark:bg-slate-900/60 text-slate-400 dark:text-slate-500 pr-4 pl-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800/40 text-xs font-bold cursor-not-allowed font-sans text-left dir-ltr transition-colors"
           />
         </div>
       </div>
 
-      <div className="pt-2 border-t border-slate-800 flex justify-end">
-        <Button type="submit" variant="primary" loading={loading} className="px-6 py-2.5 rounded-xl text-[11px]">
+      <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-end transition-colors">
+        <Button 
+          type="submit" 
+          variant="primary" 
+          loading={loading} 
+          loadingText="جاري حفظ التغييرات..." 
+          className="px-6 py-2.5 rounded-xl text-[11px]"
+        >
           حفظ التغييرات الشخصية
         </Button>
       </div>
