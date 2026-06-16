@@ -155,7 +155,7 @@ export default function Login() {
               {loading ? (
                 <>
                   <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  <span>جاري التحقق الفيدرالي...</span>
+                  <span>جاري التحقق ...</span>
                 </>
               ) : (
                 <>

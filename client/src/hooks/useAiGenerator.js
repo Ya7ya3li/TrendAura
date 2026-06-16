@@ -36,35 +36,34 @@ export default function useAiGenerator() {
       const currentDailyGens = profile.daily_generations || 0;
       const currentTokens = profile.tokens || 0;
 
-      // 📊 1. هندسة حارس الأحقية الهجين (Hybrid Freemium Gate)
-      let isEligible = false;
-      let shouldChargeTokensForFreePlan = false;
+      // 🎯 1. تحديد الحد اليومي الديناميكي بناءً على الباقة
+      let MAX_DAILY_LIMIT = 5; // الافتراضي للمجاني
+      if (currentPlan === 'pro') {
+        MAX_DAILY_LIMIT = 50;
+      } else if (currentPlan === 'viral_engine' || currentPlan === 'viral engine') {
+        MAX_DAILY_LIMIT = 200;
+      }
 
-      if (currentPlan === 'free') {
-        if (currentDailyGens < 5) {
-          // لسه تحت الـ 5 توليدات: مسموح له مجاناً بدون شروط توكنز
-          isEligible = true;
-          shouldChargeTokensForFreePlan = false;
-        } else if (currentTokens >= 10) {
-          // تخطى الـ 5 توليدات ومعه رصيد كافي: مسموح له بخصم توكنز
-          isEligible = true;
-          shouldChargeTokensForFreePlan = true;
-        } else {
-          // تخطى الـ 5 وما معه توكنز: قفل حتمي!
-          isEligible = false;
-        }
+      // 📊 2. هندسة حارس الأحقية الموحد (Unified Quota Engine)
+      let isEligible = false;
+      let shouldChargeTokens = false;
+
+      if (currentDailyGens < MAX_DAILY_LIMIT) {
+        // المسار الأول: لسه تحت الحد اليومي المسموح لباقته (مجاني بالكامل)
+        isEligible = true;
+        shouldChargeTokens = false;
+      } else if (currentTokens >= 10) {
+        // المسار الثاني: تخطى الحد اليومي، لكن محفظة التوكنز فيها رصيد كافي للخصم
+        isEligible = true;
+        shouldChargeTokens = true;
       } else {
-        // الباقات المدفوعة Pro / Viral تعتمد على فحص السيرفر المعتاد
-        isEligible = await usageService.checkEligibility(profile.id, plan);
-        shouldChargeTokensForFreePlan = false; // الباقات المدفوعة لها منطقها الخاص بالتوكنز
+        // المسار الثالث: مفلس تماماً (لا حصة يومية ولا توكنز)
+        isEligible = false;
       }
 
       // إذا غير مؤهل، ارفع الخطأ فوراً واقفل التوليد
       if (!isEligible) {
-        const errorAlertMsg = currentPlan === 'free' && currentDailyGens >= 5
-          ? '⚠️ لقد استهلكت الـ 5 توليدات المجانية وليس لديك رصيد توكنز كافٍ للاستمرار، يرجى الشحن أو الترقية!'
-          : 'لقد استهلكت كامل حصتك، يرجى الترقية ⚠️';
-          
+        const errorAlertMsg = '⚠️ لقد استهلكت كامل حصتك اليومية وليس لديك رصيد توكنز كافٍ للاستمرار، يرجى الشحن أو الترقية!';
         if (typeof showToast === 'function') showToast(errorAlertMsg, 'error');
         setLoading(false);
         return;
@@ -114,23 +113,18 @@ export default function useAiGenerator() {
         // تحديث الواجهة بالبيانات
         setResult(finalResult);
 
-        // 🚀 2. خوارزمية تحديث العدادات الذكية وخصم التوكن الح ديناميكياً
+        // 🚀 3. خوارزمية تحديث العدادات الذكية وخصم التوكن ديناميكياً
         const nextDailyGens = currentDailyGens + 1;
         const deductedTokens = Math.max(0, currentTokens - 10);
         
         let databaseUpdatePayload = {};
 
-        if (currentPlan === 'free') {
-          if (shouldChargeTokensForFreePlan) {
-            // خلص الـ 5 ومعه توكنز: نزيد العداد ونخصم 10 توكنز
-            databaseUpdatePayload = { daily_generations: nextDailyGens, tokens: deductedTokens };
-          } else {
-            // لسه تحت الـ 5: نزيد عداد اليوم فقط بدون لمس التوكنز
-            databaseUpdatePayload = { daily_generations: nextDailyGens };
-          }
+        if (shouldChargeTokens) {
+          // انتهت الحصة اليومية، نخصم 10 توكنز ونكمل العداد
+          databaseUpdatePayload = { daily_generations: nextDailyGens, tokens: deductedTokens };
         } else {
-          // الباقات المدفوعة: يخصم 10 توكنز ويزيد العداد الافتراضي
-          databaseUpdatePayload = { tokens: deductedTokens, daily_generations: nextDailyGens };
+          // ضمن الحصة اليومية، نزيد عداد اليوم فقط بدون لمس التوكنز
+          databaseUpdatePayload = { daily_generations: nextDailyGens };
         }
 
         // إطلاق أمر التحديث الموحد إلى جدول البروفايلات في Supabase
@@ -146,12 +140,14 @@ export default function useAiGenerator() {
         
         if (typeof showToast === 'function') {
           let successMessage = '';
-          if (currentPlan === 'free') {
-            successMessage = shouldChargeTokensForFreePlan
-              ? `تم التوليد بنجاح بخصم 10 توكنز من رصيدك! ⚡`
-              : `تم توليد السكريبت المحدود مجاناً! (${nextDailyGens} من أصل 5 اليوم) ✨`;
+          if (shouldChargeTokens) {
+            successMessage = `تم التوليد بنجاح بخصم 10 توكنز من رصيدك! ⚡`;
           } else {
-            successMessage = 'تم التوليد وحفظ السكريبت في أرشيفك فوراً! ✨💾';
+            if (currentPlan === 'free') {
+              successMessage = `تم توليد السكريبت المحدود مجاناً! (${nextDailyGens} من أصل ${MAX_DAILY_LIMIT} اليوم) ✨`;
+            } else {
+              successMessage = `تم التوليد وحفظ السكريبت في أرشيفك! (${nextDailyGens}/${MAX_DAILY_LIMIT} من حصتك اليومية) ✨💾`;
+            }
           }
           showToast(successMessage, 'success');
         }
