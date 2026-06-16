@@ -122,7 +122,7 @@ export const AuthProvider = ({ children }) => {
         fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
           .then(profileData => {
             if (active && profileData) {
-              profileData.tokens = session.user.user_metadata?.tokens ?? profileData.tokens
+              // 🎯 تم إبادة سطر فرض توكنز الميتاداتا المكسورة هنا، والاعتماد كلياً على جدول السيرفر
               setProfile(profileData)
             }
           })
