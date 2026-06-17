@@ -1,12 +1,12 @@
 import express from 'express'
 import { ownerOnly } from '../middleware/owner.js'
-import { authenticate } from '../middleware/auth.js'
+import { authGuard } from '../middleware/auth.js' // 👑 تم التصحيح: استدعاء authGuard بدلاً من authenticate
 import { supabase } from '../services/supabase.js' // استخدم الـ Service Role Key هنا لضمان تجاوز RLS بأمان
 
 const router = express.Router()
 
-// حماية فولاذية لكل المسارات أدناه
-router.use(authenticate, ownerOnly)
+// حماية فولاذية لكل المسارات أدناه باستخدام الحراس الصحيحين
+router.use(authGuard, ownerOnly) // 👑 تم التصحيح هنا أيضاً
 
 // 👥 جلب المستخدمين بأمان من السيرفر
 router.get('/users', async (req, res) => {
