@@ -12,7 +12,7 @@ router.use(authGuard, ownerOnly) // 👑 تم التصحيح هنا أيضاً
 router.get('/users', async (req, res) => {
     const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, plan, tokens, is_banned, created_at')
+        .select('*')
         .order('created_at', { ascending: false })
 
     if (error) return res.status(400).json({ success: false, error })
