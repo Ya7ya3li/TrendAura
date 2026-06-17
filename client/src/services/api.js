@@ -1,4 +1,4 @@
-import axiosInstance from '../config/axios';
+import axiosInstance from "/src/config/axios.js";
 
 /**
  * TrendAura Core API Request Wrapper
@@ -10,7 +10,8 @@ export const api = {
       const response = await axiosInstance.get(url, config);
       return response.data;
     } catch (error) {
-      console.error(`❌ [API Service GET Error] on ${url}:`, error.message);
+      // 👑 التعديل هنا: إجبار المتصفح على طباعة الخطأ كنص مقروء بالكامل
+      console.error(`❌ [API Service GET Error] on ${url}:`, JSON.stringify(error.response?.data, null, 2));
       throw error;
     }
   },
@@ -20,7 +21,7 @@ export const api = {
       const response = await axiosInstance.post(url, data, config);
       return response.data;
     } catch (error) {
-      console.error(`❌ [API Service POST Error] on ${url}:`, error.message);
+      console.error(`❌ [API Service POST Error] on ${url}:`, error.response?.data || error.message);
       throw error;
     }
   },
@@ -30,7 +31,7 @@ export const api = {
       const response = await axiosInstance.put(url, data, config);
       return response.data;
     } catch (error) {
-      console.error(`❌ [API Service PUT Error] on ${url}:`, error.message);
+      console.error(`❌ [API Service PUT Error] on ${url}:`, error.response?.data || error.message);
       throw error;
     }
   },
@@ -40,7 +41,7 @@ export const api = {
       const response = await axiosInstance.delete(url, config);
       return response.data;
     } catch (error) {
-      console.error(`❌ [ API Service DELETE Error] on ${url}:`, error.message);
+      console.error(`❌ [ API Service DELETE Error] on ${url}:`, error.response?.data || error.message);
       throw error;
     }
   }

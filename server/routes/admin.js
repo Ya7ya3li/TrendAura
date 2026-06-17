@@ -13,9 +13,12 @@ router.get('/users', async (req, res) => {
     const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('updated_at', { ascending: false }) // 👑 التعديل هنا: غيرناها إلى updated_at
 
-    if (error) return res.status(400).json({ success: false, error })
+    if (error) {
+        console.error("❌ Supabase Admin Route Error:", error);
+        return res.status(400).json({ success: false, message: error.message });
+    }
     res.json({ success: true, users: data })
 })
 

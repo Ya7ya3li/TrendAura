@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { api } from '../../services/api.js' // 🔒 استخدام الـ Axios Instance الخاص بك بدلاً من Supabase
+import { supabase } from '../../config/supabase.js' // ✅ تم تصحيح المسار بنجاح
+import { api } from '../../services/api.js'
 import SectionTitle from '../../components/common/SectionTitle.jsx'
 import { showToast } from '../../App.jsx'
 
@@ -28,11 +29,20 @@ export default function AdminDashboard() {
     const fetchUsersSafely = async () => {
         setLoading(true)
         try {
-            const response = await api.get('/admin/users')
-            if (response.data.success) {
-                setUsers(response.data.users)
+            const { data: { session } } = await supabase.auth.getSession()
+
+            const response = await api.get('/admin/users', {
+                headers: {
+                    Authorization: `Bearer ${session?.access_token}`
+                }
+            })
+
+            // 👑 تم إزالة .data لأن api.js تفك التغليف تلقائياً
+            if (response.success) {
+                setUsers(response.users)
             }
         } catch (err) {
+            console.error("❌ Admin Fetch Error:", err)
             showToast('خطأ في الاتصال بالخادم الآمن', 'error')
         } finally {
             setLoading(false)
@@ -42,10 +52,21 @@ export default function AdminDashboard() {
     // 🔒 إرسال أمر للسيرفر لتنفيذ التعديل وتسجيله في admin_logs
     const handleAdminAction = async (targetUserId, actionType, details = {}) => {
         try {
-            await api.post('/admin/action', { targetUserId, action: actionType, details })
+            // 👑 استخراج التوكن لعمليات الأكشن أيضاً
+            const { data: { session } } = await supabase.auth.getSession()
+
+            await api.post('/admin/action',
+                { targetUserId, action: actionType, details },
+                {
+                    headers: {
+                        Authorization: `Bearer ${session?.access_token}`
+                    }
+                }
+            )
             showToast('تم تنفيذ العملية وتسجيلها بالأرشيف', 'success')
             fetchUsersSafely() // تحديث الجدول
         } catch (err) {
+            console.error("❌ Admin Action Error:", err)
             showToast('فشل تنفيذ العملية', 'error')
         }
     }
