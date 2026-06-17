@@ -10,6 +10,7 @@ import authRoutes from './routes/auth.js';
 import paymentRoutes from './routes/payment.js';
 import subscriptionRoutes from './routes/subscription.js';
 import usageRoutes from './routes/usage.js';
+import adminRoutes from './routes/admin.js'; // 👑 تم إضافة مسار الأدمن هنا
 
 const app = express();
 
@@ -39,10 +40,10 @@ app.use(cors({
 app.options('*', cors());
 
 // 3. تفعيل قراءة الـ JSON بعد العبور الأمن من جدار CORS
-app.use(express.json());       
+app.use(express.json());
 
 // 4. تطبيق الـ rateLimiter هنا لحماية المسارات الفعلية فقط وتجنب حظر طلبات المتصفح الاستكشافية
-app.use(rateLimiter);          
+app.use(rateLimiter);
 
 // 🌐 ربط وتتويج خطوط الاتصال بالـ API حسب هيكل الـ SaaS المعتمد
 app.use('/api/ai', aiRoutes);
@@ -50,6 +51,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/usage', usageRoutes);
+app.use('/admin', adminRoutes); // 👑 تم ربط مسار الأدمن هنا
 
 // نقطة فحص حيوية الخادم (Health Check Endpoint)
 app.get('/', (req, res) => {
