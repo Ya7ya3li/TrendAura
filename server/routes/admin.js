@@ -148,4 +148,100 @@ router.get('/invoices', async (req, res) => {
     }
 });
 
+// 📈 5. مسار جلب الإحصائيات المتقدمة (Analytics & Charts)
+router.get('/analytics', async (req, res) => {
+    try {
+        // حساب النمو الشهري: جلب تاريخ الانضمام لكل حساب لعمل رسم بياني للنمو
+        const { data: users, error: usersError } = await supabase
+            .from('profiles')
+            .select('created_at, plan');
+
+        if (usersError) throw usersError;
+
+        // تجميع المستخدمين حسب الأشهر
+        const growthData = {};
+        let totalPro = 0;
+        let totalViral = 0;
+
+        users.forEach(user => {
+            if (!user.created_at) return;
+            // استخراج الشهر والسنة (مثال: 2024-05)
+            const month = user.created_at.substring(0, 7);
+
+            if (!growthData[month]) growthData[month] = { month, users: 0, revenue: 0 };
+            growthData[month].users += 1;
+
+            if (user.plan === 'pro') {
+                totalPro++;
+                growthData[month].revenue += 15; // افتراض إيرادات الباقة برو
+            }
+            if (user.plan === 'viral_engine') {
+                totalViral++;
+                growthData[month].revenue += 35; // افتراض إيرادات الباقة فايرل
+            }
+        });
+
+        // تحويل البيانات لمصفوفة مرتبة ترتيباً زمنياً للرسوم البيانية
+        const chartData = Object.values(growthData).sort((a, b) => a.month.localeCompare(b.month));
+
+        res.json({
+            success: true,
+            analytics: {
+                chartData,
+                distribution: {
+                    free: users.length - totalPro - totalViral,
+                    pro: totalPro,
+                    viral: totalViral
+                }
+            }
+        });
+    } catch (error) {
+        console.error("❌ Analytics Query Failure:", error);
+        res.status(400).json({ success: false, message: error.message });
+    }
+});
+
+// 🧠 6. مسار جلب استهلاك الذكاء الاصطناعي المركزي (AI Usage)
+router.get('/ai-usage', async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const thisMonthPrefix = today.substring(0, 7); // مثلا 2026-06
+
+        // سحب إجمالي عمليات التوليد (السكريبتات) من جدول user_usage
+        const { data: usageData, error: usageError } = await supabase
+            .from('user_usage')
+            .select('usage_date, generation_count');
+
+        if (usageError) throw usageError;
+
+        let totalGenerationsThisMonth = 0;
+        let totalGenerationsToday = 0;
+
+        usageData?.forEach(record => {
+            if (record.usage_date === today) {
+                totalGenerationsToday += (record.generation_count || 0);
+            }
+            if (record.usage_date?.startsWith(thisMonthPrefix)) {
+                totalGenerationsThisMonth += (record.generation_count || 0);
+            }
+        });
+
+        // جلب مجموع التوكنز المستهلكة من الرصيد الاحتياطي (بحساب أن كل عملية بـ 10 توكنز حسب كودك)
+        const totalTokensConsumed = totalGenerationsThisMonth * 10;
+
+        res.json({
+            success: true,
+            aiStats: {
+                todayGenerations: totalGenerationsToday,
+                monthGenerations: totalGenerationsThisMonth,
+                totalTokensBurned: totalTokensConsumed,
+                estimatedFailures: Math.floor(totalGenerationsThisMonth * 0.02) // افتراض 2% نسبة خطأ طبيعية في الـ API
+            }
+        });
+    } catch (error) {
+        console.error("❌ AI Usage Fetch Error:", error);
+        res.status(400).json({ success: false, message: error.message });
+    }
+});
+
 export default router;

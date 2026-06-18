@@ -265,12 +265,12 @@ export default function AdminDashboard() {
                                             <tr key={inv.id} className="border-b border-slate-100 dark:border-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-900/10">
                                                 <td className="py-4 font-mono text-slate-600 dark:text-slate-400 text-xs font-bold">#{inv.id?.substring(0, 8).toUpperCase()}</td>
                                                 <td className="py-4 font-black text-emerald-600 dark:text-emerald-400 font-mono">
-                                                    {(inv.amount / 100).toFixed(2)} {inv.currency || 'SAR'}
+                                                    {Number(inv.amount).toFixed(2)} {inv.currency || 'SAR'}
                                                 </td>
                                                 <td className="py-4">
                                                     <span className={`px-2 py-0.5 rounded text-[10px] font-black ${inv.status === 'paid' || inv.status === 'captured'
-                                                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'
-                                                            : 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
+                                                        ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'
+                                                        : 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
                                                         }`}>
                                                         {inv.status === 'paid' || inv.status === 'captured' ? 'مدفوعة وجاهزة ✅' : inv.status}
                                                     </span>
