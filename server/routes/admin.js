@@ -288,13 +288,13 @@ router.post('/broadcast', async (req, res) => {
 
         // 1. محاولة إرسال الإشعار لجدول الإشعارات
         const { error: insertError } = await supabase.from('notifications').insert({
-            title,
-            message,
+            title: title,
+            message: message,
+            text: message, // 👑 الحل السحري لتخطي قيد الـ Not Null في الجدول القديم
             type: 'broadcast'
-            // تركنا user_id فارغاً ليكون متاحاً لجميع المستخدمين
         });
 
-        // كشاف الأخطاء: إذا رفض سوبابيس الإدخال، سيظهر السبب فوراً
+        // كشاف الأخطاء
         if (insertError) {
             console.error("❌ فشل إدخال الإشعار في قاعدة البيانات:", insertError.message);
             return res.status(400).json({ success: false, message: 'فشل إرسال البث، السيرفر رفض حفظ الإشعار.' });
