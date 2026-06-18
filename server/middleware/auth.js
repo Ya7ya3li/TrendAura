@@ -1,5 +1,6 @@
 import { env } from '../config/env.js';
 import { CONSTANTS } from '../config/constants.js';
+import { supabase } from '../services/supabase.js'; // 👑 جلبنا المحرك الرسمي مباشرة
 
 export const authGuard = async (req, res, next) => {
   try {
@@ -16,35 +17,16 @@ export const authGuard = async (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
 
-    // الحل القاطع: إرسال التوكن لـ Supabase للتحقق منه مباشرة لتخطي معايير تشفير ES256
-    const supabaseUrl = env.supabaseUrl;
-    const supabaseKey = env.supabaseServiceKey; // تم سحق الثغرة ومطابقتها للمتغير الفعلي بالملي
+    // 👑 التعديل الجذري: استخدام دالة الفحص الرسمية النظيفة (بدون خلط المفاتيح)
+    const { data: { user }, error } = await supabase.auth.getUser(token);
 
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('❌ [authGuard Error]: Missing Supabase Credentials in Server config');
-      return res.status(CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error: 'خطأ في إعدادات الخادم الأمنية الفيدرالية.'
-      });
-    }
-
-    const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'apikey': supabaseKey
-      }
-    });
-
-    if (!response.ok) {
-      console.error('❌ [Supabase Verification Error]: Token Rejected by Auth Engine');
+    if (error || !user) {
+      console.error('❌ [Supabase Verification Error]:', error?.message || 'Token Rejected');
       return res.status(CONSTANTS.HTTP_STATUS.UNAUTHORIZED).json({
         success: false,
         error: 'انتهت صلاحية الجلسة الحية للمتصفح، يرجى إعادة تسجيل الدخول.'
       });
     }
-
-    const user = await response.json();
 
     // حقن كائن المستخدم المصادق عليه بداخل الطلب الحالي
     req.user = {
@@ -56,7 +38,7 @@ export const authGuard = async (req, res, next) => {
     // 👑 التنفيذ الفعلي والصارم لمفاتيح الطوارئ (Kill Switches) 👑
     const sysState = global.systemState || { maintenance: false, ai_engine: true };
 
-    // 1. تفعيل مفتاح الصيانة: طرد الجميع باستثناء طلبات لوحة التحكم لضمان عدم انغلاق النظام على الإدارة
+    // 1. تفعيل مفتاح الصيانة: طرد الجميع باستثناءك أنت (عشان تقدر تدخل اللوحة وتفك الصيانة!)
     if (sysState.maintenance === true && !req.originalUrl.includes('/admin')) {
       return res.status(503).json({
         success: false,
@@ -72,7 +54,7 @@ export const authGuard = async (req, res, next) => {
       });
     }
 
-    return next();
+    return next(); // السماح بالمرور إذا كانت الأمور سليمة
   } catch (error) {
     console.error('❌ [authGuard Security Violation]:', error.message);
     return res.status(CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
