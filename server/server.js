@@ -51,7 +51,19 @@ app.use('/api/auth', authRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/usage', usageRoutes);
-app.use('/admin', adminRoutes); // 👑 تم ربط مسار الأدمن هنا
+app.use('/admin', adminRoutes);
+
+// 🚨 [الرادار الخفي]: شباك استعلام عام للواجهة الأمامية للتأكد من حالة الأقفال
+app.get('/api/system-status', (req, res) => {
+  const state = global.systemState || { maintenance: false, ai_engine: true };
+
+  // إذا وضع الصيانة مفعل، السيرفر بيرد بـ 503 ليتم طرد المتصفح فوراً
+  if (state.maintenance === true) {
+    return res.status(503).json({ success: false, message: 'under_maintenance' });
+  }
+
+  res.json({ success: true, state });
+});
 
 // نقطة فحص حيوية الخادم (Health Check Endpoint)
 app.get('/', (req, res) => {

@@ -27,6 +27,15 @@ import { ROUTES } from './constants/routes'
 import AdminRoute from './components/admin/AdminRoute.jsx'
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 
+import Maintenance from './pages/Maintenance'
+import { ROUTES } from './constants/routes'
+
+// 🚨 استدعاء الرادار الخفي
+import SystemGuard from './components/common/SystemGuard.jsx'
+
+// استدعاء ملفات الأدمن
+import AdminRoute from './components/admin/AdminRoute.jsx'
+
 export let showToast = () => { }
 
 export default function App() {
@@ -86,6 +95,7 @@ function AppContent() {
   return (
     // 🌟 تم تحديث الخلفية هنا لتتناغم مع الوضع الفاتح والداكن تلقائياً
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans antialiased relative selection:bg-blue-500/20 selection:text-blue-500 dark:selection:text-blue-400 transition-colors duration-300">
+      <SystemGuard />
       <Routes>
         <Route element={<LandingLayout />}>
           <Route path={ROUTES.LANDING} element={<Landing />} />
