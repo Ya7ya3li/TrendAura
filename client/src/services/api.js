@@ -47,8 +47,8 @@ export const api = {
   }
 };
 
-// 🚨 "الجرسون الذكي" (النسخة المضادة للانهيار)
-api.interceptors.response.use(
+// 🚨 "الجرسون الذكي" (الآن تم ربطه بالمحرك الأساسي axiosInstance بدلاً من القالب api)
+axiosInstance.interceptors.response.use(
   (response) => {
     return response;
   },
