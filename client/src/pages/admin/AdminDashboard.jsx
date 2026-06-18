@@ -7,6 +7,7 @@ import { showToast } from '../../App.jsx'
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('Dashboard')
     const [users, setUsers] = useState([])
+    const [invoices, setInvoices] = useState([]) // 👑 مصفوفة الفواتير الحية من قاعدة البيانات
     const [stats, setStats] = useState(null)
     const [loading, setLoading] = useState(true)
 
@@ -24,6 +25,7 @@ export default function AdminDashboard() {
     useEffect(() => {
         if (activeTab === 'Users') fetchUsersSafely()
         if (activeTab === 'Dashboard') fetchStatsSafely()
+        if (activeTab === 'Invoices') fetchInvoicesSafely() // 👑 تفعيل جلب الفواتير لحظياً عند فتح التبويب
     }, [activeTab])
 
     const fetchStatsSafely = async () => {
@@ -50,24 +52,44 @@ export default function AdminDashboard() {
             })
             if (response.success) setUsers(response.users)
         } catch (err) {
-            showToast('خطأ في الاتصال بالخادم', 'error')
+            showToast('خطأ في جلب بيانات المستخدمين', 'error')
         } finally {
             setLoading(false)
         }
     }
 
+    // 👑 جلب الفواتير والعمليات المالية الحية من السيرفر
+    const fetchInvoicesSafely = async () => {
+        setLoading(true)
+        try {
+            const { data: { session } } = await supabase.auth.getSession()
+            const response = await api.get('/admin/invoices', {
+                headers: { Authorization: `Bearer ${session?.access_token}` }
+            })
+            if (response.success) setInvoices(response.invoices)
+        } catch (err) {
+            showToast('خطأ في الاتصال بسجلات الفواتير السيادية', 'error')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // ⚡ مصفوفة التحكم المركزية الفعالة بالكامل الحين
     const handleAdminAction = async (targetUserId, actionType, details = {}) => {
+        // حماية تأكيدية قبل الحذف الفيدرالي للحساب
+        if (actionType === 'delete' && !window.confirm('🚨 تحذير صارم: هل أنت متأكد من حذف هذا الحساب نهائياً من جذوره؟ لا يمكن التراجع!')) return;
+
         try {
             const { data: { session } } = await supabase.auth.getSession()
             await api.post('/admin/action',
                 { targetUserId, action: actionType, details },
                 { headers: { Authorization: `Bearer ${session?.access_token}` } }
             )
-            showToast('تم التنفيذ بنجاح', 'success')
+            showToast('تم معالجة العملية وتدوينها بالأرشيف بنجاح', 'success')
             if (activeTab === 'Users') fetchUsersSafely()
             if (activeTab === 'Dashboard') fetchStatsSafely()
         } catch (err) {
-            showToast('فشل تنفيذ العملية', 'error')
+            showToast('فشل السيرفر في معالجة العملية الأمنية', 'error')
         }
     }
 
@@ -100,21 +122,20 @@ export default function AdminDashboard() {
             <div className="flex-1 min-w-0">
                 <div className="mb-6 flex justify-between items-center">
                     <SectionTitle title={adminTabs.find(t => t.id === activeTab)?.label} badge="SUPER ADMIN" />
-                    {activeTab !== 'Users' && activeTab !== 'Dashboard' && activeTab !== 'System' && (
+                    {activeTab !== 'Users' && activeTab !== 'Dashboard' && activeTab !== 'Invoices' && activeTab !== 'System' && (
                         <span className="px-3 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-black rounded-full animate-pulse">
                             نموذج عرض (قيد الربط مع السيرفر) ⏳
                         </span>
                     )}
                 </div>
 
-                {/* 1️⃣ اللوحة الرئيسية الفعالة بالكامل */}
+                {/* 1️⃣ اللوحة الرئيسية */}
                 {activeTab === 'Dashboard' && (
                     <div className="animate-fade-in space-y-6">
                         {loading || !stats ? (
                             <div className={`${cardBase} py-12 text-center text-slate-400 text-xs font-bold animate-pulse`}>جاري حساب البيانات الفيدرالية الحية...</div>
                         ) : (
                             <>
-                                {/* كروت الإحصائيات الحية */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                                     <div className={`${cardBase} border-blue-200 dark:border-blue-900/50`}>
                                         <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">إجمالي المستخدمين</p>
@@ -138,11 +159,8 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
 
-                                {/* جدول آخر الأعضاء المنضمين حياً من قاعدة البيانات */}
                                 <div className={`${cardBase}`}>
-                                    <h3 className="text-sm font-black mb-4 flex items-center gap-2 text-slate-800 dark:text-slate-200">
-                                        <span>⏱️</span> أحدث الأعضاء المنضمين للنظام حالياً
-                                    </h3>
+                                    <h3 className="text-sm font-black mb-4 text-slate-800 dark:text-slate-200">⏱️ أحدث الأعضاء المنضمين للنظام حالياً</h3>
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-right text-xs">
                                             <thead>
@@ -150,7 +168,7 @@ export default function AdminDashboard() {
                                                     <th className="pb-3 font-bold">المستند الحركي</th>
                                                     <th className="pb-3 font-bold">الإيميل الرسمي</th>
                                                     <th className="pb-3 font-bold">الباقة الحالية</th>
-                                                    <th className="pb-3 font-bold text-left">تاريخ التحديث</th>
+                                                    <th className="pb-3 font-bold text-left">تاريخ الإنشاء</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -158,21 +176,10 @@ export default function AdminDashboard() {
                                                     <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800/30 hover:bg-slate-50 dark:hover:bg-slate-900/10">
                                                         <td className="py-3 font-black text-slate-900 dark:text-white">{user.full_name || 'بدون اسم'}</td>
                                                         <td className="py-3 font-mono text-slate-500 dark:text-slate-400">{user.email}</td>
-                                                        <td className="py-3">
-                                                            <span className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-cyan-400 px-2 py-0.5 rounded text-[9px] font-black uppercase">
-                                                                {user.plan}
-                                                            </span>
-                                                        </td>
-                                                        <td className="py-3 font-mono text-slate-400 text-left">
-                                                            {new Date(user.updated_at).toLocaleDateString('ar-SA')}
-                                                        </td>
+                                                        <td className="py-3"><span className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-cyan-400 px-2 py-0.5 rounded text-[9px] font-black uppercase">{user.plan}</span></td>
+                                                        <td className="py-3 font-mono text-slate-400 text-left">{new Date(user.updated_at).toLocaleDateString('ar-SA')}</td>
                                                     </tr>
                                                 ))}
-                                                {stats.recentUsers?.length === 0 && (
-                                                    <tr>
-                                                        <td colSpan="4" className="py-6 text-center text-slate-400">لا يوجد مستخدمين مسجلين بعد.</td>
-                                                    </tr>
-                                                )}
                                             </tbody>
                                         </table>
                                     </div>
@@ -182,7 +189,7 @@ export default function AdminDashboard() {
                     </div>
                 )}
 
-                {/* 2️⃣ إدارة المستخدمين */}
+                {/* 2️⃣ إدارة المستخدمين الفعالة 100% الحين */}
                 {activeTab === 'Users' && (
                     <div className={`${cardBase} animate-fade-in`}>
                         {loading ? (
@@ -195,7 +202,7 @@ export default function AdminDashboard() {
                                             <th className="pb-4 font-black">المستخدم</th>
                                             <th className="pb-4 font-black">الرصيد/الباقة</th>
                                             <th className="pb-4 font-black">الحالة</th>
-                                            <th className="pb-4 font-black text-center">أزرار التحكم</th>
+                                            <th className="pb-4 font-black text-center">أزرار التحكم (Action Matrix)</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -217,13 +224,14 @@ export default function AdminDashboard() {
                                                 </td>
                                                 <td className="py-4">
                                                     <div className="flex flex-wrap items-center justify-center gap-1.5 max-w-[280px] mx-auto">
-                                                        <button onClick={() => handleAdminAction(user.id, 'add_tokens', { amount: 1000 })} className="px-2 py-1 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 rounded text-[9px] font-black hover:bg-emerald-100">➕ إضافة</button>
-                                                        <button onClick={() => handleAdminAction(user.id, 'remove_tokens', { amount: 1000 })} className="px-2 py-1 bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 rounded text-[9px] font-black hover:bg-amber-100">➖ خصم</button>
-                                                        <button onClick={() => handleAdminAction(user.id, 'upgrade_plan', { plan: 'viral_engine' })} className="px-2 py-1 bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 rounded text-[9px] font-black hover:bg-blue-100">⬆ ترقية</button>
-                                                        <button onClick={() => handleAdminAction(user.id, 'downgrade_plan')} className="px-2 py-1 bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 rounded text-[9px] font-black hover:bg-slate-200">⬇ مجاني</button>
+                                                        <button onClick={() => handleAdminAction(user.id, 'add_tokens', { amount: 5000 })} className="px-2 py-1 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 rounded text-[9px] font-black hover:bg-emerald-100">➕ 5k توكنز</button>
+                                                        <button onClick={() => handleAdminAction(user.id, 'remove_tokens', { amount: 5000 })} className="px-2 py-1 bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 rounded text-[9px] font-black hover:bg-amber-100">➖ 5k توكنز</button>
+                                                        <button onClick={() => handleAdminAction(user.id, 'upgrade_plan', { plan: 'viral_engine' })} className="px-2 py-1 bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 rounded text-[9px] font-black hover:bg-blue-100">⬆ ترقية لـ Viral</button>
+                                                        <button onClick={() => handleAdminAction(user.id, 'downgrade_plan')} className="px-2 py-1 bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 rounded text-[9px] font-black hover:bg-slate-200">⬇ خطة مجانية</button>
                                                         <button onClick={() => handleAdminAction(user.id, user.is_banned ? 'unban' : 'ban')} className={`px-2 py-1 rounded text-[9px] font-black border ${user.is_banned ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200'}`}>
-                                                            {user.is_banned ? '🔓 فك الحظر' : '🚫 حظر'}
+                                                            {user.is_banned ? '🔓 فك الحظر' : '🚫 حظر مركز'}
                                                         </button>
+                                                        <button onClick={() => handleAdminAction(user.id, 'delete')} className="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded text-[9px] font-black hover:bg-red-100 w-full mt-1 border border-red-200">🗑️ حذف الحساب فورا</button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -235,72 +243,70 @@ export default function AdminDashboard() {
                     </div>
                 )}
 
-                {/* 3️⃣ الفواتير والأرباح (نموذج عرض) */}
+                {/* 3️⃣ الفواتير والأرباح الفعالة 100% الحين */}
                 {activeTab === 'Invoices' && (
-                    <div className={`${cardBase} animate-fade-in opacity-80 grayscale-[30%]`}>
-                        <h3 className="text-lg font-black mb-4">أحدث العمليات المالية</h3>
-                        <table className="w-full text-right text-xs">
-                            <thead>
-                                <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500">
-                                    <th className="pb-4">رقم الفاتورة</th>
-                                    <th className="pb-4">المبلغ</th>
-                                    <th className="pb-4">الباقة</th>
-                                    <th className="pb-4">الحالة</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[1, 2, 3].map(i => (
-                                    <tr key={i} className="border-b border-slate-100 dark:border-slate-800/40">
-                                        <td className="py-4 font-mono text-slate-400">#INV-{Math.floor(Math.random() * 90000)}</td>
-                                        <td className="py-4 font-black text-emerald-500">$29.99</td>
-                                        <td className="py-4 font-bold text-blue-500">Viral Engine</td>
-                                        <td className="py-4"><span className="bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded">مدفوع</span></td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div className={`${cardBase} animate-fade-in`}>
+                        <h3 className="text-sm font-black mb-4 text-slate-800 dark:text-slate-200">💳 كشف الفواتير الحية وعمليات سداد ميسر</h3>
+                        {loading ? (
+                            <div className="py-12 text-center text-slate-400 text-xs font-bold animate-pulse">جاري جلب الفواتير والعمليات النقدية الحية...</div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-right text-xs">
+                                    <thead>
+                                        <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500">
+                                            <th className="pb-4 font-bold">معرف الفاتورة (Invoice ID)</th>
+                                            <th className="pb-4 font-bold">المبلغ المدفوع</th>
+                                            <th className="pb-4 font-bold">حالة السداد</th>
+                                            <th className="pb-4 font-bold text-left">تاريخ الحركة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {invoices.map((inv) => (
+                                            <tr key={inv.id} className="border-b border-slate-100 dark:border-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-900/10">
+                                                <td className="py-4 font-mono text-slate-600 dark:text-slate-400 text-xs font-bold">#{inv.id?.substring(0, 8).toUpperCase()}</td>
+                                                <td className="py-4 font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                                                    {(inv.amount / 100).toFixed(2)} {inv.currency || 'SAR'}
+                                                </td>
+                                                <td className="py-4">
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-black ${inv.status === 'paid' || inv.status === 'captured'
+                                                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'
+                                                            : 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
+                                                        }`}>
+                                                        {inv.status === 'paid' || inv.status === 'captured' ? 'مدفوعة وجاهزة ✅' : inv.status}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 font-mono text-slate-400 text-left">
+                                                    {new Date(inv.updated_at || inv.created_at).toLocaleDateString('ar-SA')}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {invoices.length === 0 && (
+                                            <tr>
+                                                <td colSpan="4" className="py-12 text-center text-slate-400 font-bold">لا توجد أي فواتير مسجلة في النظام حتى الآن.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 )}
 
-                {/* باقي التبويبات تظل كما هي بنماذج العرض الجاهزة */}
+                {/* باقي التبويبات كنماذج عرض آمنة */}
                 {activeTab === 'Analytics' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in opacity-80 grayscale-[30%]">
-                        <div className={`${cardBase} h-64 flex items-center justify-center flex-col`}>
-                            <span className="text-4xl mb-4">📈</span>
-                            <p className="font-black text-slate-500">رسم بياني لنمو المستخدمين (قريباً)</p>
-                        </div>
-                    </div>
+                    <div className={`${cardBase} h-48 flex items-center justify-center text-slate-400 text-xs font-bold animate-fade-in`}>📈 الرسوم البيانية المتطورة قيد الربط البرمجي...</div>
                 )}
-
                 {activeTab === 'AI_Usage' && (
-                    <div className={`${cardBase} text-center py-8 opacity-80 animate-fade-in`}>
-                        <p className="text-sm font-bold text-slate-400">سيتم ربط معدلات استهلاك خوارزمية السكريبتات الذكية قريباً...</p>
-                    </div>
+                    <div className={`${cardBase} h-48 flex items-center justify-center text-slate-400 text-xs font-bold animate-fade-in`}>🧠 مراقبة استهلاك خوارزمية السكريبتات الذكية قيد الربط...</div>
                 )}
-
                 {activeTab === 'Notifications' && (
-                    <div className={`${cardBase} max-w-2xl animate-fade-in opacity-80 grayscale-[30%]`}>
-                        <h3 className="text-sm font-black text-blue-600 mb-4">📢 بث إشعار مركزي</h3>
-                        <textarea placeholder="اكتب الإشعار هنا..." className="w-full h-24 bg-slate-50 dark:bg-slate-900 border rounded-lg p-3 text-xs font-bold outline-none mb-3" />
-                        <button className="px-4 py-2 bg-blue-600 text-white font-black text-xs rounded-xl w-full">نشر البث</button>
-                    </div>
+                    <div className={`${cardBase} h-48 flex items-center justify-center text-slate-400 text-xs font-bold animate-fade-in`}>🔔 بث الإشعارات لجميع المتصفحات الحية قيد الربط...</div>
                 )}
-
                 {activeTab === 'System' && (
-                    <div className={`${cardBase} border-rose-200 dark:border-rose-900/50 animate-fade-in`}>
-                        <h3 className="text-sm font-black text-rose-600 mb-4">🚨 أزرار الإيقاف الفيدرالي</h3>
-                        <div className="p-4 bg-slate-50 dark:bg-slate-900/60 rounded-2xl flex justify-between items-center">
-                            <span className="text-xs font-black">وضع الصيانة الكامل للموقع</span>
-                            <button className="px-4 py-1.5 bg-slate-800 text-white rounded-lg text-[10px] font-black">تفعيل</button>
-                        </div>
-                    </div>
+                    <div className={`${cardBase} h-48 flex items-center justify-center text-slate-400 text-xs font-bold animate-fade-in`}>🚨 مفاتيح الطوارئ والإيقاف الفيدرالي قيد الربط...</div>
                 )}
-
                 {activeTab === 'Logs' && (
-                    <div className={`${cardBase} animate-fade-in opacity-80 grayscale-[30%]`}>
-                        <h3 className="text-lg font-black mb-4">أرشيف العمليات الإدارية</h3>
-                        <p className="text-xs text-slate-400">سيتم تفعيل سجل تحركات لوحة التحكم بالكامل فور ربط جدول الحفظ.</p>
-                    </div>
+                    <div className={`${cardBase} h-48 flex items-center justify-center text-slate-400 text-xs font-bold animate-fade-in`}>📋 أرشيف الحركات الإدارية الدقيقة قيد الربط...</div>
                 )}
 
             </div>
