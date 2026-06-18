@@ -283,17 +283,36 @@ router.post('/system/toggle', async (req, res) => {
 
 // 🔔 8. مسار بث الإشعارات المركزية
 router.post('/broadcast', async (req, res) => {
-    const { title, message } = req.body;
+    try {
+        const { title, message } = req.body;
 
-    // التصحيح: إزالة .catch()
-    await supabase.from('admin_logs').insert({
-        admin_id: req.user?.id,
-        action: 'broadcast_notification',
-        target_user_id: 'all_users',
-        details: { title, message }
-    });
+        // 1. محاولة إرسال الإشعار لجدول الإشعارات
+        const { error: insertError } = await supabase.from('notifications').insert({
+            title,
+            message,
+            type: 'broadcast'
+            // تركنا user_id فارغاً ليكون متاحاً لجميع المستخدمين
+        });
 
-    res.json({ success: true, message: 'تم إطلاق البث العام بنجاح' });
+        // كشاف الأخطاء: إذا رفض سوبابيس الإدخال، سيظهر السبب فوراً
+        if (insertError) {
+            console.error("❌ فشل إدخال الإشعار في قاعدة البيانات:", insertError.message);
+            return res.status(400).json({ success: false, message: 'فشل إرسال البث، السيرفر رفض حفظ الإشعار.' });
+        }
+
+        // 2. توثيق إطلاق البث في سجل العمليات
+        await supabase.from('admin_logs').insert({
+            admin_id: req.user?.id,
+            action: 'broadcast_notification',
+            target_user_id: 'all_users',
+            details: { title, message }
+        });
+
+        res.json({ success: true, message: 'تم إطلاق البث العام بنجاح' });
+    } catch (err) {
+        console.error("❌ خطأ غير متوقع في مسار البث:", err);
+        res.status(500).json({ success: false, message: 'حدث خطأ داخلي في الخادم.' });
+    }
 });
 
 // 📋 9. مسار جلب سجل العمليات الإدارية (Audit Logs)
