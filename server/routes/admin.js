@@ -265,20 +265,35 @@ router.get('/system', (req, res) => {
     res.json({ success: true, settings: systemState });
 });
 
-router.post('/system/toggle', async (req, res) => {
-    const { feature, status } = req.body;
-    if (feature === 'maintenance') systemState.maintenance = status;
-    if (feature === 'ai_engine') systemState.ai_engine = status;
-
-    // التصحيح: إزالة .catch() والسماح للعملية بالمرور بصمت
-    await supabase.from('admin_logs').insert({
-        admin_id: req.user?.id,
-        action: `system_toggle_${feature}`,
-        target_user_id: 'system',
-        details: { status }
-    });
-
+// 🚨 7. مسارات مفاتيح النظام (الطوارئ)
+router.get('/system', (req, res) => {
     res.json({ success: true, settings: systemState });
+});
+
+router.post('/system/toggle', async (req, res) => {
+    try {
+        const { feature, status } = req.body;
+
+        // تعديل الحالة في الذاكرة
+        if (feature === 'maintenance') systemState.maintenance = status;
+        if (feature === 'ai_engine') systemState.ai_engine = status;
+
+        // تسجيل العملية في الأرشيف بأمان (بدون target_user_id عشان ما يضرب الـ UUID)
+        const { error: logError } = await supabase.from('admin_logs').insert({
+            admin_id: req.user?.id,
+            action: `system_toggle_${feature}`,
+            details: { status: status ? 'ON' : 'OFF' }
+        });
+
+        if (logError) {
+            console.warn("⚠️ [تنبيه أرشيف النظام]:", logError.message);
+        }
+
+        res.json({ success: true, settings: systemState });
+    } catch (error) {
+        console.error("❌ [خطأ في مفاتيح الطوارئ]:", error);
+        res.status(500).json({ success: false, message: 'حدث خطأ داخلي أثناء تبديل حالة النظام.' });
+    }
 });
 
 // 🔔 8. مسار بث الإشعارات المركزية
