@@ -270,13 +270,13 @@ router.post('/system/toggle', async (req, res) => {
     if (feature === 'maintenance') systemState.maintenance = status;
     if (feature === 'ai_engine') systemState.ai_engine = status;
 
-    // توثيق إيقاف/تشغيل النظام في السجلات
+    // التصحيح: إزالة .catch() والسماح للعملية بالمرور بصمت
     await supabase.from('admin_logs').insert({
         admin_id: req.user?.id,
         action: `system_toggle_${feature}`,
         target_user_id: 'system',
         details: { status }
-    }).catch(() => null); // صمت في حال عدم وجود الجدول
+    });
 
     res.json({ success: true, settings: systemState });
 });
@@ -285,14 +285,13 @@ router.post('/system/toggle', async (req, res) => {
 router.post('/broadcast', async (req, res) => {
     const { title, message } = req.body;
 
-    // هنا مستقبلاً نقدر نربطها بجدول notifications أو WebSockets
-    // حالياً بنوثق إنك أرسلت بث عام في السجلات
+    // التصحيح: إزالة .catch()
     await supabase.from('admin_logs').insert({
         admin_id: req.user?.id,
         action: 'broadcast_notification',
         target_user_id: 'all_users',
         details: { title, message }
-    }).catch(() => null);
+    });
 
     res.json({ success: true, message: 'تم إطلاق البث العام بنجاح' });
 });
@@ -303,13 +302,12 @@ router.get('/logs', async (req, res) => {
         const { data: logs, error } = await supabase
             .from('admin_logs')
             .select('*')
-            .order('id', { ascending: false }) // رتبنا بالـ id لتفادي مشكلة created_at
+            .order('id', { ascending: false })
             .limit(50);
 
         if (error) throw error;
         res.json({ success: true, logs: logs || [] });
     } catch (error) {
-        // حماية تراجعية: إذا الجدول مو موجود نرسل مصفوفة فارغة
         console.warn("⚠️ [Logs Warning]:", error.message);
         res.json({ success: true, logs: [] });
     }
