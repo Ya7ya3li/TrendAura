@@ -47,15 +47,14 @@ export const api = {
   }
 };
 
-// 🚨 "الجرسون الذكي": يراقب كل الردود من السيرفر، وإذا لقط حالة طوارئ يتصرف فوراً
+// 🚨 "الجرسون الذكي" (النسخة المضادة للانهيار)
 api.interceptors.response.use(
   (response) => {
-    // إذا السيرفر راضي والطلب سليم، خله يمر
     return response;
   },
   (error) => {
-    // 👑 إذا السيرفر رفض الطلب بكود 503 (يعني زر الطوارئ شغال)
-    if (error.response && error.response.status === 503) {
+    // 👑 حماية فولاذية: نتأكد أولاً إن الـ error موجود، وداخله response قبل لا نقرأ الحالة
+    if (error && error.response && error.response.status === 503) {
 
       // توجيه إجباري وفوري لصفحة الصيانة
       window.location.href = '/maintenance';
