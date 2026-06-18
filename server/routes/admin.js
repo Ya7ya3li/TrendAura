@@ -151,10 +151,10 @@ router.get('/invoices', async (req, res) => {
 // 📈 5. مسار جلب الإحصائيات المتقدمة (Analytics & Charts)
 router.get('/analytics', async (req, res) => {
     try {
-        // حساب النمو الشهري: جلب تاريخ الانضمام لكل حساب لعمل رسم بياني للنمو
+        // 👑 التعديل الأول: سحب updated_at بدلاً من created_at
         const { data: users, error: usersError } = await supabase
             .from('profiles')
-            .select('created_at, plan');
+            .select('updated_at, plan');
 
         if (usersError) throw usersError;
 
@@ -164,20 +164,20 @@ router.get('/analytics', async (req, res) => {
         let totalViral = 0;
 
         users.forEach(user => {
-            if (!user.created_at) return;
-            // استخراج الشهر والسنة (مثال: 2024-05)
-            const month = user.created_at.substring(0, 7);
+            if (!user.updated_at) return;
+            // استخراج الشهر والسنة (مثال: 2026-06)
+            const month = user.updated_at.substring(0, 7);
 
             if (!growthData[month]) growthData[month] = { month, users: 0, revenue: 0 };
             growthData[month].users += 1;
 
             if (user.plan === 'pro') {
                 totalPro++;
-                growthData[month].revenue += 15; // افتراض إيرادات الباقة برو
+                growthData[month].revenue += 15;
             }
             if (user.plan === 'viral_engine') {
                 totalViral++;
-                growthData[month].revenue += 35; // افتراض إيرادات الباقة فايرل
+                growthData[month].revenue += 35;
             }
         });
 
@@ -205,12 +205,26 @@ router.get('/analytics', async (req, res) => {
 router.get('/ai-usage', async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
-        const thisMonthPrefix = today.substring(0, 7); // مثلا 2026-06
+        const thisMonthPrefix = today.substring(0, 7);
 
-        // سحب إجمالي عمليات التوليد (السكريبتات) من جدول user_usage
+        // محاولة سحب إجمالي عمليات التوليد من جدول user_usage
         const { data: usageData, error: usageError } = await supabase
             .from('user_usage')
             .select('usage_date, generation_count');
+
+        // 👑 التعديل الثاني: جدار حماية لمنع انهيار السيرفر إذا كان الجدول غير موجود
+        if (usageError && usageError.code === 'PGRST205') {
+            console.warn("⚠️ [تنبيه]: جدول user_usage غير موجود في قاعدة البيانات حتى الآن.");
+            return res.json({
+                success: true,
+                aiStats: {
+                    todayGenerations: 0,
+                    monthGenerations: 0,
+                    totalTokensBurned: 0,
+                    estimatedFailures: 0
+                }
+            });
+        }
 
         if (usageError) throw usageError;
 
@@ -226,7 +240,6 @@ router.get('/ai-usage', async (req, res) => {
             }
         });
 
-        // جلب مجموع التوكنز المستهلكة من الرصيد الاحتياطي (بحساب أن كل عملية بـ 10 توكنز حسب كودك)
         const totalTokensConsumed = totalGenerationsThisMonth * 10;
 
         res.json({
@@ -235,7 +248,7 @@ router.get('/ai-usage', async (req, res) => {
                 todayGenerations: totalGenerationsToday,
                 monthGenerations: totalGenerationsThisMonth,
                 totalTokensBurned: totalTokensConsumed,
-                estimatedFailures: Math.floor(totalGenerationsThisMonth * 0.02) // افتراض 2% نسبة خطأ طبيعية في الـ API
+                estimatedFailures: Math.floor(totalGenerationsThisMonth * 0.02)
             }
         });
     } catch (error) {
