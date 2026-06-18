@@ -46,3 +46,21 @@ export const api = {
     }
   }
 };
+
+// 🚨 "الجرسون الذكي": يراقب كل الردود من السيرفر، وإذا لقط حالة طوارئ يتصرف فوراً
+api.interceptors.response.use(
+  (response) => {
+    // إذا السيرفر راضي والطلب سليم، خله يمر
+    return response;
+  },
+  (error) => {
+    // 👑 إذا السيرفر رفض الطلب بكود 503 (يعني زر الطوارئ شغال)
+    if (error.response && error.response.status === 503) {
+
+      // توجيه إجباري وفوري لصفحة الصيانة
+      window.location.href = '/maintenance';
+
+    }
+    return Promise.reject(error);
+  }
+);
