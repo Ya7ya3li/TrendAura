@@ -23,18 +23,12 @@ import NotFound from './pages/NotFound'
 import Maintenance from './pages/Maintenance'
 import { ROUTES } from './constants/routes'
 
-// استدعاء ملفات الأدمن
-import AdminRoute from './components/admin/AdminRoute.jsx'
-import AdminDashboard from './pages/admin/AdminDashboard.jsx'
-
-import Maintenance from './pages/Maintenance'
-import { ROUTES } from './constants/routes'
-
 // 🚨 استدعاء الرادار الخفي
 import SystemGuard from './components/common/SystemGuard.jsx'
 
 // استدعاء ملفات الأدمن
 import AdminRoute from './components/admin/AdminRoute.jsx'
+import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 
 export let showToast = () => { }
 
