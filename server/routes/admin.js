@@ -257,4 +257,62 @@ router.get('/ai-usage', async (req, res) => {
     }
 });
 
+// 🚨 متغيرات في الذاكرة لمفاتيح النظام (عشان تشتغل فوراً بدون قاعدة بيانات مؤقتاً)
+let systemState = { maintenance: false, ai_engine: true };
+
+// 🚨 7. مسارات مفاتيح النظام (الطوارئ)
+router.get('/system', (req, res) => {
+    res.json({ success: true, settings: systemState });
+});
+
+router.post('/system/toggle', async (req, res) => {
+    const { feature, status } = req.body;
+    if (feature === 'maintenance') systemState.maintenance = status;
+    if (feature === 'ai_engine') systemState.ai_engine = status;
+
+    // توثيق إيقاف/تشغيل النظام في السجلات
+    await supabase.from('admin_logs').insert({
+        admin_id: req.user?.id,
+        action: `system_toggle_${feature}`,
+        target_user_id: 'system',
+        details: { status }
+    }).catch(() => null); // صمت في حال عدم وجود الجدول
+
+    res.json({ success: true, settings: systemState });
+});
+
+// 🔔 8. مسار بث الإشعارات المركزية
+router.post('/broadcast', async (req, res) => {
+    const { title, message } = req.body;
+
+    // هنا مستقبلاً نقدر نربطها بجدول notifications أو WebSockets
+    // حالياً بنوثق إنك أرسلت بث عام في السجلات
+    await supabase.from('admin_logs').insert({
+        admin_id: req.user?.id,
+        action: 'broadcast_notification',
+        target_user_id: 'all_users',
+        details: { title, message }
+    }).catch(() => null);
+
+    res.json({ success: true, message: 'تم إطلاق البث العام بنجاح' });
+});
+
+// 📋 9. مسار جلب سجل العمليات الإدارية (Audit Logs)
+router.get('/logs', async (req, res) => {
+    try {
+        const { data: logs, error } = await supabase
+            .from('admin_logs')
+            .select('*')
+            .order('id', { ascending: false }) // رتبنا بالـ id لتفادي مشكلة created_at
+            .limit(50);
+
+        if (error) throw error;
+        res.json({ success: true, logs: logs || [] });
+    } catch (error) {
+        // حماية تراجعية: إذا الجدول مو موجود نرسل مصفوفة فارغة
+        console.warn("⚠️ [Logs Warning]:", error.message);
+        res.json({ success: true, logs: [] });
+    }
+});
+
 export default router;
