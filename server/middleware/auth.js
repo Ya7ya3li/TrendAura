@@ -53,6 +53,25 @@ export const authGuard = async (req, res, next) => {
       plan: user.app_metadata?.plan || user.user_metadata?.plan || 'free'
     };
 
+    // 👑 التنفيذ الفعلي والصارم لمفاتيح الطوارئ (Kill Switches) 👑
+    const sysState = global.systemState || { maintenance: false, ai_engine: true };
+
+    // 1. تفعيل مفتاح الصيانة: طرد الجميع باستثناء طلبات لوحة التحكم لضمان عدم انغلاق النظام على الإدارة
+    if (sysState.maintenance === true && !req.originalUrl.includes('/admin')) {
+      return res.status(503).json({
+        success: false,
+        error: '🚨 النظام حالياً تحت الصيانة الفيدرالية الشاملة، نعود لكم قريباً!'
+      });
+    }
+
+    // 2. تفعيل مفتاح الذكاء الاصطناعي: حظر مسارات التوليد وصناعة السكريبتات فوراً
+    if (sysState.ai_engine === false && (req.originalUrl.includes('/ai') || req.originalUrl.includes('/generate') || req.originalUrl.includes('/viral'))) {
+      return res.status(503).json({
+        success: false,
+        error: '🧠 محرك الذكاء الاصطناعي متوقف مؤقتاً للصيانة الفنية، يرجى المحاولة لاحقاً.'
+      });
+    }
+
     return next();
   } catch (error) {
     console.error('❌ [authGuard Security Violation]:', error.message);
