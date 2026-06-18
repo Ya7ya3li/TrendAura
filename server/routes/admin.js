@@ -124,20 +124,20 @@ router.post('/action', async (req, res) => {
 // 💳 4. مسار جلب الفواتير والعمليات المالية الحية (الفواتير والأرباح)
 router.get('/invoices', async (req, res) => {
     try {
-        // جلب البيانات المالية التاريخية من جدول الفواتير المعتمد في نظام ميسر (سواء تم تسميته invoices أو payments)
+        // جلب البيانات المالية التاريخية بالاعتماد على تاريخ الإنشاء (created_at)
         const { data: invoices, error } = await supabase
             .from('invoices')
             .select('*')
-            .order('updated_at', { ascending: false });
+            .order('created_at', { ascending: false }); // 👑 التعديل هنا
 
         if (error) {
-            // جدار حماية تراجعي: إذا كان الجدول مسجلاً باسم payments يتم سحبه فوراً لتجنب انهيار الصفحة
+            // جدار حماية تراجعي: إذا كان الجدول مسجلاً باسم payments
             const { data: fallbackPayments, error: fallbackError } = await supabase
                 .from('payments')
                 .select('*')
-                .order('updated_at', { ascending: false });
+                .order('created_at', { ascending: false }); // 👑 والتعديل هنا أيضاً
 
-            if (fallbackError) throw error;
+            if (fallbackError) throw error; // نرمي الخطأ الأساسي لو الجدولين غير موجودين
             return res.json({ success: true, invoices: fallbackPayments || [] });
         }
 
