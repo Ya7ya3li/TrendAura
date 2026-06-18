@@ -265,11 +265,6 @@ router.get('/system', (req, res) => {
     res.json({ success: true, settings: systemState });
 });
 
-// 🚨 7. مسارات مفاتيح النظام (الطوارئ)
-router.get('/system', (req, res) => {
-    res.json({ success: true, settings: systemState });
-});
-
 router.post('/system/toggle', async (req, res) => {
     try {
         const { feature, status } = req.body;
