@@ -59,6 +59,25 @@ export default function AdminDashboard() {
         try { const { data: { session } } = await supabase.auth.getSession(); await api.post('/admin/action', { targetUserId, action: actionType, details }, { headers: { Authorization: `Bearer ${session?.access_token}` } }); showToast('تم تنفيذ الأمر', 'success'); if (activeTab === 'Users') fetchUsersSafely(); } catch (err) { showToast('فشل التنفيذ', 'error') }
     }
 
+    // 🛸 دالة التحكم اليدوي في التوكنز
+    const handleTokenUpdate = (userId, actionType) => {
+        const actionText = actionType === 'add_tokens' ? 'إضافة' : 'سحب';
+        const input = window.prompt(`⚡ أدخل عدد التوكنز المراد ${actionText} لهذا الكيان:`, "5000");
+
+        // إذا ضغط إلغاء أو خلى الحقل فاضي
+        if (input === null || input.trim() === '') return;
+
+        const amount = Number(input);
+
+        // التحقق من صحة الرقم
+        if (isNaN(amount) || amount <= 0) {
+            return showToast('❌ إدخال مرفوض: يرجى كتابة رقم صحيح أكبر من الصفر.', 'error');
+        }
+
+        // إرسال الأمر للسيرفر بالكمية المحددة يدوياً
+        handleAdminAction(userId, actionType, { amount });
+    };
+
     const handleSystemToggle = async (feature, currentStatus) => {
         try {
             const { data: { session } } = await supabase.auth.getSession();
@@ -163,7 +182,7 @@ export default function AdminDashboard() {
                         </div>
                     )}
 
-                    {/* 2️⃣ إدارة الكيانات (المستخدمين) */}
+                    {/* 2️⃣ إدارة المستخدمين (المستخدمين) */}
                     {activeTab === 'Users' && (
                         <div className={`${cardBase} animate-fade-in`}>
                             <div className="overflow-x-auto">
@@ -180,8 +199,12 @@ export default function AdminDashboard() {
                                             </td>
                                             <td className="py-4 text-center">
                                                 <div className="flex flex-wrap items-center justify-center gap-1.5 max-w-[280px] mx-auto">
-                                                    <button onClick={() => handleAdminAction(u.id, 'add_tokens', { amount: 5000 })} className="flex items-center gap-1 px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded hover:bg-emerald-500/20 text-[9px] font-bold"><Icon path="M12 4v16m8-8H4" className="w-3 h-3" /> 5k</button>
-                                                    <button onClick={() => handleAdminAction(u.id, 'remove_tokens', { amount: 5000 })} className="flex items-center gap-1 px-2 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded hover:bg-amber-500/20 text-[9px] font-bold"><Icon path="M20 12H4" className="w-3 h-3" /> 5k</button>
+                                                    <button onClick={() => handleTokenUpdate(u.id, 'add_tokens')} className="flex items-center gap-1 px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded hover:bg-emerald-500/20 text-[9px] font-bold">
+                                                        <Icon path="M12 4v16m8-8H4" className="w-3 h-3" /> إضافة رصيد
+                                                    </button>
+                                                    <button onClick={() => handleTokenUpdate(u.id, 'remove_tokens')} className="flex items-center gap-1 px-2 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded hover:bg-amber-500/20 text-[9px] font-bold">
+                                                        <Icon path="M20 12H4" className="w-3 h-3" /> سحب رصيد
+                                                    </button>
                                                     <button onClick={() => handleAdminAction(u.id, 'upgrade_plan', { plan: 'viral_engine' })} className="flex items-center gap-1 px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded hover:bg-blue-500/20 text-[9px] font-bold"><Icon path="M5 10l7-7m0 0l7 7m-7-7v18" className="w-3 h-3" /> ترقية</button>
                                                     <button onClick={() => handleAdminAction(u.id, 'downgrade_plan')} className="flex items-center gap-1 px-2 py-1 bg-slate-500/10 text-slate-400 border border-slate-500/20 rounded hover:bg-slate-500/20 text-[9px] font-bold"><Icon path="M19 14l-7 7m0 0l-7-7m7 7V3" className="w-3 h-3" /> تنزيل</button>
                                                     <button onClick={() => handleAdminAction(u.id, u.is_banned ? 'unban' : 'ban')} className={`flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold border ${u.is_banned ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}`}>
