@@ -110,8 +110,8 @@ export default function AdminDashboard() {
                     {adminTabs.map(tab => (
                         <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                             className={`w-full text-right px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 border ${activeTab === tab.id
-                                    ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
-                                    : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5 hover:border-white/10'
+                                ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+                                : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5 hover:border-white/10'
                                 }`}>
                             <Icon path={tab.icon} className="w-5 h-5 opacity-80" />
                             <span className="tracking-wide">{tab.label}</span>
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
                                                     <button onClick={() => handleAdminAction(u.id, 'downgrade_plan')} className="flex items-center gap-1 px-2 py-1 bg-slate-500/10 text-slate-400 border border-slate-500/20 rounded hover:bg-slate-500/20 text-[9px] font-bold"><Icon path="M19 14l-7 7m0 0l-7-7m7 7V3" className="w-3 h-3" /> تنزيل</button>
                                                     <button onClick={() => handleAdminAction(u.id, u.is_banned ? 'unban' : 'ban')} className={`flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold border ${u.is_banned ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}`}>
                                                         <Icon path={u.is_banned ? "M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" : "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"} className="w-3 h-3" />
-                                                        {u.is_banned ? 'إلغاء العزل' : 'عزل الشبكة'}
+                                                        {u.is_banned ? 'إلغاء الحظر' : 'حظر الشبكة'}
                                                     </button>
                                                     <button onClick={() => handleAdminAction(u.id, 'delete')} className="flex items-center justify-center gap-1 px-2 py-1 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30 text-[9px] font-bold w-full mt-1 border border-red-500/30 transition-all">
                                                         <Icon path="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" className="w-3 h-3" /> سحق البيانات
