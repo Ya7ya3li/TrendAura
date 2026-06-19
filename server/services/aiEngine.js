@@ -41,7 +41,7 @@ const callGroq = async (prompt) => {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            model: 'llama3-8b-8192',
+            model: 'llama-3.1-8b-instant', // 👑 تم التحديث للموديل السريع الجديد
             response_format: { type: "json_object" },
             messages: [{ role: 'user', content: prompt }]
         })
