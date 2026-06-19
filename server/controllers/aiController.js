@@ -1,63 +1,46 @@
-import { aiService } from '../services/gemini.js';
+import { aiEngine } from '../services/aiEngine.js';
 
-/**
- * 🧠 1. دالة توليد السكريبتات المرتبطة بالمحرك المركزي لـ TrendAura
- */
 export const generateScript = async (req, res) => {
   try {
     const { prompt } = req.body;
-
     if (!prompt || prompt.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "الرجاء كتابة الفكرة أولاً"
-      });
+      return res.status(400).json({ success: false, message: "الرجاء كتابة الفكرة أولاً" });
     }
 
-    const result = await aiService.generateViralContent(prompt);
+    // 🚀 إطلاق المحرك الهجين
+    const aiResponse = await aiEngine.generateViralContent(prompt);
 
+    // 👑 نرسل parsedData عشان الواجهة تستقبل JSON مقسم وجاهز للعرض
     return res.status(200).json({
       success: true,
-      result,
-      data: result
+      result: aiResponse.parsedData,
+      data: aiResponse.parsedData,
+      provider: aiResponse.provider // اسم المزود (للرصد)
     });
-
   } catch (error) {
-    console.error("❌ [Controller Generate Script Failure]:", error.message);
-    return res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    console.error("❌ AI Generation Error:", error.message);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-/**
- * 🔬 2. دالة فحص مؤشرات الفيروسية المرتبطة بالمحرك المركزي
- */
 export const analyzeViralScript = async (req, res) => {
   try {
     const { scriptText } = req.body;
-
     if (!scriptText || scriptText.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "السياق فارغ، يرجى تمرير سكريبت حقيقي!"
-      });
+      return res.status(400).json({ success: false, message: "السياق فارغ، يرجى تمرير سكريبت حقيقي!" });
     }
 
-    const data = await aiService.analyzeViralMetrics(scriptText);
+    // 🚀 إطلاق المحرك الهجين
+    const aiResponse = await aiEngine.analyzeViralMetrics(scriptText);
 
     return res.status(200).json({
       success: true,
-      result: data,
-      data
+      result: aiResponse.parsedData,
+      data: aiResponse.parsedData,
+      provider: aiResponse.provider
     });
-
   } catch (error) {
-    console.error("❌ [Controller Viral Engine Failure]:", error.message);
-    return res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    console.error("❌ AI Analysis Error:", error.message);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

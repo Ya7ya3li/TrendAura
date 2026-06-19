@@ -12,6 +12,8 @@ const requiredEnvs = [
   'SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
   'GEMINI_API_KEY',
+  'GROQ_API_KEY',       // 🚀 تمت إضافة مفتاح Groq
+  'OPENROUTER_API_KEY', // 🚀 تمت إضافة مفتاح OpenRouter
   'MOYASAR_SECRET_KEY',
   'JWT_SECRET'
 ];
@@ -31,6 +33,8 @@ export const env = {
   supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
 
   geminiApiKey: process.env.GEMINI_API_KEY,
+  groqApiKey: process.env.GROQ_API_KEY,             // 👑 تصدير مفتاح Groq
+  openRouterApiKey: process.env.OPENROUTER_API_KEY, // 👑 تصدير مفتاح OpenRouter
 
   moyasarSecretKey: process.env.MOYASAR_SECRET_KEY,
   moyasarWebhookSecret: process.env.MOYASAR_WEBHOOK_SECRET,

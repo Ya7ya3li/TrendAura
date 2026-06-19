@@ -1,8 +1,8 @@
 export const AI_MODELS = {
   PRIMARY_CORE: {
-    id: 'gemini-2.5-flash',
-    name: 'TrendAura AI Core',
-    provider: 'Google Gemini',
+    id: 'trendaura-hybrid-core', // 🚀 توحيد الهوية
+    name: 'TrendAura Hybrid Engine',
+    provider: 'Federated AI Network (Gemini, Llama, Qwen)', // 👑 اسم احترافي للشبكة
     temperature: 0.7,
     maxTokens: {
       free: 400,
@@ -12,9 +12,9 @@ export const AI_MODELS = {
   },
 
   ANALYTICS_CORE: {
-    id: 'gemini-2.5-flash',
+    id: 'trendaura-analytics-core',
     name: 'TrendAura Analytics Engine',
-    provider: 'Google Gemini',
+    provider: 'Federated AI Network',
     temperature: 0.3
   }
 };
