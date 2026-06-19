@@ -1,83 +1,128 @@
 import { env } from '../config/env.js';
 
-// 🧹 دالة تنظيف ومطابقة الـ JSON
+// 🧹 1) مستخرج ومطهر كتل JSON الفولاذي باستخدام العبارات النمطية (Regex)
 const cleanAndParseResponse = (text) => {
     try {
-        const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-        return JSON.parse(cleaned);
+        // استخراج أول كائن JSON يبدأ بـ { وينتهي بـ } بغض النظر عن النصوص المحيطة
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+
+        if (!jsonMatch) {
+            console.error("❌ [Sanitizer Error]: No valid JSON block discovered in the output.");
+            return null;
+        }
+
+        return JSON.parse(jsonMatch[0]);
     } catch (error) {
-        console.error("❌ JSON Parse Error:", error.message);
+        console.error("❌ [JSON Parse Exception]:", error.message);
         return null;
     }
 };
 
 // 1️⃣ مزود المستوى الأول: Gemini
 const callGemini = async (prompt) => {
-    // 👑 تم التحديث إلى الموديل الخاص بك gemini-2.5-flash
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.geminiApiKey}`;
 
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: "application/json" }
-        })
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-    if (!response.ok) throw new Error(await response.text());
-    const data = await response.json();
-    return data.candidates[0].content.parts[0].text;
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    temperature: 0.7 // 🎯 2) تثبيت معيار التوازن الإبداعي
+                }
+            })
+        });
+
+        if (!response.ok) throw new Error(await response.text());
+        const data = await response.json();
+
+        // 🛡️ 3) حماية متقدمة للردود الناقصة لمنع العطل المتقطع
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) throw new Error("Gemini payload validation failed: Empty content parts");
+
+        return text;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 };
 
 // 2️⃣ مزود المستوى الثاني: Groq
 const callGroq = async (prompt) => {
     if (!env.groqApiKey) throw new Error("Groq API Key is missing");
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${env.groqApiKey}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            model: 'llama-3.1-8b-instant', // 👑 تم التحديث للموديل السريع الجديد
-            response_format: { type: "json_object" },
-            messages: [{ role: 'user', content: prompt }]
-        })
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-    if (!response.ok) throw new Error(await response.text());
-    const data = await response.json();
-    return data.choices[0].message.content;
+    try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+                'Authorization': `Bearer ${env.groqApiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'llama-3.1-8b-instant',
+                temperature: 0.7, // 🎯 2) ضبط ريتم التوليد
+                messages: [{ role: 'user', content: prompt }]
+            })
+        });
+
+        if (!response.ok) throw new Error(await response.text());
+        const data = await response.json();
+
+        const text = data?.choices?.[0]?.message?.content;
+        if (!text) throw new Error("Groq payload validation failed: Empty choices");
+
+        return text;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 };
 
 // 3️⃣ مزود المستوى الثالث: OpenRouter
 const callOpenRouter = async (prompt, modelName) => {
     if (!env.openRouterApiKey) throw new Error("OpenRouter API Key is missing");
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${env.openRouterApiKey}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://trendaura.app',
-            'X-Title': 'TrendAura SaaS'
-        },
-        body: JSON.stringify({
-            model: modelName,
-            response_format: { type: "json_object" },
-            messages: [{ role: 'user', content: prompt }]
-        })
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-    if (!response.ok) throw new Error(await response.text());
-    const data = await response.json();
-    return data.choices[0].message.content;
+    try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+                'Authorization': `Bearer ${env.openRouterApiKey}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://trendaura-two.vercel.app',
+                'X-Title': 'TrendAura SaaS'
+            },
+            body: JSON.stringify({
+                model: modelName,
+                temperature: 0.7, // 🎯 2) توحيد جودة الردود سحابياً
+                messages: [{ role: 'user', content: prompt }]
+            })
+        });
+
+        if (!response.ok) throw new Error(await response.text());
+        const data = await response.json();
+
+        const text = data?.choices?.[0]?.message?.content;
+        if (!text) throw new Error(`OpenRouter [${modelName}] payload validation failed: Empty choices`);
+
+        return text;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 };
 
-// 🚀 قلب المحرك: سلسلة الطوارئ (الآن محصنة بـ Fetch)
-const executeFallbackChain = async (fullPrompt) => {
+// 🚀 قلب المحرك: سلسلة الطوارئ المزودة بالفحص والتطبيع الهيكلي
+const executeFallbackChain = async (fullPrompt, requiredFields) => {
     console.log("⚡ [AI Engine]: Initiating Fallback Protocol...");
     let rawText = "";
     let finalProvider = "";
@@ -87,19 +132,21 @@ const executeFallbackChain = async (fullPrompt) => {
         rawText = await callGemini(fullPrompt);
         finalProvider = 'Gemini';
     } catch (err) {
-        console.warn("⚠️ Gemini Failed. Reason:", err.message);
+        console.warn("⚠️ Gemini Failed. Reason:", err.name === 'AbortError' ? 'Timeout (8s exceeded)' : err.message);
 
         try {
             console.log("🧠 Attempting Groq...");
             rawText = await callGroq(fullPrompt);
             finalProvider = 'Groq';
         } catch (err) {
-            console.warn("⚠️ Groq Failed. Reason:", err.message);
+            console.warn("⚠️ Groq Failed. Reason:", err.name === 'AbortError' ? 'Timeout (8s exceeded)' : err.message);
 
+            // 👑 4) مصفوفة سلاسل OpenRouter المحدثة والذكية
             const openRouterModels = [
-                'meta-llama/llama-3-8b-instruct',
-                'mistralai/mistral-7b-instruct',
-                'qwen/qwen-2.5-72b-instruct'
+                'deepseek/deepseek-chat-v3',
+                'qwen/qwen3-32b',
+                'mistralai/mistral-small',
+                'meta-llama/llama-3.3-70b-instruct'
             ];
 
             let success = false;
@@ -111,24 +158,44 @@ const executeFallbackChain = async (fullPrompt) => {
                     success = true;
                     break;
                 } catch (err) {
-                    console.warn(`⚠️ OpenRouter (${model}) Failed. Reason:`, err.message);
+                    console.warn(`⚠️ OpenRouter (${model}) Failed. Reason:`, err.name === 'AbortError' ? 'Timeout (8s exceeded)' : err.message);
                 }
             }
-            if (!success) throw new Error("جميع محركات الذكاء الاصطناعي تواجه ضغطاً هائلاً حالياً.");
+            if (!success) throw new Error("جميع محركات الذكاء الاصطناعي فشلت في الاستجابة أو انتهت مهلتها.");
         }
     }
 
+    // استخراج الكائن وتنظيفه
     const parsedData = cleanAndParseResponse(rawText);
     if (!parsedData) {
-        throw new Error(`الذكاء الاصطناعي (${finalProvider}) أرجع بيانات غير صالحة.`);
+        throw new Error(`فشل استخراج كائن JSON صالح من استجابة المزود (${finalProvider})`);
+    }
+
+    // 🎯 3) تطبيع وتطهير النسب المئوية لضمان العمليات الحسابية في الواجهة
+    if (parsedData.trendProbability !== undefined) {
+        parsedData.trendProbability = Number(String(parsedData.trendProbability).replace("%", "").trim());
+    }
+    if (parsedData.retentionRate !== undefined) {
+        parsedData.retentionRate = Number(String(parsedData.retentionRate).replace("%", "").trim());
+    }
+
+    // 🛡️ 4) التحقق الصارم من سلامة الهيكل واكتمال الكروت المطلوبة
+    const missingFields = requiredFields.filter(field => !(field in parsedData));
+    if (missingFields.length > 0) {
+        throw new Error(`بنية البيانات ناقصة من المزود (${finalProvider})، الحقول المفقودة: [${missingFields.join(", ")}]`);
     }
 
     return { parsedData, provider: finalProvider };
 };
 
-// 👑 تصدير الخدمة
+// 👑 تصدير الخدمة مطابقة ومعززة بصمامات الأمان
 export const aiEngine = {
     async generateViralContent(userPrompt) {
+        const requiredFields = [
+            "hook", "script", "cta", "hashtags", "ideas", "bestTime",
+            "trendProbability", "retentionRate", "hookStrength", "ctaRating", "tips"
+        ];
+
         const fullPrompt = `أنت خبير صناعة محتوى تيك توك.
 
 الفكرة:
@@ -154,10 +221,14 @@ export const aiEngine = {
 - مصفوفة tips يجب أن تحتوي على 3 نصائح عملية حقيقية مبنية على النص.
 - لا تكتب أي شيء خارج JSON نهائياً.`;
 
-        return await executeFallbackChain(fullPrompt);
+        return await executeFallbackChain(fullPrompt, requiredFields);
     },
 
     async analyzeViralMetrics(scriptText) {
+        const requiredFields = [
+            "trendProbability", "retentionRate", "hookStrength", "ctaRating", "tips"
+        ];
+
         const fullPrompt = `حلل هذا السكربت من ناحية الفيروسية:
 "${scriptText}"
 
@@ -172,6 +243,6 @@ export const aiEngine = {
 
 القيم الرقمية من 0 إلى 100 فقط، ومصفوفة tips إجبارية ولا تضف أي شرح خارج JSON.`;
 
-        return await executeFallbackChain(fullPrompt);
+        return await executeFallbackChain(fullPrompt, requiredFields);
     }
 };
