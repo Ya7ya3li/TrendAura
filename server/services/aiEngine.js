@@ -52,6 +52,7 @@ const callOpenRouter = async (prompt, modelName) => {
 };
 
 // 🚀 قلب المحرك: سلسلة الطوارئ (Fallback Chain)
+// 🚀 قلب المحرك: سلسلة الطوارئ (مع رادار كشف الأخطاء)
 const executeFallbackChain = async (fullPrompt) => {
     console.log("⚡ [AI Engine]: Initiating Fallback Protocol...");
     let rawText = "";
@@ -62,13 +63,16 @@ const executeFallbackChain = async (fullPrompt) => {
         rawText = await callGemini(fullPrompt);
         finalProvider = 'Gemini';
     } catch (err) {
-        console.warn("⚠️ Gemini Failed. Shifting to Groq...");
+        // 🚨 هنا بيفضح لنا سبب رفض جيميناي
+        console.warn("⚠️ Gemini Failed. Reason:", JSON.stringify(err.response?.data || err.message));
+
         try {
             console.log("🧠 Attempting Groq...");
             rawText = await callGroq(fullPrompt);
             finalProvider = 'Groq';
         } catch (err) {
-            console.warn("⚠️ Groq Failed. Shifting to OpenRouter...");
+            console.warn("⚠️ Groq Failed. Reason:", JSON.stringify(err.response?.data || err.message));
+
             const openRouterModels = [
                 'meta-llama/llama-3-8b-instruct',
                 'mistralai/mistral-7b-instruct',
@@ -82,16 +86,15 @@ const executeFallbackChain = async (fullPrompt) => {
                     rawText = await callOpenRouter(fullPrompt, model);
                     finalProvider = `OpenRouter-${model.split('/')[0]}`;
                     success = true;
-                    break; // إذا نجح، أوقف اللوب
+                    break;
                 } catch (err) {
-                    console.warn(`⚠️ OpenRouter (${model}) Failed. Trying next...`);
+                    console.warn(`⚠️ OpenRouter (${model}) Failed. Reason:`, JSON.stringify(err.response?.data || err.message));
                 }
             }
             if (!success) throw new Error("جميع محركات الذكاء الاصطناعي تواجه ضغطاً هائلاً حالياً.");
         }
     }
 
-    // 👑 النقطة الأهم: تنظيف النص وتحويله لكائن JSON للواجهة
     const parsedData = cleanAndParseResponse(rawText);
     if (!parsedData) {
         throw new Error(`الذكاء الاصطناعي (${finalProvider}) أرجع بيانات غير صالحة.`);
