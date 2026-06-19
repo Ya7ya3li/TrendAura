@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   const fetchProfile = async (userId, email, metadata) => {
     if (profileCache.has(userId)) return profileCache.get(userId)
     if (profileLock.has(userId)) return profileCache.get(userId)
-    
+
     profileLock.add(userId)
     console.log("🔬 [Profile]: PROFILE FETCH START ➔ ID:", userId)
 
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
         email: email,
         avatar_url: metadata?.avatar_url || metadata?.picture || null,
         plan: 'free',
-        tokens: 5000
+        tokens: 500
       }
 
       const { data: insertedData, error: insertError } = await supabase
@@ -110,7 +110,7 @@ export const AuthProvider = ({ children }) => {
         fetchProfile(session.user.id, session.user.email, session.user.user_metadata)
           .then(p => { if (active && p) setProfile(p) })
       }
-    }).catch(() => {})
+    }).catch(() => { })
 
     // المصدر الصافي والوحيد للتحكم بالـ UI gating
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -127,8 +127,8 @@ export const AuthProvider = ({ children }) => {
             }
           })
           .catch(err => console.error("❌ [Non-blocking Profile Error]:", err))
-      } 
-      
+      }
+
       else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
         setUser(null)
         setProfile(null)

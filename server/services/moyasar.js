@@ -12,7 +12,7 @@ export const paymentService = {
 
       // 🛡️ جدار حماية صارم: تثبيت قيم التوكنز بناءً على نوع الباقة لمنع الثغرات الافتراضية والتلاعب
       if (cleanPlanId === 'token_booster') {
-        verifiedTokens = 5000; // باقة الشحن السريع بـ 49 ريال تمنح 5000 فقط قسرياً
+        verifiedTokens = 5000; // باقة الشحن السريع بـ 29 ريال تمنح 5000 فقط قسرياً
       } else if (cleanPlanId === 'pro') {
         verifiedTokens = 1000;
       } else if (cleanPlanId === 'viral_engine') {

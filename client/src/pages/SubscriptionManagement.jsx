@@ -9,7 +9,7 @@ import { showToast } from '../App.jsx'
 
 export default function SubscriptionManagement() {
   const { profile, setProfile } = useContext(AuthContext)
-  
+
   const [invoices, setInvoices] = useState([])
   const [loading, setLoading] = useState(true)
   const [paymentLoading, setPaymentLoading] = useState(false)
@@ -52,8 +52,8 @@ export default function SubscriptionManagement() {
     setPaymentLoading(true)
     try {
       const res = await paymentService.createInvoice(amount, planId, profile.id, tokensCount)
-          if (res && (res.invoiceUrl || res.checkoutUrl) && paymentWindow) { 
-            paymentWindow.location.href = res.invoiceUrl || res.checkoutUrl
+      if (res && (res.invoiceUrl || res.checkoutUrl) && paymentWindow) {
+        paymentWindow.location.href = res.invoiceUrl || res.checkoutUrl
 
         const pollInterval = setInterval(async () => {
           try {
@@ -66,16 +66,16 @@ export default function SubscriptionManagement() {
             const serverPlan = (updatedProfile?.plan || 'free').toLowerCase().trim()
             const isTokenBooster = planId === 'token_booster'
 
-            const conditionMet = isTokenBooster 
+            const conditionMet = isTokenBooster
               ? (updatedProfile?.tokens > profile?.tokens)
               : (serverPlan === planId.toLowerCase().trim())
 
             if (conditionMet) {
               clearInterval(pollInterval)
-              if (updatedProfile) setProfile(updatedProfile) 
-              await loadBilling() 
-              paymentWindow.close() 
-              
+              if (updatedProfile) setProfile(updatedProfile)
+              await loadBilling()
+              paymentWindow.close()
+
               if (typeof showToast === 'function') {
                 showToast(isTokenBooster ? 'تم شحن محفظة التوكنز بنجاح!' : 'تمت ترقية باقتك بنجاح حياً!', 'success')
               }
@@ -110,8 +110,8 @@ export default function SubscriptionManagement() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ 
-          plan: 'free', 
+        .update({
+          plan: 'free',
           subscription_status: 'cancelled',
           updated_at: new Date().toISOString()
         })
@@ -152,7 +152,7 @@ export default function SubscriptionManagement() {
           <p className="text-[10px] font-black text-blue-600 dark:text-cyan-400 uppercase tracking-widest transition-colors">الباقة والاشتراك الحالي</p>
           <h2 className="text-2xl font-black mt-2 mb-1 text-slate-900 dark:text-white transition-colors">{activePlan.name}</h2>
           <p className="text-[10px] text-slate-500 dark:text-slate-500 mb-6 font-semibold transition-colors">تمنحك الباقة صلاحيات تكتيكية متطورة  .</p>
-          
+
           <div className="flex flex-col sm:flex-row gap-3 mt-auto">
             {isFree ? (
               <Button onClick={() => triggerMoyasarCheckout(proPlanInfo.price, 'pro', proPlanInfo.tokensReward || 1000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md flex items-center justify-center gap-1.5 border-none">
@@ -163,14 +163,14 @@ export default function SubscriptionManagement() {
               </Button>
             ) : (
               <>
-<Button 
-  onClick={handleCancelSubscription} 
-  loading={paymentLoading} 
-  variant="danger" 
-  className="w-full text-[10px] !bg-rose-50 dark:!bg-rose-500/10 !border-rose-200 dark:!border-rose-500/30 !text-rose-600 dark:!text-rose-400 font-bold hover:!bg-rose-100 dark:hover:!bg-rose-600 hover:!text-rose-700 dark:hover:!text-white transition-all"
->
-  إلغاء الاشتراك الحالي
-</Button>
+                <Button
+                  onClick={handleCancelSubscription}
+                  loading={paymentLoading}
+                  variant="danger"
+                  className="w-full text-[10px] !bg-rose-50 dark:!bg-rose-500/10 !border-rose-200 dark:!border-rose-500/30 !text-rose-600 dark:!text-rose-400 font-bold hover:!bg-rose-100 dark:hover:!bg-rose-600 hover:!text-rose-700 dark:hover:!text-white transition-all"
+                >
+                  إلغاء الاشتراك الحالي
+                </Button>
                 {!isViralEngine && (
                   <Button onClick={() => triggerMoyasarCheckout(viralPlanInfo.price, 'viral_engine', viralPlanInfo.tokensReward || 10000)} loading={paymentLoading} className="w-full text-[10px] font-black bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md flex items-center justify-center gap-1.5 border-none">
                     <span>ترقية إلى VIRAL ENGINE</span>
@@ -184,29 +184,29 @@ export default function SubscriptionManagement() {
             )}
           </div>
         </div>
-        
+
         <div className={`${cardClass} border-r-4 border-r-indigo-600 dark:border-r-pink-500 flex flex-col justify-between`}>
           <div>
             <p className="text-[10px] font-black text-indigo-600 dark:text-pink-400 uppercase tracking-widest transition-colors">محفظة التوكنز </p>
             <h2 className="text-3xl font-black mt-2 text-slate-900 dark:text-white font-sans transition-colors">{Number(profile?.tokens || 0).toLocaleString()} <span className="text-xs text-slate-500 dark:text-slate-400">توكن متوفر</span></h2>
             <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1 font-semibold transition-colors">تستهلك المنظومة 10 توكنز فقط لكل سكريبت </p>
           </div>
-          
+
           <div className="border-t border-slate-100 dark:border-slate-800/60 pt-4 mt-4 transition-colors">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-black text-slate-800 dark:text-slate-200 transition-colors"> حزمة شحن سريعة </span>
-              <span className="text-[11px] font-sans font-black text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-lg transition-colors">49 ريال فقط</span>
+              <span className="text-[11px] font-sans font-black text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-lg transition-colors">29 ريال فقط</span>
             </div>
-<Button 
-  onClick={() => triggerMoyasarCheckout(49, 'token_booster', 5000)} 
-  loading={paymentLoading} 
-  className="w-full text-[10px] font-black !bg-slate-900 !text-white dark:!bg-white dark:!text-slate-900 hover:!bg-slate-800 dark:hover:!bg-slate-200 border-none transition-all flex items-center justify-center gap-1.5"
->
-  <span>شحن 5,000 توكن إضافي</span>
-  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-  </svg>
-</Button>
+            <Button
+              onClick={() => triggerMoyasarCheckout(29, 'token_booster', 5000)}
+              loading={paymentLoading}
+              className="w-full text-[10px] font-black !bg-slate-900 !text-white dark:!bg-white dark:!text-slate-900 hover:!bg-slate-800 dark:hover:!bg-slate-200 border-none transition-all flex items-center justify-center gap-1.5"
+            >
+              <span>شحن 5,000 توكن إضافي</span>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+              </svg>
+            </Button>
           </div>
         </div>
       </div>
@@ -218,22 +218,22 @@ export default function SubscriptionManagement() {
             <h3 className="text-sm font-black mt-1 text-slate-900 dark:text-white transition-colors">برنامج نظام الإحالة</h3>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5 transition-colors">شارك رابط إحالتك الفريد؛ وعند تسجيل أي مستخدم جديد عن طريقك يحصل الطرفان على <span className="text-emerald-600 dark:text-emerald-500 font-bold transition-colors">500 توكن مجاني فوراً</span> شحناً للمحفظة!</p>
           </div>
-<button 
-  onClick={copyReferralLink}
-  className="w-full md:w-auto px-5 py-3 !bg-slate-100 dark:!bg-slate-900 border !border-slate-300 dark:!border-slate-800 !text-slate-800 dark:!text-slate-300 rounded-2xl text-[10px] font-black hover:!border-emerald-500 dark:hover:!border-emerald-500 hover:!text-emerald-600 dark:hover:!text-emerald-400 transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
->
-  <span>{copied ? 'تم النسخ!' : 'نسخ رابط الإحالة'}</span>
-  {copied ? (
-    <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0 transition-all duration-300 scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-    </svg>
-  ) : (
-    <svg className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0 transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.3">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2h-6a2 2 0 01-2-2V5z" />
-    </svg>
-  )}
-</button>
+          <button
+            onClick={copyReferralLink}
+            className="w-full md:w-auto px-5 py-3 !bg-slate-100 dark:!bg-slate-900 border !border-slate-300 dark:!border-slate-800 !text-slate-800 dark:!text-slate-300 rounded-2xl text-[10px] font-black hover:!border-emerald-500 dark:hover:!border-emerald-500 hover:!text-emerald-600 dark:hover:!text-emerald-400 transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
+          >
+            <span>{copied ? 'تم النسخ!' : 'نسخ رابط الإحالة'}</span>
+            {copied ? (
+              <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0 transition-all duration-300 scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            ) : (
+              <svg className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0 transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.3">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2h-6a2 2 0 01-2-2V5z" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
 
