@@ -1,20 +1,44 @@
 import { env } from '../config/env.js';
 
-// 🧹 1) مستخرج ومطهر كتل JSON الفولاذي باستخدام العبارات النمطية (Regex)
+// 🧹 1) مستخرج JSON الذكي (Depth-Counting) لتجاهل أي نصوص قبل أو بعد الكائن
 const cleanAndParseResponse = (text) => {
     try {
-        // استخراج أول كائن JSON يبدأ بـ { وينتهي بـ } بغض النظر عن النصوص المحيطة
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        let start = text.indexOf('{');
+        if (start === -1) return null;
 
-        if (!jsonMatch) {
-            console.error("❌ [Sanitizer Error]: No valid JSON block discovered in the output.");
-            return null;
+        let depth = 0;
+        for (let i = start; i < text.length; i++) {
+            if (text[i] === '{') depth++;
+            if (text[i] === '}') depth--;
+
+            if (depth === 0) {
+                const jsonString = text.slice(start, i + 1);
+                return JSON.parse(jsonString);
+            }
         }
-
-        return JSON.parse(jsonMatch[0]);
+        return null;
     } catch (error) {
         console.error("❌ [JSON Parse Exception]:", error.message);
         return null;
+    }
+};
+
+// 🎯 2) مطبع ومحصن النسب المئوية (يمنع الـ NaN ويحصر القيم بين 0 و 100)
+const normalizePercentage = (value) => {
+    if (value === undefined || value === null) return 0;
+    const num = Number(String(value).replace("%", "").trim());
+    return Number.isFinite(num) ? Math.max(0, Math.min(100, num)) : 0;
+};
+
+// 🔄 4) نظام إعادة المحاولة (Retry) لتجاوز أعطال الشبكة اللحظية
+const retry = async (fn, retries = 1) => { // 1 retry = محاولتين إجمالاً لكل مزود لتقليل الانتظار
+    for (let i = 0; i <= retries; i++) {
+        try {
+            return await fn();
+        } catch (error) {
+            if (i === retries) throw error;
+            console.warn(`⏳ [Retry]: Attempt ${i + 1} failed. Retrying in background... (${error.message})`);
+        }
     }
 };
 
@@ -32,18 +56,15 @@ const callGemini = async (prompt) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    temperature: 0.7 // 🎯 2) تثبيت معيار التوازن الإبداعي
-                }
+                generationConfig: { temperature: 0.7 }
             })
         });
 
         if (!response.ok) throw new Error(await response.text());
         const data = await response.json();
 
-        // 🛡️ 3) حماية متقدمة للردود الناقصة لمنع العطل المتقطع
         const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!text) throw new Error("Gemini payload validation failed: Empty content parts");
+        if (!text) throw new Error("Gemini returned empty response structure");
 
         return text;
     } finally {
@@ -68,7 +89,7 @@ const callGroq = async (prompt) => {
             },
             body: JSON.stringify({
                 model: 'llama-3.1-8b-instant',
-                temperature: 0.7, // 🎯 2) ضبط ريتم التوليد
+                temperature: 0.7,
                 messages: [{ role: 'user', content: prompt }]
             })
         });
@@ -77,7 +98,7 @@ const callGroq = async (prompt) => {
         const data = await response.json();
 
         const text = data?.choices?.[0]?.message?.content;
-        if (!text) throw new Error("Groq payload validation failed: Empty choices");
+        if (!text) throw new Error("Groq returned empty response structure");
 
         return text;
     } finally {
@@ -104,7 +125,7 @@ const callOpenRouter = async (prompt, modelName) => {
             },
             body: JSON.stringify({
                 model: modelName,
-                temperature: 0.7, // 🎯 2) توحيد جودة الردود سحابياً
+                temperature: 0.7,
                 messages: [{ role: 'user', content: prompt }]
             })
         });
@@ -113,7 +134,7 @@ const callOpenRouter = async (prompt, modelName) => {
         const data = await response.json();
 
         const text = data?.choices?.[0]?.message?.content;
-        if (!text) throw new Error(`OpenRouter [${modelName}] payload validation failed: Empty choices`);
+        if (!text) throw new Error(`OpenRouter (${modelName}) returned empty response structure`);
 
         return text;
     } finally {
@@ -121,7 +142,7 @@ const callOpenRouter = async (prompt, modelName) => {
     }
 };
 
-// 🚀 قلب المحرك: سلسلة الطوارئ المزودة بالفحص والتطبيع الهيكلي
+// 🚀 قلب المحرك: سلسلة الطوارئ المقاومة للأعطال والمدعومة بنظام Retry
 const executeFallbackChain = async (fullPrompt, requiredFields) => {
     console.log("⚡ [AI Engine]: Initiating Fallback Protocol...");
     let rawText = "";
@@ -129,19 +150,18 @@ const executeFallbackChain = async (fullPrompt, requiredFields) => {
 
     try {
         console.log("🧠 Attempting Gemini...");
-        rawText = await callGemini(fullPrompt);
+        rawText = await retry(() => callGemini(fullPrompt), 1);
         finalProvider = 'Gemini';
     } catch (err) {
-        console.warn("⚠️ Gemini Failed. Reason:", err.name === 'AbortError' ? 'Timeout (8s exceeded)' : err.message);
+        console.warn("⚠️ Gemini Failed completely. Reason:", err.name === 'AbortError' ? 'Timeout' : err.message);
 
         try {
             console.log("🧠 Attempting Groq...");
-            rawText = await callGroq(fullPrompt);
+            rawText = await retry(() => callGroq(fullPrompt), 1);
             finalProvider = 'Groq';
         } catch (err) {
-            console.warn("⚠️ Groq Failed. Reason:", err.name === 'AbortError' ? 'Timeout (8s exceeded)' : err.message);
+            console.warn("⚠️ Groq Failed completely. Reason:", err.name === 'AbortError' ? 'Timeout' : err.message);
 
-            // 👑 4) مصفوفة سلاسل OpenRouter المحدثة والذكية
             const openRouterModels = [
                 'deepseek/deepseek-chat-v3',
                 'qwen/qwen3-32b',
@@ -153,42 +173,54 @@ const executeFallbackChain = async (fullPrompt, requiredFields) => {
             for (const model of openRouterModels) {
                 try {
                     console.log(`🧠 Attempting OpenRouter -> ${model}...`);
+                    // لا نحتاج Retry هنا لكثرة الموديلات في القائمة لتجنب تعليق المستخدم لفترة طويلة
                     rawText = await callOpenRouter(fullPrompt, model);
                     finalProvider = `OpenRouter-${model.split('/')[0]}`;
                     success = true;
                     break;
                 } catch (err) {
-                    console.warn(`⚠️ OpenRouter (${model}) Failed. Reason:`, err.name === 'AbortError' ? 'Timeout (8s exceeded)' : err.message);
+                    console.warn(`⚠️ OpenRouter (${model}) Failed. Reason:`, err.name === 'AbortError' ? 'Timeout' : err.message);
                 }
             }
             if (!success) throw new Error("جميع محركات الذكاء الاصطناعي فشلت في الاستجابة أو انتهت مهلتها.");
         }
     }
 
-    // استخراج الكائن وتنظيفه
     const parsedData = cleanAndParseResponse(rawText);
     if (!parsedData) {
-        throw new Error(`فشل استخراج كائن JSON صالح من استجابة المزود (${finalProvider})`);
+        throw new Error(`الذكاء الاصطناعي (${finalProvider}) أرجع بيانات غير صالحة ولا يمكن تحويلها لـ JSON.`);
     }
 
-    // 🎯 3) تطبيع وتطهير النسب المئوية لضمان العمليات الحسابية في الواجهة
-    if (parsedData.trendProbability !== undefined) {
-        parsedData.trendProbability = Number(String(parsedData.trendProbability).replace("%", "").trim());
-    }
-    if (parsedData.retentionRate !== undefined) {
-        parsedData.retentionRate = Number(String(parsedData.retentionRate).replace("%", "").trim());
-    }
+    // 🎯 تطبيع النسب المئوية
+    parsedData.trendProbability = normalizePercentage(parsedData.trendProbability);
+    parsedData.retentionRate = normalizePercentage(parsedData.retentionRate);
 
-    // 🛡️ 4) التحقق الصارم من سلامة الهيكل واكتمال الكروت المطلوبة
+    // 🛡️ التحقق من وجود الحقول الأساسية
     const missingFields = requiredFields.filter(field => !(field in parsedData));
     if (missingFields.length > 0) {
-        throw new Error(`بنية البيانات ناقصة من المزود (${finalProvider})، الحقول المفقودة: [${missingFields.join(", ")}]`);
+        throw new Error(`بيانات ناقصة من المزود (${finalProvider}). الحقول المفقودة: [${missingFields.join(",")}]`);
+    }
+
+    // 🛡️ 3) التحقق الصارم من هيكل ومحتوى المصفوفات بناءً على الطلب
+    if (requiredFields.includes("hashtags") && !Array.isArray(parsedData.hashtags)) {
+        throw new Error("Validation Failed: 'hashtags' must be an array.");
+    }
+    if (requiredFields.includes("ideas") && !Array.isArray(parsedData.ideas)) {
+        throw new Error("Validation Failed: 'ideas' must be an array.");
+    }
+    if (requiredFields.includes("tips")) {
+        if (!Array.isArray(parsedData.tips)) {
+            throw new Error("Validation Failed: 'tips' must be an array.");
+        }
+        if (parsedData.tips.length < 3) {
+            throw new Error("Validation Failed: 'tips' array is too short (minimum 3 required).");
+        }
     }
 
     return { parsedData, provider: finalProvider };
 };
 
-// 👑 تصدير الخدمة مطابقة ومعززة بصمامات الأمان
+// 👑 تصدير الخدمة
 export const aiEngine = {
     async generateViralContent(userPrompt) {
         const requiredFields = [
