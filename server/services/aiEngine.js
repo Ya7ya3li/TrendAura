@@ -1,58 +1,82 @@
-import axios from 'axios';
 import { env } from '../config/env.js';
 
-// 🧹 دالة تنظيف ومطابقة الـ JSON (لحماية الواجهة الأمامية من أي نصوص زائدة)
+// 🧹 دالة تنظيف ومطابقة الـ JSON
 const cleanAndParseResponse = (text) => {
     try {
         const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
         return JSON.parse(cleaned);
     } catch (error) {
         console.error("❌ JSON Parse Error:", error.message);
-        return null; // إذا فشل التحويل
+        return null;
     }
 };
 
 // 1️⃣ مزود المستوى الأول: Gemini
 const callGemini = async (prompt) => {
-    // استخدمنا الإصدار اللي تفضله 2.5-flash أو 1.5-flash المتاح
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.geminiApiKey}`;
-    const response = await axios.post(url, {
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" } // إجبار جيميناي على JSON
+    // 👑 تم التحديث إلى الموديل الخاص بك gemini-2.5-flash
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.geminiApiKey}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
+        })
     });
-    return response.data.candidates[0].content.parts[0].text;
+
+    if (!response.ok) throw new Error(await response.text());
+    const data = await response.json();
+    return data.candidates[0].content.parts[0].text;
 };
 
-// 2️⃣ مزود المستوى الثاني: Groq (سريع كالبرق)
+// 2️⃣ مزود المستوى الثاني: Groq
 const callGroq = async (prompt) => {
     if (!env.groqApiKey) throw new Error("Groq API Key is missing");
-    const response = await axios.post('[https://api.groq.com/openai/v1/chat/completions](https://api.groq.com/openai/v1/chat/completions)', {
-        model: 'llama3-8b-8192',
-        response_format: { type: "json_object" }, // إجبار قروق على JSON
-        messages: [{ role: 'user', content: prompt }]
-    }, { headers: { 'Authorization': `Bearer ${env.groqApiKey}` } });
-    return response.data.choices[0].message.content;
+
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${env.groqApiKey}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: 'llama3-8b-8192',
+            response_format: { type: "json_object" },
+            messages: [{ role: 'user', content: prompt }]
+        })
+    });
+
+    if (!response.ok) throw new Error(await response.text());
+    const data = await response.json();
+    return data.choices[0].message.content;
 };
 
-// 3️⃣ مزود المستوى الثالث: OpenRouter (القلعة الأخيرة)
+// 3️⃣ مزود المستوى الثالث: OpenRouter
 const callOpenRouter = async (prompt, modelName) => {
     if (!env.openRouterApiKey) throw new Error("OpenRouter API Key is missing");
-    const response = await axios.post('[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)', {
-        model: modelName,
-        response_format: { type: "json_object" }, // إجبار أوبن راوتر على JSON
-        messages: [{ role: 'user', content: prompt }]
-    }, {
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
         headers: {
             'Authorization': `Bearer ${env.openRouterApiKey}`,
-            'HTTP-Referer': '[https://trendaura.app](https://trendaura.app)',
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://trendaura.app',
             'X-Title': 'TrendAura SaaS'
-        }
+        },
+        body: JSON.stringify({
+            model: modelName,
+            response_format: { type: "json_object" },
+            messages: [{ role: 'user', content: prompt }]
+        })
     });
-    return response.data.choices[0].message.content;
+
+    if (!response.ok) throw new Error(await response.text());
+    const data = await response.json();
+    return data.choices[0].message.content;
 };
 
-// 🚀 قلب المحرك: سلسلة الطوارئ (Fallback Chain)
-// 🚀 قلب المحرك: سلسلة الطوارئ (مع رادار كشف الأخطاء)
+// 🚀 قلب المحرك: سلسلة الطوارئ (الآن محصنة بـ Fetch)
 const executeFallbackChain = async (fullPrompt) => {
     console.log("⚡ [AI Engine]: Initiating Fallback Protocol...");
     let rawText = "";
@@ -63,15 +87,14 @@ const executeFallbackChain = async (fullPrompt) => {
         rawText = await callGemini(fullPrompt);
         finalProvider = 'Gemini';
     } catch (err) {
-        // 🚨 هنا بيفضح لنا سبب رفض جيميناي
-        console.warn("⚠️ Gemini Failed. Reason:", JSON.stringify(err.response?.data || err.message));
+        console.warn("⚠️ Gemini Failed. Reason:", err.message);
 
         try {
             console.log("🧠 Attempting Groq...");
             rawText = await callGroq(fullPrompt);
             finalProvider = 'Groq';
         } catch (err) {
-            console.warn("⚠️ Groq Failed. Reason:", JSON.stringify(err.response?.data || err.message));
+            console.warn("⚠️ Groq Failed. Reason:", err.message);
 
             const openRouterModels = [
                 'meta-llama/llama-3-8b-instruct',
@@ -88,7 +111,7 @@ const executeFallbackChain = async (fullPrompt) => {
                     success = true;
                     break;
                 } catch (err) {
-                    console.warn(`⚠️ OpenRouter (${model}) Failed. Reason:`, JSON.stringify(err.response?.data || err.message));
+                    console.warn(`⚠️ OpenRouter (${model}) Failed. Reason:`, err.message);
                 }
             }
             if (!success) throw new Error("جميع محركات الذكاء الاصطناعي تواجه ضغطاً هائلاً حالياً.");
@@ -103,7 +126,7 @@ const executeFallbackChain = async (fullPrompt) => {
     return { parsedData, provider: finalProvider };
 };
 
-// 👑 تصدير الخدمة مطابقة تماماً للملف القديم
+// 👑 تصدير الخدمة
 export const aiEngine = {
     async generateViralContent(userPrompt) {
         const fullPrompt = `أنت خبير صناعة محتوى تيك توك.
