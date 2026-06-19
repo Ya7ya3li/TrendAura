@@ -28,17 +28,34 @@ export const authGuard = async (req, res, next) => {
       });
     }
 
-    // حقن كائن المستخدم المصادق عليه بداخل الطلب الحالي
+    // 👑 بروتوكول عزل الشبكة الصارم (Check Ban Status) 👑
+    // نقوم بجلب حالة الحظر والباقة الحالية مباشرة من جدول الحسابات الشخصية
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('is_banned, plan')
+      .eq('id', user.id)
+      .single();
+
+    // 🚨 إذا اكتشف الحارس أن الكيان معزول أو محظور، يتم قطع حرارته ورفض الطلب فوراً
+    if (profile?.is_banned === true) {
+      console.warn(`🔒 [Security Alert]: Banned user ${user.email} attempted to breach the gateway.`);
+      return res.status(403).json({
+        success: false,
+        error: '🚨 تم عزل هذا الحساب وسحب صلاحياته الأمنية من الشبكة، يرجى مراجعة إدارة النظام.'
+      });
+    }
+
+    // حقن كائن المستخدم المصادق عليه بداخل الطلب الحالي مع جلب الخصائص المحدثة
     req.user = {
       id: user.id,
       email: user.email,
-      plan: user.app_metadata?.plan || user.user_metadata?.plan || 'free'
+      plan: (profile?.plan || user.app_metadata?.plan || user.user_metadata?.plan || 'free').toLowerCase().trim()
     };
 
     // 👑 التنفيذ الفعلي والصارم لمفاتيح الطوارئ (Kill Switches) 👑
     const sysState = global.systemState || { maintenance: false, ai_engine: true };
 
-    // 1. تفعيل مفتاح الصيانة: طرد الجميع باستثناءك أنت (عشان تقدر تدخل اللوحة وتفك الصيانة!)
+    // 1. تفعيل مفتاح الصيانة: طرد الجميع باستثناء طلبات لوحة التحكم لضمان عدم انغلاق النظام على الإدارة
     if (sysState.maintenance === true && !req.originalUrl.includes('/admin')) {
       return res.status(503).json({
         success: false,
