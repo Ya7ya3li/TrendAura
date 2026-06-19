@@ -55,8 +55,8 @@ router.get('/users', async (req, res) => {
 // ⚡ 3. تنفيذ عمليات مصفوفة التحكم بالكامل (Action Matrix Controller)
 router.post('/action', async (req, res) => {
     try {
-        const { targetUserId, action, details } = req.body
-        const adminId = req.user.id
+        const { targetUserId, action, details } = req.body;
+        const adminId = req.user.id;
 
         // جلب بيانات ملف المستخدم الحالية لضمان دقة العمليات الحسابية للأرصدة
         const { data: profile, error: fetchError } = await supabase
@@ -87,12 +87,24 @@ router.post('/action', async (req, res) => {
         } else if (action === 'downgrade_plan') {
             updateData.plan = 'free';
         } else if (action === 'delete') {
-            // سحق الحساب نهائياً من نظام المصادقة المركزي ومن ثم جدول البيانات الشخصية بالـ Service Role
-            const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(targetUserId);
-            const { error: deleteProfileError } = await supabase.from('profiles').delete().eq('id', targetUserId);
+            // 🚨 بروتوكول السحق الشامل (Destroy Protocol) 🚨
 
-            if (deleteAuthError || deleteProfileError) {
-                throw (deleteAuthError || deleteProfileError);
+            // 1. تدمير التبعيات أولاً لتجنب حظر قاعدة البيانات (Foreign Key Constraints)
+            await supabase.from('user_usage').delete().eq('user_id', targetUserId);
+            await supabase.from('invoices').delete().eq('user_id', targetUserId);
+
+            // 2. سحق الملف الشخصي من الواجهة
+            const { error: deleteProfileError } = await supabase.from('profiles').delete().eq('id', targetUserId);
+            if (deleteProfileError) throw deleteProfileError;
+
+            // 3. الضربة القاضية: تدمير الهوية المركزية من نظام المصادقة
+            const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(targetUserId);
+
+            if (deleteAuthError) {
+                // إذا كان الخطأ أن المستخدم غير موجود أصلاً، تجاهله. غير ذلك ارمِ الخطأ
+                if (!deleteAuthError.message.includes('not found')) {
+                    throw deleteAuthError;
+                }
             }
         }
 
