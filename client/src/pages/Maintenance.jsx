@@ -12,7 +12,7 @@ export default function Maintenance() {
         <div className="text-3xl mb-3 filter drop-shadow-md">🛠️</div>
         <h2 className="text-sm font-black text-white tracking-tight mb-1">المنظومة تحت التحديث والتحقين السريع</h2>
         <p className="text-[10px] font-bold text-slate-400 max-w-xs mx-auto leading-relaxed mb-6">
-          نقوم حالياً بحقن وتوسيع خوادم محرك الفايرال لتوفير سرعة توليد مضاعفة ومستقرة لصناع المحتوى المحترفين. لن نستغرق طويلاً.
+          نقوم حالياً بحقن وتوسيع خوادم محرك viral engine لتوفير سرعة توليد مضاعفة ومستقرة لصناع المحتوى المحترفين. لن نستغرق طويلاً.
         </p>
 
         <Button onClick={() => navigate(ROUTES.DASHBOARD)} variant="secondary" className="w-full py-2.5 border-slate-800 text-slate-300">

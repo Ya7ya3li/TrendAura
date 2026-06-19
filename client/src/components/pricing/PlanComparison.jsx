@@ -15,7 +15,7 @@ export default function PlanComparison() {
 
   return (
     <div className="w-full bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-[28px] p-5 shadow-2xl text-right dir-rtl select-none font-sans mt-12 animate-fade-in transition-colors duration-300">
-      
+
       <div className="flex items-center gap-2 mb-6 pb-3 border-b border-slate-100 dark:border-slate-800/60">
         <svg className="w-4 h-4 text-blue-600 dark:text-cyan-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2" />
@@ -37,7 +37,7 @@ export default function PlanComparison() {
             {comparisonSpecs.map((spec, idx) => (
               <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/10 transition-colors">
                 <td className="py-3.5 font-black text-slate-900 dark:text-white text-right">{spec.name}</td>
-                
+
                 {/* الخطة الحرة */}
                 <td className="py-3.5 text-slate-400 dark:text-slate-500">
                   {spec.free === false ? (
@@ -52,7 +52,7 @@ export default function PlanComparison() {
                   ) : spec.pro}
                 </td>
 
-                {/* خطة محرك الفايرال الاستراتيجي */}
+                {/* خطة محرك viral engine الاستراتيجي */}
                 <td className="py-3.5 text-purple-600 dark:text-purple-400 font-black">
                   {spec.viral === true ? (
                     <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>

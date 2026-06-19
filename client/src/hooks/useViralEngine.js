@@ -29,19 +29,19 @@ export default function useViralEngine() {
 
       // 🛑 سحق كامل للأرقام والنصوص الوهمية القديمة والاعتماد التام على مخرجات السيرفر
       setMetrics({
-        aiScore: resData.aiScore || null, 
-        retentionRate: resData.retentionRate || null, 
+        aiScore: resData.aiScore || null,
+        retentionRate: resData.retentionRate || null,
         optimalTime: resData.optimalTime || resData.suggestedDuration || 'بانتظار التحليل الحقيقي...',
         viralIdeas: Array.isArray(resData.viralIdeas) ? resData.viralIdeas : (resData.notes ? [resData.notes] : [])
       });
-      
+
       if (typeof showToast === 'function') {
         showToast('اكتمل التحليل السلوكي للمقطع وجاهز للمراجعة الملوكية', 'success');
       }
     } catch (error) {
       console.error('❌ [useViralEngine Evaluation Crash]:', error.message);
       if (typeof showToast === 'function') {
-        showToast('فشل محرك الفايرال في إتمام الفحص الخوارزمي المتقدم', 'error');
+        showToast('فشل محرك viral engine في إتمام الفحص الخوارزمي المتقدم', 'error');
       }
     } finally {
       setLoading(false);

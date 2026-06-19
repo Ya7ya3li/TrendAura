@@ -23,13 +23,13 @@ export const aiService = {
   },
 
   /**
-   * 🔬 استدعاء محرك أدوات الفايرال المتقدم لحساب المؤشرات الدقيقة والأوقات
+   * 🔬 استدعاء محرك أدوات viral engine المتقدم لحساب المؤشرات الدقيقة والأوقات
    */
   async analyzeScriptMetrics(scriptText) {
     try {
       // 🚀 تم تعديل الاسم إلى scriptText ليطابق الباك إند بالملي ويمر عبر أكسيوس الموحد لايف
       const response = await axiosInstance.post('/api/ai/analyze-metrics', {
-        scriptText: scriptText 
+        scriptText: scriptText
       });
       return response.data;
     } catch (error) {

@@ -8,7 +8,7 @@
 * **البيئة الأساسية والمحرك:** Node.js (v20+ Runtime Enterprise Env)
 * **إطار العمل وسياق المسارات:** Express.js (Pure ES Modules Configuration)
 * **المصادقة والمستندات السحابية:** Supabase Database / Identity Session Federation
-* **محرك وصائغ الفايرال الذكي:** OpenAI / OpenRouter Core Client API Matrix
+* **محرك وصائغ viral engine الذكي:** OpenAI / OpenRouter Core Client API Matrix
 * **بوابة الفوترة والدفع السيادية:** Moyasar Saudi Payment Gateway (مدى، Apple Pay، Visa)
 
 ---

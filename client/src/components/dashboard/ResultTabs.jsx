@@ -6,7 +6,7 @@ import React from 'react'
 export default function ResultTabs({ activeTab, setActiveTab }) {
   const tabs = [
     { id: 'script', label: '📄 السيناريو والسكريبت' },
-    { id: 'analytics', label: '🔬 تحليلات ومؤشرات الفايرال' }
+    { id: 'analytics', label: '🔬 تحليلات ومؤشرات viral engine' }
   ]
 
   return (
@@ -16,11 +16,10 @@ export default function ResultTabs({ activeTab, setActiveTab }) {
           key={tab.id}
           type="button"
           onClick={() => setActiveTab(tab.id)}
-          className={`flex-1 text-center py-2.5 rounded-xl text-xs font-black transition-all duration-200 ${
-            activeTab === tab.id
+          className={`flex-1 text-center py-2.5 rounded-xl text-xs font-black transition-all duration-200 ${activeTab === tab.id
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/10'
               : 'text-slate-500 hover:text-slate-300 bg-transparent'
-          }`}
+            }`}
         >
           {tab.label}
         </button>

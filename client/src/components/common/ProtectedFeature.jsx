@@ -1,12 +1,12 @@
 import React, { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes.js'
-import { AuthContext } from '../../context/AuthContext.jsx' 
-import { getPlanTier } from "../../constants/plans.jsx"; 
+import { AuthContext } from '../../context/AuthContext.jsx'
+import { getPlanTier } from "../../constants/plans.jsx";
 
 export default function ProtectedFeature({ minRequiredPlan = 'pro', featureName = 'الميزة المتقدمة', children }) {
   const navigate = useNavigate()
-  const { profile, loading } = useContext(AuthContext) 
+  const { profile, loading } = useContext(AuthContext)
 
   if (loading) {
     return (
@@ -43,7 +43,7 @@ export default function ProtectedFeature({ minRequiredPlan = 'pro', featureName 
           </svg>
         </h4>
         <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 max-w-[220px] mb-4 leading-relaxed">
-          هذه الأدوات الحصرية متاحة فقط لمشتركي خطة <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 uppercase font-black">{minRequiredPlan}</span> فما فوق.
+          هذه الأدوات الحصرية متاحة فقط لمشتركي خطة <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 uppercase font-black">{minRequiredPlan}</span>
         </p>
         <button
           type="button"
