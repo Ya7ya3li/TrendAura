@@ -58,7 +58,7 @@ router.post('/action', async (req, res) => {
         const { targetUserId, action, details } = req.body;
         const adminId = req.user.id;
 
-        // جلب بيانات ملف المستخدم الحالية لضمان دقة العمليات الحسابية للأرصدة
+        // جلب بيانات ملف المستخدم الحالية لضمان دقة العمليات
         const { data: profile, error: fetchError } = await supabase
             .from('profiles')
             .select('*')
@@ -66,12 +66,12 @@ router.post('/action', async (req, res) => {
             .single();
 
         if (fetchError || !profile) {
-            return res.status(404).json({ success: false, message: 'المستخدم المستهدف غير موجود في قاعدة البيانات.' });
+            return res.status(404).json({ success: false, message: 'الكيان المستهدف غير موجود في قاعدة البيانات.' });
         }
 
         let updateData = {};
 
-        // تحليل العملية المطلوبة بالملي وتنفيذها شرطياً
+        // تحليل العملية المطلوبة
         if (action === 'ban') {
             updateData.is_banned = true;
         } else if (action === 'unban') {
@@ -87,28 +87,29 @@ router.post('/action', async (req, res) => {
         } else if (action === 'downgrade_plan') {
             updateData.plan = 'free';
         } else if (action === 'delete') {
-            // 🚨 بروتوكول السحق الشامل (Destroy Protocol) 🚨
+            // 🚨 بروتوكول السحق الشامل (Destroy Protocol V2) 🚨
 
-            // 1. تدمير التبعيات أولاً لتجنب حظر قاعدة البيانات (Foreign Key Constraints)
+            // 1. مسح التبعيات الكلاسيكية
             await supabase.from('user_usage').delete().eq('user_id', targetUserId);
             await supabase.from('invoices').delete().eq('user_id', targetUserId);
 
-            // 2. سحق الملف الشخصي من الواجهة
-            const { error: deleteProfileError } = await supabase.from('profiles').delete().eq('id', targetUserId);
-            if (deleteProfileError) throw deleteProfileError;
+            // 👑 2. تنظيف الأرشيف (هذا هو الجاني اللي كان يمنع العملية!)
+            await supabase.from('admin_logs').delete().eq('target_user_id', targetUserId);
 
-            // 3. الضربة القاضية: تدمير الهوية المركزية من نظام المصادقة
+            // 💡 ملاحظة: إذا عندك جدول يحفظ سكريبتات الذكاء، ضف سطر مسح له هنا
+            // await supabase.from('history').delete().eq('user_id', targetUserId);
+
+            // 3. سحق الملف الشخصي من الواجهة
+            await supabase.from('profiles').delete().eq('id', targetUserId);
+
+            // 4. الضربة القاضية: تدمير الهوية المركزية
             const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(targetUserId);
-
-            if (deleteAuthError) {
-                // إذا كان الخطأ أن المستخدم غير موجود أصلاً، تجاهله. غير ذلك ارمِ الخطأ
-                if (!deleteAuthError.message.includes('not found')) {
-                    throw deleteAuthError;
-                }
+            if (deleteAuthError && !deleteAuthError.message.includes('not found')) {
+                throw deleteAuthError;
             }
         }
 
-        // تنفيذ التحديث في قاعدة البيانات لجميع العمليات عدا الحذف النهائي
+        // تنفيذ التحديث في قاعدة البيانات لجميع العمليات عدا السحق
         if (action !== 'delete') {
             const { error: updateError } = await supabase
                 .from('profiles')
@@ -118,18 +119,28 @@ router.post('/action', async (req, res) => {
             if (updateError) throw updateError;
         }
 
-        // تسجيل العملية في أرشيف الأمن والرقابة الشامل للنظام (Audit Log)
-        await supabase.from('admin_logs').insert({
-            admin_id: adminId,
-            action: action,
-            target_user_id: targetUserId,
-            details: details
-        });
+        // 👑 تسجيل العملية في أرشيف الأمن بطريقة ذكية
+        if (action === 'delete') {
+            // إذا العملية سحق، ما نقدر نربط الـ ID لأنه تبخر، فنحفظه داخل التفاصيل كـ "شبح"
+            await supabase.from('admin_logs').insert({
+                admin_id: adminId,
+                action: 'delete_user',
+                details: { ...details, erased_entity_id: targetUserId, status: 'Destroyed' }
+            });
+        } else {
+            // للعمليات الطبيعية، نحفظه بالشكل المعتاد
+            await supabase.from('admin_logs').insert({
+                admin_id: adminId,
+                action: action,
+                target_user_id: targetUserId,
+                details: details
+            });
+        }
 
         res.json({ success: true });
     } catch (error) {
         console.error("❌ Admin Action Core Error:", error);
-        res.status(400).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message || 'حدث خطأ أثناء تنفيذ الأمر.' });
     }
 });
 
