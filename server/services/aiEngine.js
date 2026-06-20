@@ -1,6 +1,6 @@
 import { env } from '../config/env.js';
 
-// 🧹 1) مستخرج JSON الذكي (Depth-Counting) لتجاهل أي نصوص قبل أو بعد الكائن
+// 🧹 1) مستخرج JSON الذكي (Depth-Tracking)
 const cleanAndParseResponse = (text) => {
     try {
         let start = text.indexOf('{');
@@ -23,28 +23,52 @@ const cleanAndParseResponse = (text) => {
     }
 };
 
-// 🎯 2) مطبع ومحصن النسب المئوية (يمنع الـ NaN ويحصر القيم بين 0 و 100)
+// 🧹 2) مطهر النصوص والمصفوفات داخل الكائن (Data Trimming)
+const trimObject = (obj) => {
+    for (const key in obj) {
+        if (typeof obj[key] === "string") {
+            obj[key] = obj[key].trim();
+        }
+        if (Array.isArray(obj[key])) {
+            obj[key] = obj[key].map(item => typeof item === "string" ? item.trim() : item);
+        }
+    }
+};
+
+// 🎯 3) مطبع ومحصن النسب المئوية
 const normalizePercentage = (value) => {
     if (value === undefined || value === null) return 0;
     const num = Number(String(value).replace("%", "").trim());
     return Number.isFinite(num) ? Math.max(0, Math.min(100, num)) : 0;
 };
 
-// 🔄 4) نظام إعادة المحاولة (Retry) لتجاوز أعطال الشبكة اللحظية
-const retry = async (fn, retries = 1) => { // 1 retry = محاولتين إجمالاً لكل مزود لتقليل الانتظار
+// 🔄 4) نظام إعادة المحاولة الذكي (يتخطى الأخطاء القاتلة)
+const retry = async (fn, retries = 1) => {
     for (let i = 0; i <= retries; i++) {
         try {
             return await fn();
         } catch (error) {
-            if (i === retries) throw error;
-            console.warn(`⏳ [Retry]: Attempt ${i + 1} failed. Retrying in background... (${error.message})`);
+            const message = error.message || "";
+            // التقاط أخطاء الشبكة والـ AbortController فقط
+            const retryable =
+                message.includes("Timeout") ||
+                message.includes("fetch") ||
+                message.includes("ECONNRESET") ||
+                message.includes("ETIMEDOUT") ||
+                error.name === 'AbortError';
+
+            if (!retryable || i === retries) {
+                throw error;
+            }
+            console.warn(`⏳ [Retry]: Network/Timeout issue detected. Retrying...`);
         }
     }
 };
 
 // 1️⃣ مزود المستوى الأول: Gemini
 const callGemini = async (prompt) => {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.geminiApiKey}`;
+    // 👑 إزالة المفتاح من الرابط لأسباب أمنية
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
@@ -53,10 +77,16 @@ const callGemini = async (prompt) => {
         const response = await fetch(url, {
             method: 'POST',
             signal: controller.signal,
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': env.geminiApiKey // 👑 تمرير المفتاح في الـ Headers
+            },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7 }
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 700 // 👑 تقييد التوكنز للسرعة والتكلفة
+                }
             })
         });
 
@@ -90,6 +120,7 @@ const callGroq = async (prompt) => {
             body: JSON.stringify({
                 model: 'llama-3.1-8b-instant',
                 temperature: 0.7,
+                max_tokens: 700, // 👑 تقييد التوكنز
                 messages: [{ role: 'user', content: prompt }]
             })
         });
@@ -126,6 +157,7 @@ const callOpenRouter = async (prompt, modelName) => {
             body: JSON.stringify({
                 model: modelName,
                 temperature: 0.7,
+                max_tokens: 700, // 👑 تقييد التوكنز
                 messages: [{ role: 'user', content: prompt }]
             })
         });
@@ -142,7 +174,7 @@ const callOpenRouter = async (prompt, modelName) => {
     }
 };
 
-// 🚀 قلب المحرك: سلسلة الطوارئ المقاومة للأعطال والمدعومة بنظام Retry
+// 🚀 قلب المحرك: سلسلة الطوارئ المقاومة للأعطال
 const executeFallbackChain = async (fullPrompt, requiredFields) => {
     console.log("⚡ [AI Engine]: Initiating Fallback Protocol...");
     let rawText = "";
@@ -153,14 +185,14 @@ const executeFallbackChain = async (fullPrompt, requiredFields) => {
         rawText = await retry(() => callGemini(fullPrompt), 1);
         finalProvider = 'Gemini';
     } catch (err) {
-        console.warn("⚠️ Gemini Failed completely. Reason:", err.name === 'AbortError' ? 'Timeout' : err.message);
+        console.warn("⚠️ Gemini Failed. Reason:", err.name === 'AbortError' ? 'Timeout' : err.message);
 
         try {
             console.log("🧠 Attempting Groq...");
             rawText = await retry(() => callGroq(fullPrompt), 1);
             finalProvider = 'Groq';
         } catch (err) {
-            console.warn("⚠️ Groq Failed completely. Reason:", err.name === 'AbortError' ? 'Timeout' : err.message);
+            console.warn("⚠️ Groq Failed. Reason:", err.name === 'AbortError' ? 'Timeout' : err.message);
 
             const openRouterModels = [
                 'deepseek/deepseek-chat-v3',
@@ -173,7 +205,6 @@ const executeFallbackChain = async (fullPrompt, requiredFields) => {
             for (const model of openRouterModels) {
                 try {
                     console.log(`🧠 Attempting OpenRouter -> ${model}...`);
-                    // لا نحتاج Retry هنا لكثرة الموديلات في القائمة لتجنب تعليق المستخدم لفترة طويلة
                     rawText = await callOpenRouter(fullPrompt, model);
                     finalProvider = `OpenRouter-${model.split('/')[0]}`;
                     success = true;
@@ -182,7 +213,7 @@ const executeFallbackChain = async (fullPrompt, requiredFields) => {
                     console.warn(`⚠️ OpenRouter (${model}) Failed. Reason:`, err.name === 'AbortError' ? 'Timeout' : err.message);
                 }
             }
-            if (!success) throw new Error("جميع محركات الذكاء الاصطناعي فشلت في الاستجابة أو انتهت مهلتها.");
+            if (!success) throw new Error("جميع محركات الذكاء الاصطناعي فشلت في الاستجابة حالياً.");
         }
     }
 
@@ -190,6 +221,9 @@ const executeFallbackChain = async (fullPrompt, requiredFields) => {
     if (!parsedData) {
         throw new Error(`الذكاء الاصطناعي (${finalProvider}) أرجع بيانات غير صالحة ولا يمكن تحويلها لـ JSON.`);
     }
+
+    // 👑 تنفيذ التطهير الشامل للنصوص والفراغات
+    trimObject(parsedData);
 
     // 🎯 تطبيع النسب المئوية
     parsedData.trendProbability = normalizePercentage(parsedData.trendProbability);
@@ -201,7 +235,7 @@ const executeFallbackChain = async (fullPrompt, requiredFields) => {
         throw new Error(`بيانات ناقصة من المزود (${finalProvider}). الحقول المفقودة: [${missingFields.join(",")}]`);
     }
 
-    // 🛡️ 3) التحقق الصارم من هيكل ومحتوى المصفوفات بناءً على الطلب
+    // 🛡️ التحقق الصارم من هيكل ومحتوى المصفوفات
     if (requiredFields.includes("hashtags") && !Array.isArray(parsedData.hashtags)) {
         throw new Error("Validation Failed: 'hashtags' must be an array.");
     }
