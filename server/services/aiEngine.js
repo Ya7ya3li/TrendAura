@@ -174,23 +174,58 @@ const callOpenRouter = async (prompt, modelName) => {
     }
 };
 
-// 🚀 قلب المحرك: سلسلة الطوارئ المقاومة للأعطال
+// 🚀 قلب المحرك: سلسلة الطوارئ المقاومة للأعطال (النسخة المدرعة منطقياً وشبكياً)
 const executeFallbackChain = async (fullPrompt, requiredFields) => {
     console.log("⚡ [AI Engine]: Initiating Fallback Protocol...");
-    let rawText = "";
+
+    // 🛡️ دالة التحقق المدمجة: تفحص النص فوراً، وإذا كان معطوباً ترمي خطأ ليقوم السيرفر بالتحويل للبديل
+    const validateResponse = (rawText, providerName) => {
+        const parsed = cleanAndParseResponse(rawText);
+        if (!parsed) {
+            // نطبع الرد الخربان في الـ Terminal عشان نعرف ليش المزود رفض
+            console.error(`❌ [${providerName} Raw Output Failed]:`, rawText);
+            throw new Error(`فشل استخراج JSON صالح من ${providerName}`);
+        }
+
+        // تنفيذ التطهير والتطبيع
+        trimObject(parsed);
+        parsed.trendProbability = normalizePercentage(parsed.trendProbability);
+        parsed.retentionRate = normalizePercentage(parsed.retentionRate);
+
+        // التحقق من الحقول الأساسية
+        const missingFields = requiredFields.filter(field => !(field in parsed));
+        if (missingFields.length > 0) {
+            throw new Error(`بيانات ناقصة من المزود (${providerName}). المفقود: [${missingFields.join(",")}]`);
+        }
+
+        // التحقق من المصفوفات
+        if (requiredFields.includes("hashtags") && !Array.isArray(parsed.hashtags)) throw new Error("Validation Failed: 'hashtags' must be an array.");
+        if (requiredFields.includes("ideas") && !Array.isArray(parsed.ideas)) throw new Error("Validation Failed: 'ideas' must be an array.");
+        if (requiredFields.includes("tips")) {
+            if (!Array.isArray(parsed.tips)) throw new Error("Validation Failed: 'tips' must be an array.");
+            if (parsed.tips.length < 3) throw new Error("Validation Failed: 'tips' array is too short.");
+        }
+
+        return parsed;
+    };
+
     let finalProvider = "";
+    let finalParsedData = null;
 
     try {
         console.log("🧠 Attempting Gemini...");
-        rawText = await retry(() => callGemini(fullPrompt), 1);
+        const rawText = await retry(() => callGemini(fullPrompt), 1);
         finalProvider = 'Gemini';
+        // الفحص صار هنا، لو فشل بينزل للـ catch ويروح لـ Groq مباشرة!
+        finalParsedData = validateResponse(rawText, finalProvider);
     } catch (err) {
         console.warn("⚠️ Gemini Failed. Reason:", err.name === 'AbortError' ? 'Timeout' : err.message);
 
         try {
             console.log("🧠 Attempting Groq...");
-            rawText = await retry(() => callGroq(fullPrompt), 1);
+            const rawText = await retry(() => callGroq(fullPrompt), 1);
             finalProvider = 'Groq';
+            finalParsedData = validateResponse(rawText, finalProvider);
         } catch (err) {
             console.warn("⚠️ Groq Failed. Reason:", err.name === 'AbortError' ? 'Timeout' : err.message);
 
@@ -205,8 +240,9 @@ const executeFallbackChain = async (fullPrompt, requiredFields) => {
             for (const model of openRouterModels) {
                 try {
                     console.log(`🧠 Attempting OpenRouter -> ${model}...`);
-                    rawText = await callOpenRouter(fullPrompt, model);
+                    const rawText = await callOpenRouter(fullPrompt, model);
                     finalProvider = `OpenRouter-${model.split('/')[0]}`;
+                    finalParsedData = validateResponse(rawText, finalProvider);
                     success = true;
                     break;
                 } catch (err) {
@@ -217,41 +253,7 @@ const executeFallbackChain = async (fullPrompt, requiredFields) => {
         }
     }
 
-    const parsedData = cleanAndParseResponse(rawText);
-    if (!parsedData) {
-        throw new Error(`الذكاء الاصطناعي (${finalProvider}) أرجع بيانات غير صالحة ولا يمكن تحويلها لـ JSON.`);
-    }
-
-    // 👑 تنفيذ التطهير الشامل للنصوص والفراغات
-    trimObject(parsedData);
-
-    // 🎯 تطبيع النسب المئوية
-    parsedData.trendProbability = normalizePercentage(parsedData.trendProbability);
-    parsedData.retentionRate = normalizePercentage(parsedData.retentionRate);
-
-    // 🛡️ التحقق من وجود الحقول الأساسية
-    const missingFields = requiredFields.filter(field => !(field in parsedData));
-    if (missingFields.length > 0) {
-        throw new Error(`بيانات ناقصة من المزود (${finalProvider}). الحقول المفقودة: [${missingFields.join(",")}]`);
-    }
-
-    // 🛡️ التحقق الصارم من هيكل ومحتوى المصفوفات
-    if (requiredFields.includes("hashtags") && !Array.isArray(parsedData.hashtags)) {
-        throw new Error("Validation Failed: 'hashtags' must be an array.");
-    }
-    if (requiredFields.includes("ideas") && !Array.isArray(parsedData.ideas)) {
-        throw new Error("Validation Failed: 'ideas' must be an array.");
-    }
-    if (requiredFields.includes("tips")) {
-        if (!Array.isArray(parsedData.tips)) {
-            throw new Error("Validation Failed: 'tips' must be an array.");
-        }
-        if (parsedData.tips.length < 3) {
-            throw new Error("Validation Failed: 'tips' array is too short (minimum 3 required).");
-        }
-    }
-
-    return { parsedData, provider: finalProvider };
+    return { parsedData: finalParsedData, provider: finalProvider };
 };
 
 // 👑 تصدير الخدمة
