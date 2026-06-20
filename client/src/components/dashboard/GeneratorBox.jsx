@@ -7,7 +7,7 @@ export default function GeneratorBox({ prompt, setPrompt, loading, onGenerate })
 
   return (
     <div className="w-full bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-[28px] p-5 shadow-sm dark:shadow-xl text-right dir-rtl select-none animate-scale-up transition-colors duration-300">
-      
+
       <div className="relative w-full mb-4">
         <textarea
           value={prompt}
@@ -28,11 +28,10 @@ export default function GeneratorBox({ prompt, setPrompt, loading, onGenerate })
               key={chip}
               type="button"
               onClick={() => setActiveChip(chip)}
-              className={`px-4 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
-                activeChip === chip
+              className={`px-4 py-1.5 rounded-xl text-[10px] font-black transition-all border ${activeChip === chip
                   ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-cyan-400 border-blue-200 dark:border-blue-500/30'
                   : 'bg-slate-50 dark:bg-slate-950/40 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
+                }`}
             >
               {chip}
             </button>
@@ -40,7 +39,7 @@ export default function GeneratorBox({ prompt, setPrompt, loading, onGenerate })
         </div>
 
         <Button
-          onClick={onGenerate}
+          onClick={() => onGenerate(activeChip)} // 👑 هنا التعديل: نمرر الأسلوب للـ Hook
           loading={loading}
           variant="primary"
           className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-xl text-[11px] hover:from-blue-700 shadow-lg shadow-blue-500/20 shrink-0 border-none"

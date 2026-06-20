@@ -8,11 +8,11 @@ import { showToast } from '../App.jsx';
 
 export default function useAiGenerator() {
   const { profile, setProfile, initialized } = useContext(AuthContext);
-  const { plan } = useContext(SubscriptionContext); 
+  const { plan } = useContext(SubscriptionContext);
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  
-  const [result, setResult] = useState({ 
+
+  const [result, setResult] = useState({
     hook: '', script: '', cta: '', hashtags: [], aiScore: null,
     retentionRate: null, bestTimes: [], viralIdeas: [], hookStrength: '',
     ctaRating: '', tips: []
@@ -30,7 +30,7 @@ export default function useAiGenerator() {
       if (typeof showToast === 'function') showToast('يرجى كتابة فكرة المحتوى أولاً', 'warning');
       return;
     }
-    
+
     setLoading(true);
     try {
       const currentDailyGens = profile.daily_generations || 0;
@@ -69,10 +69,12 @@ export default function useAiGenerator() {
         return;
       }
 
-      // دمج تعليمات الباقة مع برومبت المستخدم برمجياً
-      const finalPrompt = extraInstructions ? `${prompt}\n\n${extraInstructions}` : prompt;
-      const response = await aiService.generateScript(finalPrompt); 
-      
+      // 👑 دمج أسلوب الفيديو المختار (تحفيزي، تعليمي...) مع البرومبت بذكاء
+      const finalPrompt = extraInstructions
+        ? `${prompt}\n\n[ملاحظة هامة جداً: يجب أن يكون أسلوب ونبرة السكريبت: ${extraInstructions}]`
+        : prompt;
+      const response = await aiService.generateScript(finalPrompt);
+
       if (response && (response.success || response.hook)) {
         const aiData = response.success ? response.data : response;
 
@@ -107,7 +109,7 @@ export default function useAiGenerator() {
           if (insertError) {
             console.error("❌ [Supabase Direct Insert Error]:", insertError);
             throw new Error(`سوبابيس رفضت الحفظ الآلي: ${insertError.message}`);
-          } 
+          }
         }
 
         // تحديث الواجهة بالبيانات
@@ -116,7 +118,7 @@ export default function useAiGenerator() {
         // 🚀 3. خوارزمية تحديث العدادات الذكية وخصم التوكن ديناميكياً
         const nextDailyGens = currentDailyGens + 1;
         const deductedTokens = Math.max(0, currentTokens - 10);
-        
+
         let databaseUpdatePayload = {};
 
         if (shouldChargeTokens) {
@@ -137,7 +139,7 @@ export default function useAiGenerator() {
 
         // مزامنة الـ Context محلياً لايف ليعكس الرصيد والعداد الجديد على الشاشة فوراً
         setProfile(prev => ({ ...prev, ...databaseUpdatePayload }));
-        
+
         if (typeof showToast === 'function') {
           let successMessage = '';
           if (shouldChargeTokens) {

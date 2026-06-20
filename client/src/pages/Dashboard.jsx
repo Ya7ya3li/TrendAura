@@ -21,15 +21,17 @@ export default function Dashboard() {
     generateScript
   } = useAiGenerator()
 
-  const handleGenerationWithGate = async () => {
-    // 🧠 بناء التوجيهات الخوارزمية الصارمة وتمريرها للهوك ليتصل بالسيرفر بناءً عليها حقيقياً
-    let tierPromptInstructions = ''
+  // 👑 تم تحديث الدالة لاستقبال "الأسلوب المختار" (activeChip) من GeneratorBox
+  const handleGenerationWithGate = async (selectedStyle) => {
+    // 🧠 بناء التوجيهات الخوارزمية الصارمة وتمريرها للهوك
+    let tierPromptInstructions = selectedStyle ? `[ملاحظة: يجب أن يكون أسلوب ونبرة السكريبت: ${selectedStyle}] ` : ''
+
     if (currentPlan === 'free') {
-      tierPromptInstructions = 'اكتب سكربت قصير جداً ومحدود (30-45 ثانية فقط).'
+      tierPromptInstructions += 'اكتب سكربت قصير جداً ومحدود (30-45 ثانية فقط).'
     } else if (currentPlan === 'pro') {
-      tierPromptInstructions = 'اكتب سكربت احترافي متكامل بأعلى جودة وعناوين جاذبة تخطف العين وتمنع التمرير.'
+      tierPromptInstructions += 'اكتب سكربت احترافي متكامل بأعلى جودة وعناوين جاذبة تخطف العين وتمنع التمرير.'
     } else if (currentPlan === 'viral_engine') {
-      tierPromptInstructions = 'اكتب سكربت هجومي ناري مخصص وعميق (60-90 ثانية) يحاكي مشاهير التيك توك تماماً.'
+      tierPromptInstructions += 'اكتب سكربت هجومي ناري مخصص وعميق (60-90 ثانية) يحاكي مشاهير التيك توك تماماً.'
     }
 
     await generateScript(tierPromptInstructions)
@@ -37,17 +39,17 @@ export default function Dashboard() {
 
   // ✂️ تطبيق مقص الحماية للبيانات (Slicing) لمنع التسريب للمجاني
   const displayedHashtags = currentPlan === 'free'
-    ? (result?.hashtags ? result.hashtags.slice(0, 3) : [])  // عرض أول 3 هاشتاقات فقط للمجاني كعنصر تسويقي تحفيزي
+    ? (result?.hashtags ? result.hashtags.slice(0, 3) : [])
     : (result?.hashtags ? result.hashtags.slice(0, 10) : [])
 
   const displayedViralIdeas = currentPlan === 'free'
-    ? (result?.viralIdeas ? result.viralIdeas.slice(0, 2) : [])  // فكرتين فقط للمجاني
+    ? (result?.viralIdeas ? result.viralIdeas.slice(0, 2) : [])
     : (result?.viralIdeas ? result.viralIdeas.slice(0, 5) : [])
 
   return (
     <div className="w-full max-w-[1400px] mx-auto select-text animate-fade-in dir-rtl text-right font-sans transition-colors duration-300">
 
-      {/* ترويسة الصفحة مع حماية الألوان للوضعين الفاتح والغامق */}
+      {/* ترويسة الصفحة */}
       <div className="w-full flex items-center justify-between mb-8 pb-4 border-b border-slate-200 dark:border-slate-900/60 transition-colors duration-300">
         <div className="flex flex-col">
           <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2 transition-colors">
@@ -62,16 +64,22 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* صندوق التوليد */}
       <div className="w-full mb-8">
         <GeneratorBox prompt={prompt} setPrompt={setPrompt} loading={aiLoading} onGenerate={handleGenerationWithGate} />
       </div>
 
+      {/* شبكة الكروت */}
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+
+        {/* 🎬 كرت السكريبت (تم تمرير التقييمات الجديدة) */}
         <div className="lg:col-span-1 h-full block">
           <ScriptCard
             hook={result?.hook}
             script={result?.script}
             cta={result?.cta}
+            hookStrength={result?.hookStrength} // 👑 الإضافة الجديدة
+            ctaRating={result?.ctaRating}       // 👑 الإضافة الجديدة
             showRegenerate={currentPlan !== 'free'}
             onRegenerate={handleGenerationWithGate}
           />
@@ -81,7 +89,7 @@ export default function Dashboard() {
           <ProtectedFeature minRequiredPlan="pro" featureName="الهاشتاقات viral">
             <HashtagsCard hashtags={displayedHashtags} />
 
-            {/* بانر الترقية التحفيزي - تم ضبط ألوانه المزدوجة */}
+            {/* بانر الترقية التحفيزي للمجاني */}
             {currentPlan === 'free' && result?.hashtags?.length > 0 && (
               <div className="mt-3 text-center p-3 rounded-xl bg-blue-50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/10 animate-pulse transition-colors duration-300">
                 <span className="text-[10px] font-black text-blue-600 dark:text-cyan-400 flex items-center justify-center gap-1.5 transition-colors">
@@ -92,8 +100,8 @@ export default function Dashboard() {
                 </span>
               </div>
             )}
-
           </ProtectedFeature>
+
           <ProtectedFeature minRequiredPlan="pro" featureName="أفضل أوقات النشر">
             <BestTimeCard customTimes={result?.bestTimes || []} />
           </ProtectedFeature>
@@ -101,12 +109,15 @@ export default function Dashboard() {
 
         <div className="flex flex-col gap-6">
           <ProtectedFeature minRequiredPlan="viral_engine" featureName="أفكار المحتوى viral">
-            <ViralIdeasCard customIdeas={displayedViralIdeas} />
+            {/* 💡 كرت الأفكار (تم تمرير النصائح الإخراجية الجديدة) */}
+            <ViralIdeasCard customIdeas={displayedViralIdeas} tips={result?.tips || []} />
           </ProtectedFeature>
+
           <ProtectedFeature minRequiredPlan="viral_engine" featureName="محرك viral engine الخارق">
             <ViralEngineCard plan={currentPlan} scriptText={result?.script} />
           </ProtectedFeature>
         </div>
+
       </div>
     </div>
   )
