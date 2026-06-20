@@ -48,14 +48,25 @@ const cleanAndParseResponse = (text) => {
     }
 };
 
-// 🧹 2) مطهر النصوص والمصفوفات
+// 🧹 2) مطهر النصوص والمصفوفات (النسخة المدرعة ضد الكائنات)
 const trimObject = (obj) => {
     for (const key in obj) {
         if (typeof obj[key] === "string") {
             obj[key] = obj[key].trim();
         }
         if (Array.isArray(obj[key])) {
-            obj[key] = obj[key].map(item => typeof item === "string" ? item.trim() : item);
+            obj[key] = obj[key].map(item => {
+                // إذا كان نصاً عادياً، نظفه
+                if (typeof item === "string") return item.trim();
+
+                // 🛡️ إذا تفلسف الذكاء الاصطناعي وأرجع كائن {title, description}، ادمجهم كنص!
+                if (typeof item === "object" && item !== null) {
+                    return Object.values(item).join(" - ").trim();
+                }
+
+                // لأي نوع آخر
+                return String(item);
+            });
         }
     }
 };
@@ -108,8 +119,8 @@ const callGemini = async (prompt) => {
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: {
                     temperature: 0.7,
-                    topP: 0.9, // 👑 لزيادة الإبداع وتقليل التكرار
-                    maxOutputTokens: 700,
+                    topP: 0.9,
+                    maxOutputTokens: 1500, // 👑 رفع السعة لدعم النصوص العربية الطويلة
                     responseMimeType: "application/json"
                 }
             })
@@ -145,7 +156,7 @@ const callGroq = async (prompt) => {
             body: JSON.stringify({
                 model: 'llama-3.1-8b-instant',
                 temperature: 0.7,
-                max_tokens: 700,
+                max_tokens: 1500, // 👑 رفع السعة
                 response_format: { type: "json_object" },
                 messages: [{ role: 'user', content: prompt }]
             })
@@ -177,13 +188,13 @@ const callOpenRouter = async (prompt, modelName) => {
             headers: {
                 'Authorization': `Bearer ${env.openRouterApiKey}`,
                 'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://trendaura.app',
+                'HTTP-Referer': 'https://trendaura-two.vercel.app',
                 'X-Title': 'TrendAura SaaS'
             },
             body: JSON.stringify({
                 model: modelName,
                 temperature: 0.7,
-                max_tokens: 700,
+                max_tokens: 1500, // 👑 رفع السعة
                 response_format: { type: "json_object" },
                 messages: [{ role: 'user', content: prompt }]
             })
